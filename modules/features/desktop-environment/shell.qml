@@ -1,0 +1,3690 @@
+import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Networking
+import Quickshell.Services.Notifications
+import Quickshell.Io
+import QtQuick
+import QtQuick.Layouts
+
+ShellRoot {
+    id: shell
+
+    property bool showFullDate: true
+    property bool wifiPopupOpen: false
+    property var popupScreen: null
+    property string selectedNetworkName: ""
+    property string passwordInput: ""
+
+    property var wifiDev: {
+        var devs = Networking.devices.values;
+        for (var i = 0; i < devs.length; i++) {
+            if (devs[i].type === DeviceType.Wifi) return devs[i];
+        }
+        return null;
+    }
+
+    property var connectedNetwork: {
+        if (!wifiDev) return null;
+        var nets = wifiDev.networks.values;
+        for (var i = 0; i < nets.length; i++) {
+            if (nets[i].connected) return nets[i];
+        }
+        return null;
+    }
+
+    property bool ethernetConnected: false
+    property string ethernetInterface: ""
+
+    property bool hasBluetooth: false
+    property bool bluetoothPowered: false
+    property bool btPopupOpen: false
+    property var btPopupScreen: null
+    property var btPairedDevices: []
+    property var btConnectedDevices: []
+
+    property bool hasBattery: false
+    property int batteryPercent: 0
+    property bool batteryCharging: false
+    property string batteryStatus: ""
+    property string batteryTimeRemaining: ""
+    property string batteryPowerDraw: ""
+    property string powerProfile: ""
+    property int batteryHealthPercent: 100
+    property var batteryHistory: []
+    property int batteryHistoryCount: 0
+    property bool batteryHovered: false
+    property var batteryHoveredScreen: null
+    property real batteryIconX: 0
+    property real batteryIconWidth: 0
+    property bool batteryPopupOpen: false
+    property var batteryPopupScreen: null
+    property bool hasBrightness: false
+    property int brightnessPercent: 0
+    property bool brightnessPopupOpen: false
+    property var brightnessPopupScreen: null
+
+    property int volumePercent: 0
+    property bool volumeMuted: false
+    property bool volumePopupOpen: false
+    property var volumePopupScreen: null
+
+    property int micGainPercent: 0
+    property bool micMuted: false
+
+    property string weatherCondition: ""
+    property string weatherTemp: ""
+
+    property bool notifPopupOpen: false
+    property var notifPopupScreen: null
+    property bool toastVisible: false
+    property var toastNotification: null
+    property var notifHistory: []
+    property int notifCount: 0
+
+    // System monitor
+    property bool sysMonPopupOpen: false
+    property var sysMonPopupScreen: null
+    property real cpuPercent: 0
+    property var cpuHistory: []
+    property int cpuHistoryCount: 0
+    property real cpuPrevIdle: 0
+    property real cpuPrevTotal: 0
+    property real ramPercent: 0
+    property real ramUsedGb: 0
+    property real ramTotalGb: 0
+    property var ramHistory: []
+    property int ramHistoryCount: 0
+    property int cpuTemp: 0
+    property string diskUsed: ""
+    property string diskTotal: ""
+    property int diskPercent: 0
+
+    function addNotification(appName, summary, body, appIcon, image) {
+        var list = shell.notifHistory.slice();
+        list.unshift({
+            appName: appName || "Unknown",
+            summary: summary || "",
+            body: body || "",
+            appIcon: appIcon || "",
+            image: image || "",
+            time: Qt.formatDateTime(new Date(), "h:mm AP")
+        });
+        if (list.length > 100) list = list.slice(0, 100);
+        shell.notifHistory = list;
+        shell.notifCount = list.length;
+    }
+
+    function clearNotifications() {
+        shell.notifHistory = [];
+        shell.notifCount = 0;
+    }
+
+    function dismissNotification(index) {
+        var list = shell.notifHistory.slice();
+        list.splice(index, 1);
+        shell.notifHistory = list;
+        shell.notifCount = list.length;
+    }
+
+    NotificationServer {
+        id: notifServer
+        keepOnReload: true
+        bodySupported: true
+        actionsSupported: true
+        imageSupported: true
+
+        onNotification: notification => {
+            notification.tracked = true;
+            shell.addNotification(notification.appName, notification.summary, notification.body, notification.appIcon, notification.image);
+            shell.toastNotification = notification;
+            shell.toastVisible = true;
+            toastTimer.restart();
+        }
+    }
+
+    Timer {
+        id: toastTimer
+        interval: 5000
+        onTriggered: shell.toastVisible = false
+    }
+
+    Process {
+        id: batCheck
+        command: ["sh", "-c", "cat /sys/class/power_supply/BAT*/capacity 2>/dev/null && echo STATUS:$(cat /sys/class/power_supply/BAT*/status 2>/dev/null)"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("STATUS:")) {
+                    var status = line.substring(7);
+                    shell.batteryStatus = status;
+                    shell.batteryCharging = (status === "Charging" || status === "Full");
+                } else {
+                    var val = parseInt(line);
+                    if (!isNaN(val)) {
+                        shell.hasBattery = true;
+                        shell.batteryPercent = val;
+                    }
+                }
+            }
+        }
+    }
+
+    Process {
+        id: batteryTimeCheck
+        command: ["upower", "-i", "/org/freedesktop/UPower/devices/battery_BAT0"]
+        running: true
+        property bool found: false
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("time to empty:") || line.startsWith("time to full:")) {
+                    shell.batteryTimeRemaining = line.split(":").slice(1).join(":").trim();
+                    batteryTimeCheck.found = true;
+                }
+            }
+        }
+        onExited: {
+            if (!found) shell.batteryTimeRemaining = "";
+            found = false;
+        }
+    }
+
+    Process {
+        id: batteryPowerCheck
+        command: ["sh", "-c", "cat /sys/class/power_supply/BAT*/power_now 2>/dev/null || (echo CALC && cat /sys/class/power_supply/BAT*/current_now /sys/class/power_supply/BAT*/voltage_now 2>/dev/null)"]
+        running: true
+        property var values: []
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line === "CALC") {
+                    batteryPowerCheck.values = ["CALC"];
+                } else {
+                    batteryPowerCheck.values.push(line);
+                }
+            }
+        }
+        onExited: {
+            var v = values;
+            if (v.length > 0 && v[0] !== "CALC") {
+                var uw = parseInt(v[0]);
+                if (!isNaN(uw) && uw > 0) {
+                    shell.batteryPowerDraw = (uw / 1000000).toFixed(1) + "W";
+                } else {
+                    shell.batteryPowerDraw = "";
+                }
+            } else if (v.length >= 3 && v[0] === "CALC") {
+                var ua = parseInt(v[1]);
+                var uv = parseInt(v[2]);
+                if (!isNaN(ua) && !isNaN(uv) && ua > 0 && uv > 0) {
+                    shell.batteryPowerDraw = (ua * uv / 1e12).toFixed(1) + "W";
+                } else {
+                    shell.batteryPowerDraw = "";
+                }
+            } else {
+                shell.batteryPowerDraw = "";
+            }
+            values = [];
+        }
+    }
+
+    Process {
+        id: powerProfileCheck
+        command: ["powerprofilesctl", "get"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                shell.powerProfile = data.toString().trim();
+            }
+        }
+    }
+
+    Process {
+        id: powerProfileSet
+        property string profile: ""
+        command: ["powerprofilesctl", "set", profile]
+        onRunningChanged: {
+            if (!running) powerProfileCheck.running = true;
+        }
+    }
+
+    Process {
+        id: batteryHealthCheck
+        command: ["sh", "-c", "echo DESIGN:$(cat /sys/class/power_supply/BAT*/energy_full_design 2>/dev/null || cat /sys/class/power_supply/BAT*/charge_full_design 2>/dev/null) && echo FULL:$(cat /sys/class/power_supply/BAT*/energy_full 2>/dev/null || cat /sys/class/power_supply/BAT*/charge_full 2>/dev/null)"]
+        running: true
+        property int designEnergy: 0
+        property int fullEnergy: 0
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("DESIGN:")) {
+                    batteryHealthCheck.designEnergy = parseInt(line.substring(7)) || 0;
+                } else if (line.startsWith("FULL:")) {
+                    batteryHealthCheck.fullEnergy = parseInt(line.substring(5)) || 0;
+                }
+            }
+        }
+        onExited: {
+            if (designEnergy > 0 && fullEnergy > 0) {
+                shell.batteryHealthPercent = Math.round(fullEnergy / designEnergy * 100);
+            }
+            designEnergy = 0;
+            fullEnergy = 0;
+        }
+    }
+
+    Process {
+        id: brightnessCheck
+        command: ["sh", "-c", "brightnessctl -m | head -1"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                var parts = line.split(",");
+                if (parts.length >= 4) {
+                    shell.hasBrightness = true;
+                    var pct = parseInt(parts[3]);
+                    if (!isNaN(pct)) shell.brightnessPercent = pct;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: brightnessSet
+        property int target: 0
+        command: ["brightnessctl", "set", target + "%"]
+        onRunningChanged: {
+            if (!running) brightnessCheck.running = true;
+        }
+    }
+
+    Process {
+        id: volumeCheck
+        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                // Format: "Volume: 0.50" or "Volume: 0.50 [MUTED]"
+                shell.volumeMuted = line.indexOf("[MUTED]") !== -1;
+                var match = line.match(/Volume:\s+([\d.]+)/);
+                if (match) {
+                    shell.volumePercent = Math.round(parseFloat(match[1]) * 100);
+                }
+            }
+        }
+    }
+
+    Process {
+        id: volumeSet
+        property int target: 0
+        command: ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", target + "%"]
+        onRunningChanged: {
+            if (!running) volumeCheck.running = true;
+        }
+    }
+
+    Process {
+        id: volumeToggleMute
+        command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
+        onRunningChanged: {
+            if (!running) volumeCheck.running = true;
+        }
+    }
+
+    Process {
+        id: micCheck
+        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                shell.micMuted = line.indexOf("[MUTED]") !== -1;
+                var match = line.match(/Volume:\s+([\d.]+)/);
+                if (match) {
+                    shell.micGainPercent = Math.round(parseFloat(match[1]) * 100);
+                }
+            }
+        }
+    }
+
+    Process {
+        id: micGainSet
+        property int target: 0
+        command: ["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", target + "%"]
+        onRunningChanged: {
+            if (!running) micCheck.running = true;
+        }
+    }
+
+    Process {
+        id: micToggleMute
+        command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
+        onRunningChanged: {
+            if (!running) micCheck.running = true;
+        }
+    }
+
+    Process {
+        id: ethCheck
+        command: ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var parts = data.toString().split(":");
+                if (parts.length >= 3 && parts[1] === "ethernet" && parts[2] === "connected") {
+                    shell.ethernetConnected = true;
+                    shell.ethernetInterface = parts[0];
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 5000
+        running: true
+        repeat: true
+        onTriggered: {
+            shell.ethernetConnected = false;
+            shell.ethernetInterface = "";
+            ethCheck.running = true;
+            batCheck.running = true;
+            batteryTimeCheck.running = true;
+            batteryPowerCheck.running = true;
+            powerProfileCheck.running = true;
+            batteryHealthCheck.running = true;
+            brightnessCheck.running = true;
+            volumeCheck.running = true;
+            micCheck.running = true;
+            btControllerCheck.running = true;
+            cpuCheck.running = true;
+            ramCheck.running = true;
+            tempCheck.running = true;
+            var ch = shell.cpuHistory.slice();
+            ch.push(shell.cpuPercent);
+            if (ch.length > 60) ch = ch.slice(ch.length - 60);
+            shell.cpuHistory = ch;
+            shell.cpuHistoryCount = ch.length;
+            var rh = shell.ramHistory.slice();
+            rh.push(shell.ramPercent);
+            if (rh.length > 60) rh = rh.slice(rh.length - 60);
+            shell.ramHistory = rh;
+            shell.ramHistoryCount = rh.length;
+            if (shell.hasBattery) {
+                var h = shell.batteryHistory.slice();
+                h.push(shell.batteryPercent);
+                if (h.length > 720) h = h.slice(h.length - 720);
+                shell.batteryHistory = h;
+                shell.batteryHistoryCount = h.length;
+            }
+        }
+    }
+
+    Process {
+        id: btControllerCheck
+        command: ["bluetoothctl", "show"]
+        running: true
+        property string output: ""
+        stdout: SplitParser {
+            onRead: data => {
+                btControllerCheck.output += data.toString() + "\n";
+            }
+        }
+        onExited: (code, status) => {
+            if (code === 0 && btControllerCheck.output.length > 0) {
+                shell.hasBluetooth = true;
+                shell.bluetoothPowered = btControllerCheck.output.indexOf("Powered: yes") !== -1;
+            } else {
+                shell.hasBluetooth = false;
+            }
+            btControllerCheck.output = "";
+            if (shell.hasBluetooth) {
+                btDeviceCheck.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: btDeviceCheck
+        command: ["bluetoothctl", "devices", "Paired"]
+        property var devices: []
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("Device ")) {
+                    var parts = line.substring(7);
+                    var mac = parts.substring(0, 17);
+                    var name = parts.substring(18);
+                    btDeviceCheck.devices.push({ mac: mac, name: name });
+                }
+            }
+        }
+        onExited: (code, status) => {
+            shell.btPairedDevices = btDeviceCheck.devices;
+            btDeviceCheck.devices = [];
+            btConnectedCheck.connectedMacs = [];
+            btConnectedCheck.running = true;
+        }
+    }
+
+    Process {
+        id: btConnectedCheck
+        command: ["bluetoothctl", "devices", "Connected"]
+        property var connectedMacs: []
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("Device ")) {
+                    var mac = line.substring(7, 24);
+                    btConnectedCheck.connectedMacs.push(mac);
+                }
+            }
+        }
+        onExited: (code, status) => {
+            shell.btConnectedDevices = btConnectedCheck.connectedMacs;
+            btConnectedCheck.connectedMacs = [];
+        }
+    }
+
+    Process {
+        id: btToggle
+        property bool turnOn: true
+        command: ["bluetoothctl", "power", turnOn ? "on" : "off"]
+        onExited: btControllerCheck.running = true
+    }
+
+    Process {
+        id: btConnect
+        property string mac: ""
+        command: ["bluetoothctl", "connect", mac]
+        onExited: {
+            btDeviceCheck.devices = [];
+            btDeviceCheck.running = true;
+        }
+    }
+
+    Process {
+        id: btDisconnect
+        property string mac: ""
+        command: ["bluetoothctl", "disconnect", mac]
+        onExited: {
+            btDeviceCheck.devices = [];
+            btDeviceCheck.running = true;
+        }
+    }
+
+    Process {
+        id: weatherCheck
+        command: ["curl", "-sf", "--max-time", "5", "wttr.in/?format=%C|%t"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                var parts = line.split("|");
+                if (parts.length >= 2) {
+                    shell.weatherCondition = parts[0].trim().toLowerCase();
+                    shell.weatherTemp = parts[1].trim().replace("+", "");
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 600000
+        running: true
+        repeat: true
+        onTriggered: weatherCheck.running = true
+    }
+
+    Process {
+        id: cpuCheck
+        command: ["sh", "-c", "head -1 /proc/stat"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                var parts = line.split(/\s+/);
+                if (parts.length < 5) return;
+                var idle = parseInt(parts[4]) + (parseInt(parts[5]) || 0);
+                var total = 0;
+                for (var i = 1; i < parts.length; i++) total += parseInt(parts[i]) || 0;
+                if (shell.cpuPrevTotal > 0) {
+                    var diffIdle = idle - shell.cpuPrevIdle;
+                    var diffTotal = total - shell.cpuPrevTotal;
+                    if (diffTotal > 0) {
+                        shell.cpuPercent = Math.round((1 - diffIdle / diffTotal) * 100);
+                    }
+                }
+                shell.cpuPrevIdle = idle;
+                shell.cpuPrevTotal = total;
+            }
+        }
+    }
+
+    Process {
+        id: ramCheck
+        command: ["sh", "-c", "grep -E '^(MemTotal|MemAvailable):' /proc/meminfo"]
+        running: true
+        property real memTotal: 0
+        property real memAvail: 0
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("MemTotal:")) {
+                    ramCheck.memTotal = parseInt(line.split(/\s+/)[1]) || 0;
+                } else if (line.startsWith("MemAvailable:")) {
+                    ramCheck.memAvail = parseInt(line.split(/\s+/)[1]) || 0;
+                }
+            }
+        }
+        onExited: {
+            if (memTotal > 0) {
+                shell.ramTotalGb = Math.round(memTotal / 1048576 * 10) / 10;
+                var used = memTotal - memAvail;
+                shell.ramUsedGb = Math.round(used / 1048576 * 10) / 10;
+                shell.ramPercent = Math.round(used / memTotal * 100);
+            }
+            memTotal = 0;
+            memAvail = 0;
+        }
+    }
+
+    Process {
+        id: tempCheck
+        command: ["sh", "-c", "cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null | sort -rn | head -1"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var val = parseInt(data.toString().trim());
+                if (!isNaN(val)) shell.cpuTemp = Math.round(val / 1000);
+            }
+        }
+    }
+
+    Process {
+        id: diskCheck
+        command: ["df", "-h", "/"]
+        running: true
+        property bool headerSkipped: false
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (!diskCheck.headerSkipped) { diskCheck.headerSkipped = true; return; }
+                var parts = line.split(/\s+/);
+                if (parts.length >= 5) {
+                    shell.diskTotal = parts[1];
+                    shell.diskUsed = parts[2];
+                    shell.diskPercent = parseInt(parts[4]) || 0;
+                }
+            }
+        }
+        onExited: { headerSkipped = false; }
+    }
+
+    Timer {
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: diskCheck.running = true
+    }
+
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
+
+    // Bar - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: barWindow
+            required property var modelData
+            screen: modelData
+
+            anchors {
+                top: true
+                left: true
+                right: true
+            }
+            implicitHeight: 30
+            color: Qt.rgba(1, 1, 1, 0.3)
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 0
+
+                // === Left: Workspace indicators ===
+                Row {
+                    spacing: 2
+                    Layout.alignment: Qt.AlignLeft
+
+                    Repeater {
+                        model: 10
+
+                        Rectangle {
+                            required property int index
+                            property int wsId: index + 1
+                            property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
+                            property bool hovered: false
+
+                            width: 24
+                            height: 22
+                            radius: 4
+                            color: isActive ? Qt.rgba(1, 1, 1, 0.5)
+                                : hovered ? Qt.rgba(1, 1, 1, 0.3)
+                                : "transparent"
+
+                            Behavior on color { ColorAnimation { duration: 150 } }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: parent.wsId
+                                color: "#ffffff"
+                                font.pixelSize: 12
+                                font.bold: parent.isActive
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onEntered: parent.hovered = true
+                                onExited: parent.hovered = false
+                                onClicked: Hyprland.dispatch("workspace " + parent.wsId)
+                            }
+                        }
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                // === Battery icon ===
+                Rectangle {
+                    id: batteryButton
+                    property bool hovered: false
+                    visible: shell.hasBattery
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 34
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.batteryPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Canvas {
+                        id: batteryCanvas
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 12
+
+                        property int percent: shell.batteryPercent
+                        property bool charging: shell.batteryCharging
+                        onPercentChanged: requestPaint()
+                        onChargingChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+
+                            // Battery outline
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.lineWidth = 1.4;
+                            ctx.lineJoin = "round";
+                            ctx.beginPath();
+                            ctx.roundedRect(0.5, 0.5, 20, 11, 2, 2);
+                            ctx.stroke();
+
+                            // Terminal nub
+                            ctx.fillStyle = "#ffffff";
+                            ctx.beginPath();
+                            ctx.roundedRect(21, 3, 2.5, 5, 1, 1);
+                            ctx.fill();
+
+                            // Fill colour based on level
+                            var pct = percent / 100;
+                            var fillColor;
+                            if (charging) {
+                                fillColor = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                            } else if (percent <= 10) {
+                                fillColor = Qt.rgba(0.9, 0.2, 0.2, 0.9);
+                            } else if (percent <= 25) {
+                                fillColor = Qt.rgba(0.95, 0.5, 0.15, 0.85);
+                            } else if (percent <= 50) {
+                                fillColor = Qt.rgba(0.95, 0.85, 0.2, 0.8);
+                            } else {
+                                fillColor = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                            }
+
+                            // Inner fill
+                            var maxFillWidth = 17;
+                            var fillWidth = maxFillWidth * pct;
+                            if (fillWidth > 0.5) {
+                                ctx.fillStyle = fillColor;
+                                ctx.beginPath();
+                                ctx.roundedRect(2, 2.5, fillWidth, 7, 1, 1);
+                                ctx.fill();
+                            }
+
+                            // Charging bolt
+                            if (charging) {
+                                ctx.fillStyle = "#ffffff";
+                                ctx.beginPath();
+                                ctx.moveTo(12, 1);
+                                ctx.lineTo(8, 6.5);
+                                ctx.lineTo(11, 6.5);
+                                ctx.lineTo(9, 11);
+                                ctx.lineTo(13, 5.5);
+                                ctx.lineTo(10, 5.5);
+                                ctx.closePath();
+                                ctx.fill();
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: {
+                            parent.hovered = true;
+                            shell.batteryHovered = true;
+                            shell.batteryHoveredScreen = barWindow.modelData;
+                            var pos = parent.mapToItem(null, 0, 0);
+                            shell.batteryIconX = pos.x;
+                            shell.batteryIconWidth = parent.width;
+                        }
+                        onExited: { parent.hovered = false; shell.batteryHovered = false; }
+                        onClicked: {
+                            if (shell.batteryPopupOpen) {
+                                shell.batteryPopupOpen = false;
+                            } else {
+                                shell.wifiPopupOpen = false;
+                                shell.btPopupOpen = false;
+                                shell.volumePopupOpen = false;
+                                shell.brightnessPopupOpen = false;
+                                shell.notifPopupOpen = false;
+                                shell.sysMonPopupOpen = false;
+                                shell.batteryPopupScreen = barWindow.modelData;
+                                shell.batteryPopupOpen = true;
+                            }
+                        }
+                    }
+                }
+
+                // === System monitor icon ===
+                Rectangle {
+                    id: sysMonButton
+                    property bool hovered: false
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 30
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.sysMonPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 14
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.lineWidth = 1.4;
+                            ctx.lineJoin = "round";
+                            ctx.beginPath();
+                            ctx.roundedRect(0.5, 0.5, 13, 10, 1.5, 1.5);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(5, 11.5);
+                            ctx.lineTo(9, 11.5);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(7, 10.5);
+                            ctx.lineTo(7, 11.5);
+                            ctx.stroke();
+                            ctx.lineWidth = 1.2;
+                            ctx.lineCap = "round";
+                            ctx.beginPath();
+                            ctx.moveTo(2, 7);
+                            ctx.lineTo(4, 7);
+                            ctx.lineTo(5.5, 3);
+                            ctx.lineTo(7, 8);
+                            ctx.lineTo(8.5, 4);
+                            ctx.lineTo(10, 7);
+                            ctx.lineTo(12, 7);
+                            ctx.stroke();
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            if (shell.sysMonPopupOpen) {
+                                shell.sysMonPopupOpen = false;
+                            } else {
+                                shell.wifiPopupOpen = false;
+                                shell.btPopupOpen = false;
+                                shell.volumePopupOpen = false;
+                                shell.brightnessPopupOpen = false;
+                                shell.batteryPopupOpen = false;
+                                shell.notifPopupOpen = false;
+                                shell.sysMonPopupScreen = barWindow.modelData;
+                                shell.sysMonPopupOpen = true;
+                            }
+                        }
+                    }
+                }
+
+                // === Brightness icon ===
+                Rectangle {
+                    id: brightnessButton
+                    property bool hovered: false
+                    visible: shell.hasBrightness
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 30
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.brightnessPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 14
+
+                        property int pct: shell.brightnessPercent
+                        onPctChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+
+                            var cx = 7;
+                            var cy = 7;
+                            var r = 3;
+
+                            // Sun rays
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.lineWidth = 1.4;
+                            ctx.lineCap = "round";
+                            var rayLen = 2;
+                            var rayDist = 5;
+                            for (var i = 0; i < 8; i++) {
+                                var angle = i * Math.PI / 4;
+                                var x1 = cx + Math.cos(angle) * rayDist;
+                                var y1 = cy + Math.sin(angle) * rayDist;
+                                var x2 = cx + Math.cos(angle) * (rayDist + rayLen);
+                                var y2 = cy + Math.sin(angle) * (rayDist + rayLen);
+                                ctx.beginPath();
+                                ctx.moveTo(x1, y1);
+                                ctx.lineTo(x2, y2);
+                                ctx.stroke();
+                            }
+
+                            // Sun circle
+                            var opacity = 0.4 + (pct / 100) * 0.6;
+                            ctx.fillStyle = Qt.rgba(1, 1, 1, opacity);
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+                            ctx.fill();
+
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.lineWidth = 1.4;
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+                            ctx.stroke();
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            if (shell.brightnessPopupOpen) {
+                                shell.brightnessPopupOpen = false;
+                            } else {
+                                shell.wifiPopupOpen = false;
+                                shell.btPopupOpen = false;
+                                shell.volumePopupOpen = false;
+                                shell.batteryPopupOpen = false;
+                                shell.notifPopupOpen = false;
+                                shell.sysMonPopupOpen = false;
+                                shell.brightnessPopupScreen = barWindow.modelData;
+                                shell.brightnessPopupOpen = true;
+                            }
+                        }
+                    }
+                }
+
+                // === Volume icon ===
+                Rectangle {
+                    id: volumeButton
+                    property bool hovered: false
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 30
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.volumePopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 14
+
+                        property int vol: shell.volumePercent
+                        property bool muted: shell.volumeMuted
+                        onVolChanged: requestPaint()
+                        onMutedChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+
+                            ctx.strokeStyle = muted ? Qt.rgba(1, 1, 1, 0.4) : "#ffffff";
+                            ctx.fillStyle = muted ? Qt.rgba(1, 1, 1, 0.4) : "#ffffff";
+                            ctx.lineWidth = 1.4;
+                            ctx.lineJoin = "round";
+                            ctx.lineCap = "round";
+
+                            // Speaker body
+                            ctx.beginPath();
+                            ctx.moveTo(1, 5);
+                            ctx.lineTo(3.5, 5);
+                            ctx.lineTo(6.5, 2);
+                            ctx.lineTo(6.5, 12);
+                            ctx.lineTo(3.5, 9);
+                            ctx.lineTo(1, 9);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            if (muted) {
+                                // X mark
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.lineWidth = 1.6;
+                                ctx.beginPath();
+                                ctx.moveTo(9, 4.5);
+                                ctx.lineTo(13, 9.5);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                ctx.moveTo(13, 4.5);
+                                ctx.lineTo(9, 9.5);
+                                ctx.stroke();
+                            } else {
+                                // Sound waves
+                                ctx.strokeStyle = "#ffffff";
+                                ctx.lineWidth = 1.3;
+                                if (vol > 0) {
+                                    ctx.beginPath();
+                                    ctx.arc(7, 7, 3, -Math.PI / 4, Math.PI / 4);
+                                    ctx.stroke();
+                                }
+                                if (vol > 33) {
+                                    ctx.beginPath();
+                                    ctx.arc(7, 7, 5, -Math.PI / 4, Math.PI / 4);
+                                    ctx.stroke();
+                                }
+                                if (vol > 66) {
+                                    ctx.beginPath();
+                                    ctx.arc(7, 7, 7, -Math.PI / 4, Math.PI / 4);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            if (shell.volumePopupOpen) {
+                                shell.volumePopupOpen = false;
+                            } else {
+                                shell.wifiPopupOpen = false;
+                                shell.btPopupOpen = false;
+                                shell.brightnessPopupOpen = false;
+                                shell.batteryPopupOpen = false;
+                                shell.notifPopupOpen = false;
+                                shell.sysMonPopupOpen = false;
+                                shell.volumePopupScreen = barWindow.modelData;
+                                shell.volumePopupOpen = true;
+                            }
+                        }
+                    }
+                }
+
+                // === Bluetooth icon ===
+                Rectangle {
+                    id: btButton
+                    property bool hovered: false
+                    visible: shell.hasBluetooth
+
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 30
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.btPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 12
+                        height: 16
+
+                        property bool powered: shell.bluetoothPowered
+                        onPoweredChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            ctx.strokeStyle = shell.bluetoothPowered ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.lineWidth = 1.6;
+                            ctx.lineCap = "round";
+                            ctx.lineJoin = "round";
+
+                            var cx = width / 2;
+
+                            // Bluetooth rune shape
+                            ctx.beginPath();
+                            ctx.moveTo(2, 4);
+                            ctx.lineTo(9, 11);
+                            ctx.lineTo(cx, 15);
+                            ctx.lineTo(cx, 1);
+                            ctx.lineTo(9, 5);
+                            ctx.lineTo(2, 12);
+                            ctx.stroke();
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            shell.btPopupOpen = !shell.btPopupOpen;
+                            shell.btPopupScreen = barWindow.modelData;
+                            if (shell.btPopupOpen) {
+                                shell.brightnessPopupOpen = false;
+                                shell.volumePopupOpen = false;
+                                shell.batteryPopupOpen = false;
+                                shell.notifPopupOpen = false;
+                                shell.sysMonPopupOpen = false;
+                                btControllerCheck.running = true;
+                            }
+                        }
+                    }
+                }
+
+                // === Right: WiFi icon ===
+                Rectangle {
+                    id: wifiButton
+                    property bool hovered: false
+
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 30
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.wifiPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    // WiFi icon
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 18
+                        height: 14
+                        visible: !shell.ethernetConnected
+
+                        property bool wifiOn: Networking.wifiEnabled
+                        onWifiOnChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var col = wifiOn ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.strokeStyle = col;
+                            ctx.lineWidth = 1.6;
+                            ctx.lineCap = "round";
+
+                            var cx = width / 2;
+                            var by = height;
+
+                            ctx.beginPath();
+                            ctx.arc(cx, by, 13, -Math.PI * 0.75, -Math.PI * 0.25);
+                            ctx.stroke();
+
+                            ctx.beginPath();
+                            ctx.arc(cx, by, 9, -Math.PI * 0.75, -Math.PI * 0.25);
+                            ctx.stroke();
+
+                            ctx.beginPath();
+                            ctx.arc(cx, by, 5, -Math.PI * 0.75, -Math.PI * 0.25);
+                            ctx.stroke();
+
+                            ctx.fillStyle = col;
+                            ctx.beginPath();
+                            ctx.arc(cx, by - 1, 1.8, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Diagonal strike-through when disabled
+                            if (!wifiOn) {
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.lineWidth = 1.8;
+                                ctx.beginPath();
+                                ctx.moveTo(1, 1);
+                                ctx.lineTo(width - 1, height - 1);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+
+                    // Ethernet icon
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 14
+                        visible: shell.ethernetConnected
+
+                        property bool wifiOn: Networking.wifiEnabled
+                        onWifiOnChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            ctx.strokeStyle = wifiOn ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.lineWidth = 1.4;
+                            ctx.lineCap = "round";
+                            ctx.lineJoin = "round";
+
+                            var cx = width / 2;
+
+                            // Vertical line
+                            ctx.beginPath();
+                            ctx.moveTo(cx, 1);
+                            ctx.lineTo(cx, 13);
+                            ctx.stroke();
+
+                            // Top horizontal
+                            ctx.beginPath();
+                            ctx.moveTo(3, 4);
+                            ctx.lineTo(width - 3, 4);
+                            ctx.stroke();
+
+                            // Left branch down
+                            ctx.beginPath();
+                            ctx.moveTo(3, 4);
+                            ctx.lineTo(3, 7);
+                            ctx.stroke();
+
+                            // Right branch down
+                            ctx.beginPath();
+                            ctx.moveTo(width - 3, 4);
+                            ctx.lineTo(width - 3, 7);
+                            ctx.stroke();
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            shell.wifiPopupOpen = !shell.wifiPopupOpen;
+                            shell.popupScreen = barWindow.modelData;
+                            if (shell.wifiPopupOpen) {
+                                shell.brightnessPopupOpen = false;
+                                shell.volumePopupOpen = false;
+                                shell.batteryPopupOpen = false;
+                                shell.notifPopupOpen = false;
+                                shell.sysMonPopupOpen = false;
+                                if (shell.wifiDev) shell.wifiDev.scannerEnabled = true;
+                            }
+                            shell.selectedNetworkName = "";
+                            shell.passwordInput = "";
+                        }
+                    }
+                }
+
+                // === Notification bell icon ===
+                Rectangle {
+                    id: notifButton
+                    property bool hovered: false
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 30
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.notifPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 16
+
+                        property int count: shell.notifCount
+                        onCountChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.fillStyle = "#ffffff";
+                            ctx.lineWidth = 1.4;
+                            ctx.lineCap = "round";
+                            ctx.lineJoin = "round";
+
+                            // Bell body
+                            ctx.beginPath();
+                            ctx.moveTo(2, 10);
+                            ctx.quadraticCurveTo(2, 5, 4, 3);
+                            ctx.quadraticCurveTo(5.5, 0.5, 7, 0.5);
+                            ctx.quadraticCurveTo(8.5, 0.5, 10, 3);
+                            ctx.quadraticCurveTo(12, 5, 12, 10);
+                            ctx.lineTo(13, 11.5);
+                            ctx.lineTo(1, 11.5);
+                            ctx.closePath();
+                            ctx.stroke();
+                            ctx.fill();
+
+                            // Clapper
+                            ctx.beginPath();
+                            ctx.arc(7, 14, 1.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+
+                    // Unread badge
+                    Rectangle {
+                        visible: shell.notifCount > 0
+                        x: parent.width - 10
+                        y: 1
+                        width: Math.max(12, badgeText.implicitWidth + 4)
+                        height: 12
+                        radius: 6
+                        color: "#e04040"
+
+                        Text {
+                            id: badgeText
+                            anchors.centerIn: parent
+                            text: shell.notifCount > 99 ? "99+" : shell.notifCount
+                            color: "#ffffff"
+                            font.pixelSize: 8
+                            font.bold: true
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            if (shell.notifPopupOpen) {
+                                shell.notifPopupOpen = false;
+                            } else {
+                                shell.wifiPopupOpen = false;
+                                shell.btPopupOpen = false;
+                                shell.volumePopupOpen = false;
+                                shell.brightnessPopupOpen = false;
+                                shell.batteryPopupOpen = false;
+                                shell.sysMonPopupOpen = false;
+                                shell.notifPopupScreen = barWindow.modelData;
+                                shell.notifPopupOpen = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // === Centre: Date / Time + Weather (anchored to true centre) ===
+            Rectangle {
+                id: dateArea
+                property bool hovered: false
+
+                anchors.centerIn: parent
+                width: centreRow.implicitWidth + 20
+                height: 22
+                radius: 4
+                color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+
+                Row {
+                    id: centreRow
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                    Text {
+                        id: dateText
+                        text: shell.showFullDate
+                            ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
+                            : Qt.formatDateTime(clock.date, "h:mm AP")
+                        color: "#ffffff"
+                        font.pixelSize: 13
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Rectangle {
+                        visible: shell.weatherCondition !== ""
+                        width: 1
+                        height: 12
+                        color: Qt.rgba(1, 1, 1, 0.4)
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Canvas {
+                        id: weatherCanvas
+                        visible: shell.weatherCondition !== ""
+                        width: 14
+                        height: 14
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        property string cond: shell.weatherCondition
+                        onCondChanged: requestPaint()
+
+                        function weatherType() {
+                            var c = cond;
+                            if (c.indexOf("thunder") !== -1) return "thunder";
+                            if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
+                            if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
+                            if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
+                            if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
+                            if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
+                            if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
+                            return "cloudy";
+                        }
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var type = weatherType();
+
+                            ctx.strokeStyle = "#ffffff";
+                            ctx.fillStyle = "#ffffff";
+                            ctx.lineWidth = 1.3;
+                            ctx.lineCap = "round";
+
+                            if (type === "sunny") {
+                                // Sun circle
+                                ctx.beginPath();
+                                ctx.arc(7, 7, 3, 0, 2 * Math.PI);
+                                ctx.fill();
+                                // Rays
+                                for (var i = 0; i < 8; i++) {
+                                    var a = i * Math.PI / 4;
+                                    ctx.beginPath();
+                                    ctx.moveTo(7 + Math.cos(a) * 4.5, 7 + Math.sin(a) * 4.5);
+                                    ctx.lineTo(7 + Math.cos(a) * 6.5, 7 + Math.sin(a) * 6.5);
+                                    ctx.stroke();
+                                }
+                            } else if (type === "partlycloudy") {
+                                // Small sun behind cloud
+                                ctx.beginPath();
+                                ctx.arc(10, 4, 2.5, 0, 2 * Math.PI);
+                                ctx.fill();
+                                for (var j = 0; j < 6; j++) {
+                                    var a2 = j * Math.PI / 3 - Math.PI / 6;
+                                    ctx.beginPath();
+                                    ctx.moveTo(10 + Math.cos(a2) * 3.5, 4 + Math.sin(a2) * 3.5);
+                                    ctx.lineTo(10 + Math.cos(a2) * 5, 4 + Math.sin(a2) * 5);
+                                    ctx.stroke();
+                                }
+                                // Cloud
+                                ctx.beginPath();
+                                ctx.arc(4, 9, 3, Math.PI, 1.5 * Math.PI);
+                                ctx.arc(7, 6.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
+                                ctx.arc(10.5, 9, 2.5, 1.5 * Math.PI, 0);
+                                ctx.lineTo(13, 11);
+                                ctx.lineTo(1, 11);
+                                ctx.closePath();
+                                ctx.fill();
+                            } else {
+                                // Cloud base for cloudy/rain/snow/thunder/fog
+                                ctx.beginPath();
+                                ctx.arc(4, 8, 3, Math.PI, 1.5 * Math.PI);
+                                ctx.arc(7, 5.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
+                                ctx.arc(10.5, 8, 2.5, 1.5 * Math.PI, 0);
+                                ctx.lineTo(13, 10);
+                                ctx.lineTo(1, 10);
+                                ctx.closePath();
+                                ctx.fill();
+
+                                if (type === "rain" || type === "thunder") {
+                                    ctx.lineWidth = 1.2;
+                                    ctx.beginPath(); ctx.moveTo(4, 11.5); ctx.lineTo(3, 13.5); ctx.stroke();
+                                    ctx.beginPath(); ctx.moveTo(7, 11.5); ctx.lineTo(6, 13.5); ctx.stroke();
+                                    ctx.beginPath(); ctx.moveTo(10, 11.5); ctx.lineTo(9, 13.5); ctx.stroke();
+                                }
+                                if (type === "thunder") {
+                                    ctx.lineWidth = 1.4;
+                                    ctx.beginPath();
+                                    ctx.moveTo(8, 10); ctx.lineTo(6.5, 12); ctx.lineTo(8, 12); ctx.lineTo(6.5, 14);
+                                    ctx.stroke();
+                                }
+                                if (type === "snow") {
+                                    ctx.font = "8px sans-serif";
+                                    ctx.fillText("*", 3, 13.5);
+                                    ctx.fillText("*", 7, 13.5);
+                                    ctx.fillText("*", 11, 13.5);
+                                }
+                                if (type === "fog") {
+                                    ctx.lineWidth = 1;
+                                    ctx.beginPath(); ctx.moveTo(2, 11.5); ctx.lineTo(12, 11.5); ctx.stroke();
+                                    ctx.beginPath(); ctx.moveTo(3, 13); ctx.lineTo(11, 13); ctx.stroke();
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        visible: shell.weatherCondition !== ""
+                        text: shell.weatherTemp
+                        color: "#ffffff"
+                        font.pixelSize: 13
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onEntered: parent.hovered = true
+                    onExited: parent.hovered = false
+                    onClicked: shell.showFullDate = !shell.showFullDate
+                }
+            }
+        }
+    }
+
+    // WiFi popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: popupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.wifiPopupOpen && shell.popupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.wifiPopupOpen && shell.popupScreen === modelData
+                windows: [popupWindow]
+                onCleared: {
+                    shell.wifiPopupOpen = false;
+                    shell.selectedNetworkName = "";
+                    shell.passwordInput = "";
+                }
+            }
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 280
+            implicitHeight: popupContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: popupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    // WiFi toggle
+                    Rectangle {
+                        width: parent.width
+                        height: 32
+                        radius: 6
+                        color: wifiToggleHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+
+                            Text {
+                                text: "WiFi"
+                                color: "#ffffff"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                width: 36
+                                height: 20
+                                radius: 10
+                                color: Networking.wifiEnabled ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+
+                                Behavior on color { ColorAnimation { duration: 200 } }
+
+                                Rectangle {
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    y: 2
+                                    x: Networking.wifiEnabled ? parent.width - width - 2 : 2
+                                    color: "#ffffff"
+
+                                    Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: wifiToggleHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // Ethernet connected section
+                    Text {
+                        text: "Ethernet"
+                        color: Qt.rgba(1, 1, 1, 0.6)
+                        font.pixelSize: 11
+                        font.bold: true
+                        visible: shell.ethernetConnected
+                    }
+
+                    Rectangle {
+                        visible: shell.ethernetConnected
+                        width: parent.width
+                        height: 36
+                        radius: 6
+                        color: ethHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 8
+
+                            Text {
+                                text: shell.ethernetInterface ? shell.ethernetInterface : "Ethernet"
+                                color: "#ffffff"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.fillWidth: true
+                            }
+
+                            Text {
+                                text: "Connected"
+                                color: Qt.rgba(1, 1, 1, 0.7)
+                                font.pixelSize: 11
+                            }
+                        }
+
+                        MouseArea {
+                            id: ethHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        visible: shell.ethernetConnected
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // WiFi connected section
+                    Text {
+                        text: "Connected"
+                        color: Qt.rgba(1, 1, 1, 0.6)
+                        font.pixelSize: 11
+                        font.bold: true
+                        visible: Networking.wifiEnabled && shell.connectedNetwork !== null
+                    }
+
+                    Rectangle {
+                        visible: Networking.wifiEnabled && shell.connectedNetwork !== null
+                        width: parent.width
+                        height: 36
+                        radius: 6
+                        color: currentNetHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 8
+
+                            Text {
+                                text: shell.connectedNetwork ? shell.connectedNetwork.name : ""
+                                color: "#ffffff"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.fillWidth: true
+                            }
+
+                            Text {
+                                text: shell.connectedNetwork ? Math.round(shell.connectedNetwork.signalStrength * 100) + "%" : ""
+                                color: Qt.rgba(1, 1, 1, 0.7)
+                                font.pixelSize: 11
+                            }
+                        }
+
+                        MouseArea {
+                            id: currentNetHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        visible: Networking.wifiEnabled && shell.connectedNetwork !== null
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // Available networks header
+                    Text {
+                        text: "Available"
+                        color: Qt.rgba(1, 1, 1, 0.6)
+                        font.pixelSize: 11
+                        font.bold: true
+                        visible: Networking.wifiEnabled
+                    }
+
+                    // Network list
+                    Flickable {
+                        visible: Networking.wifiEnabled
+                        width: parent.width
+                        height: Math.min(contentHeight, 250)
+                        contentHeight: networkColumn.implicitHeight
+                        clip: true
+
+                        Column {
+                            id: networkColumn
+                            width: parent.width
+                            spacing: 2
+
+                            Repeater {
+                                model: shell.wifiDev ? shell.wifiDev.networks : []
+
+                                delegate: Column {
+                                    required property var modelData
+                                    width: networkColumn.width
+                                    visible: !modelData.connected
+
+                                    Rectangle {
+                                        id: netItem
+                                        property bool hovered: false
+                                        property bool isSelected: shell.selectedNetworkName === modelData.name
+
+                                        width: parent.width
+                                        height: 36
+                                        radius: 6
+                                        color: hovered ? Qt.rgba(1, 1, 1, 0.3)
+                                            : isSelected ? Qt.rgba(1, 1, 1, 0.1)
+                                            : "transparent"
+
+                                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                                        RowLayout {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 10
+                                            anchors.rightMargin: 10
+                                            spacing: 8
+
+                                            Text {
+                                                text: modelData.name
+                                                color: "#ffffff"
+                                                font.pixelSize: 13
+                                                Layout.fillWidth: true
+                                            }
+
+                                            Text {
+                                                visible: modelData.security !== WifiSecurityType.None && !modelData.known
+                                                text: "🔒"
+                                                font.pixelSize: 10
+                                            }
+
+                                            Text {
+                                                text: Math.round(modelData.signalStrength * 100) + "%"
+                                                color: Qt.rgba(1, 1, 1, 0.7)
+                                                font.pixelSize: 11
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onEntered: netItem.hovered = true
+                                            onExited: netItem.hovered = false
+                                            onClicked: {
+                                                if (modelData.known) {
+                                                    modelData.connect();
+                                                    shell.wifiPopupOpen = false;
+                                                } else {
+                                                    shell.selectedNetworkName = modelData.name;
+                                                    shell.passwordInput = "";
+                                                    pskField.forceActiveFocus();
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Password input row
+                                    Rectangle {
+                                        visible: shell.selectedNetworkName === modelData.name && !modelData.known
+                                        width: parent.width
+                                        height: visible ? 36 : 0
+                                        radius: 6
+                                        color: Qt.rgba(1, 1, 1, 0.08)
+
+                                        Behavior on height { NumberAnimation { duration: 150 } }
+
+                                        RowLayout {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 10
+                                            anchors.rightMargin: 10
+                                            spacing: 6
+
+                                            Rectangle {
+                                                Layout.fillWidth: true
+                                                height: 24
+                                                radius: 4
+                                                color: Qt.rgba(0, 0, 0, 0.3)
+
+                                                TextInput {
+                                                    id: pskField
+                                                    anchors.fill: parent
+                                                    anchors.leftMargin: 6
+                                                    anchors.rightMargin: 6
+                                                    verticalAlignment: TextInput.AlignVCenter
+                                                    color: "#ffffff"
+                                                    font.pixelSize: 12
+                                                    echoMode: TextInput.Password
+                                                    clip: true
+                                                    onTextChanged: shell.passwordInput = text
+                                                    Keys.onReturnPressed: {
+                                                        if (shell.passwordInput.length > 0) {
+                                                            modelData.connectWithPsk(shell.passwordInput);
+                                                            shell.selectedNetworkName = "";
+                                                            shell.passwordInput = "";
+                                                            shell.wifiPopupOpen = false;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                width: 56
+                                                height: 24
+                                                radius: 4
+                                                color: connectHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+
+                                                Behavior on color { ColorAnimation { duration: 150 } }
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "Connect"
+                                                    color: "#ffffff"
+                                                    font.pixelSize: 11
+                                                }
+
+                                                MouseArea {
+                                                    id: connectHover
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        if (shell.passwordInput.length > 0) {
+                                                            modelData.connectWithPsk(shell.passwordInput);
+                                                            shell.selectedNetworkName = "";
+                                                            shell.passwordInput = "";
+                                                            shell.wifiPopupOpen = false;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // WiFi disabled message
+                    Text {
+                        visible: shell.wifiDev !== null && !Networking.wifiEnabled
+                        text: "WiFi is disabled"
+                        color: Qt.rgba(1, 1, 1, 0.5)
+                        font.pixelSize: 12
+                    }
+
+                    // No wifi device message
+                    Text {
+                        visible: shell.wifiDev === null
+                        text: "No WiFi adapter found"
+                        color: Qt.rgba(1, 1, 1, 0.5)
+                        font.pixelSize: 12
+                    }
+                }
+            }
+        }
+    }
+
+    // Bluetooth popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: btPopupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.btPopupOpen && shell.btPopupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.btPopupOpen && shell.btPopupScreen === modelData
+                windows: [btPopupWindow]
+                onCleared: {
+                    shell.btPopupOpen = false;
+                }
+            }
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 280
+            implicitHeight: btPopupContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: btPopupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    // Bluetooth toggle
+                    Rectangle {
+                        width: parent.width
+                        height: 32
+                        radius: 6
+                        color: btToggleHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+
+                            Text {
+                                text: "Bluetooth"
+                                color: "#ffffff"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                width: 36
+                                height: 20
+                                radius: 10
+                                color: shell.bluetoothPowered ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+
+                                Behavior on color { ColorAnimation { duration: 200 } }
+
+                                Rectangle {
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    y: 2
+                                    x: shell.bluetoothPowered ? parent.width - width - 2 : 2
+                                    color: "#ffffff"
+
+                                    Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: btToggleHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                btToggle.turnOn = !shell.bluetoothPowered;
+                                btToggle.running = true;
+                            }
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // Connected devices header
+                    Text {
+                        text: "Connected"
+                        color: Qt.rgba(1, 1, 1, 0.6)
+                        font.pixelSize: 11
+                        font.bold: true
+                        visible: shell.bluetoothPowered && shell.btConnectedDevices.length > 0
+                    }
+
+                    // Connected devices list
+                    Repeater {
+                        model: shell.bluetoothPowered ? shell.btPairedDevices : []
+
+                        delegate: Rectangle {
+                            required property var modelData
+                            property bool isConnected: shell.btConnectedDevices.indexOf(modelData.mac) !== -1
+                            property bool hovered: false
+
+                            visible: isConnected
+                            width: btPopupContent.width
+                            height: 36
+                            radius: 6
+                            color: hovered ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+
+                            Behavior on color { ColorAnimation { duration: 150 } }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                spacing: 8
+
+                                Text {
+                                    text: modelData.name
+                                    color: "#ffffff"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    Layout.fillWidth: true
+                                }
+
+                                Text {
+                                    text: "Connected"
+                                    color: Qt.rgba(1, 1, 1, 0.7)
+                                    font.pixelSize: 11
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onEntered: parent.hovered = true
+                                onExited: parent.hovered = false
+                                onClicked: {
+                                    btDisconnect.mac = modelData.mac;
+                                    btDisconnect.running = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // Separator between connected and paired
+                    Rectangle {
+                        visible: shell.bluetoothPowered && shell.btConnectedDevices.length > 0
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // Paired devices header
+                    Text {
+                        text: "Paired"
+                        color: Qt.rgba(1, 1, 1, 0.6)
+                        font.pixelSize: 11
+                        font.bold: true
+                        visible: shell.bluetoothPowered && shell.btPairedDevices.length > 0
+                    }
+
+                    // Paired devices list
+                    Flickable {
+                        visible: shell.bluetoothPowered
+                        width: parent.width
+                        height: Math.min(contentHeight, 250)
+                        contentHeight: btDeviceColumn.implicitHeight
+                        clip: true
+
+                        Column {
+                            id: btDeviceColumn
+                            width: parent.width
+                            spacing: 2
+
+                            Repeater {
+                                model: shell.btPairedDevices
+
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    property bool isConnected: shell.btConnectedDevices.indexOf(modelData.mac) !== -1
+                                    property bool hovered: false
+
+                                    visible: !isConnected
+                                    width: btDeviceColumn.width
+                                    height: 36
+                                    radius: 6
+                                    color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 10
+                                        anchors.rightMargin: 10
+                                        spacing: 8
+
+                                        Text {
+                                            text: modelData.name
+                                            color: "#ffffff"
+                                            font.pixelSize: 13
+                                            Layout.fillWidth: true
+                                        }
+
+                                        Text {
+                                            text: "Paired"
+                                            color: Qt.rgba(1, 1, 1, 0.5)
+                                            font.pixelSize: 11
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: parent.hovered = true
+                                        onExited: parent.hovered = false
+                                        onClicked: {
+                                            btConnect.mac = modelData.mac;
+                                            btConnect.running = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Bluetooth off message
+                    Text {
+                        visible: !shell.bluetoothPowered
+                        text: "Bluetooth is disabled"
+                        color: Qt.rgba(1, 1, 1, 0.5)
+                        font.pixelSize: 12
+                    }
+                }
+            }
+        }
+    }
+
+    // Volume popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: volumePopupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.volumePopupOpen && shell.volumePopupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.volumePopupOpen && shell.volumePopupScreen === modelData
+                windows: [volumePopupWindow]
+                onCleared: {
+                    shell.volumePopupOpen = false;
+                }
+            }
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 240
+            implicitHeight: volumePopupContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: volumePopupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    // Header with mute toggle
+                    RowLayout {
+                        width: parent.width
+
+                        Text {
+                            text: "Volume"
+                            color: "#ffffff"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            width: 36
+                            height: 20
+                            radius: 10
+                            color: !shell.volumeMuted ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+
+                            Behavior on color { ColorAnimation { duration: 200 } }
+
+                            Rectangle {
+                                width: 16
+                                height: 16
+                                radius: 8
+                                y: 2
+                                x: !shell.volumeMuted ? parent.width - width - 2 : 2
+                                color: "#ffffff"
+
+                                Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: volumeToggleMute.running = true
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: 10
+
+                        // Speaker icon (quiet)
+                        Canvas {
+                            width: 12
+                            height: 12
+                            Layout.alignment: Qt.AlignVCenter
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                ctx.fillStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.beginPath();
+                                ctx.moveTo(1, 4);
+                                ctx.lineTo(3, 4);
+                                ctx.lineTo(5.5, 1.5);
+                                ctx.lineTo(5.5, 10.5);
+                                ctx.lineTo(3, 8);
+                                ctx.lineTo(1, 8);
+                                ctx.closePath();
+                                ctx.fill();
+                            }
+                        }
+
+                        // Slider track
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 6
+                            radius: 3
+                            color: Qt.rgba(1, 1, 1, 0.2)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Rectangle {
+                                width: parent.width * Math.min(shell.volumePercent, 100) / 100
+                                height: parent.height
+                                radius: 3
+                                color: shell.volumeMuted ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.7)
+
+                                Behavior on width { NumberAnimation { duration: 100 } }
+                            }
+
+                            // Slider handle
+                            Rectangle {
+                                x: parent.width * Math.min(shell.volumePercent, 100) / 100 - 7
+                                y: -4
+                                width: 14
+                                height: 14
+                                radius: 7
+                                color: "#ffffff"
+
+                                Behavior on x { NumberAnimation { duration: 100 } }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.topMargin: -8
+                                anchors.bottomMargin: -8
+                                cursorShape: Qt.PointingHandCursor
+
+                                function updateVolume(mouse) {
+                                    var pct = Math.max(0, Math.min(100, Math.round(mouse.x / width * 100)));
+                                    shell.volumePercent = pct;
+                                    volumeSet.target = pct;
+                                    volumeSet.running = true;
+                                }
+
+                                onPressed: mouse => updateVolume(mouse)
+                                onPositionChanged: mouse => {
+                                    if (pressed) updateVolume(mouse);
+                                }
+                            }
+                        }
+
+                        // Speaker icon (loud)
+                        Canvas {
+                            width: 14
+                            height: 14
+                            Layout.alignment: Qt.AlignVCenter
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                ctx.fillStyle = "#ffffff";
+                                ctx.lineWidth = 1.2;
+                                ctx.lineCap = "round";
+                                ctx.beginPath();
+                                ctx.moveTo(0, 5);
+                                ctx.lineTo(2.5, 5);
+                                ctx.lineTo(5, 2);
+                                ctx.lineTo(5, 12);
+                                ctx.lineTo(2.5, 9);
+                                ctx.lineTo(0, 9);
+                                ctx.closePath();
+                                ctx.fill();
+                                ctx.strokeStyle = "#ffffff";
+                                ctx.beginPath();
+                                ctx.arc(5.5, 7, 3.5, -Math.PI / 4, Math.PI / 4);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                ctx.arc(5.5, 7, 6, -Math.PI / 4, Math.PI / 4);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+
+                    // Percentage label
+                    Text {
+                        text: shell.volumePercent + "%"
+                        color: Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 11
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.15)
+                    }
+
+                    // Mic header with mute toggle
+                    RowLayout {
+                        width: parent.width
+
+                        Text {
+                            text: "Microphone"
+                            color: "#ffffff"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            width: 36
+                            height: 20
+                            radius: 10
+                            color: !shell.micMuted ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+
+                            Behavior on color { ColorAnimation { duration: 200 } }
+
+                            Rectangle {
+                                width: 16
+                                height: 16
+                                radius: 8
+                                y: 2
+                                x: !shell.micMuted ? parent.width - width - 2 : 2
+                                color: "#ffffff"
+
+                                Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: micToggleMute.running = true
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: 10
+
+                        // Mic icon (quiet)
+                        Canvas {
+                            width: 12
+                            height: 12
+                            Layout.alignment: Qt.AlignVCenter
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                ctx.fillStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.beginPath();
+                                ctx.roundedRect(4, 0, 4, 7, 2, 2);
+                                ctx.fill();
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.lineWidth = 1.2;
+                                ctx.lineCap = "round";
+                                ctx.beginPath();
+                                ctx.arc(6, 6, 4, Math.PI, 0);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                ctx.moveTo(6, 10);
+                                ctx.lineTo(6, 12);
+                                ctx.stroke();
+                            }
+                        }
+
+                        // Mic slider track
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 6
+                            radius: 3
+                            color: Qt.rgba(1, 1, 1, 0.2)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Rectangle {
+                                width: parent.width * Math.min(shell.micGainPercent, 100) / 100
+                                height: parent.height
+                                radius: 3
+                                color: shell.micMuted ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.7)
+
+                                Behavior on width { NumberAnimation { duration: 100 } }
+                            }
+
+                            Rectangle {
+                                x: parent.width * Math.min(shell.micGainPercent, 100) / 100 - 7
+                                y: -4
+                                width: 14
+                                height: 14
+                                radius: 7
+                                color: "#ffffff"
+
+                                Behavior on x { NumberAnimation { duration: 100 } }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.topMargin: -8
+                                anchors.bottomMargin: -8
+                                cursorShape: Qt.PointingHandCursor
+
+                                function updateGain(mouse) {
+                                    var pct = Math.max(0, Math.min(100, Math.round(mouse.x / width * 100)));
+                                    shell.micGainPercent = pct;
+                                    micGainSet.target = pct;
+                                    micGainSet.running = true;
+                                }
+
+                                onPressed: mouse => updateGain(mouse)
+                                onPositionChanged: mouse => {
+                                    if (pressed) updateGain(mouse);
+                                }
+                            }
+                        }
+
+                        // Mic icon (loud)
+                        Canvas {
+                            width: 14
+                            height: 14
+                            Layout.alignment: Qt.AlignVCenter
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                ctx.fillStyle = "#ffffff";
+                                ctx.beginPath();
+                                ctx.roundedRect(4.5, 0, 5, 7, 2.5, 2.5);
+                                ctx.fill();
+                                ctx.strokeStyle = "#ffffff";
+                                ctx.lineWidth = 1.3;
+                                ctx.lineCap = "round";
+                                ctx.beginPath();
+                                ctx.arc(7, 6, 5, Math.PI, 0);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                ctx.moveTo(7, 11);
+                                ctx.lineTo(7, 13.5);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                ctx.moveTo(4, 13.5);
+                                ctx.lineTo(10, 13.5);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+
+                    // Mic percentage label
+                    Text {
+                        text: shell.micGainPercent + "%"
+                        color: Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 11
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+        }
+    }
+
+    // Brightness popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: brightnessPopupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.brightnessPopupOpen && shell.brightnessPopupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.brightnessPopupOpen && shell.brightnessPopupScreen === modelData
+                windows: [brightnessPopupWindow]
+                onCleared: {
+                    shell.brightnessPopupOpen = false;
+                }
+            }
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 240
+            implicitHeight: brightnessPopupContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: brightnessPopupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    Text {
+                        text: "Brightness"
+                        color: "#ffffff"
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: 10
+
+                        // Sun icon (dim)
+                        Canvas {
+                            width: 12
+                            height: 12
+                            Layout.alignment: Qt.AlignVCenter
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.lineWidth = 1.2;
+                                ctx.beginPath();
+                                ctx.arc(6, 6, 2.5, 0, 2 * Math.PI);
+                                ctx.stroke();
+                            }
+                        }
+
+                        // Slider track
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 6
+                            radius: 3
+                            color: Qt.rgba(1, 1, 1, 0.2)
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Rectangle {
+                                width: parent.width * (shell.brightnessPercent / 100)
+                                height: parent.height
+                                radius: 3
+                                color: Qt.rgba(1, 1, 1, 0.7)
+
+                                Behavior on width { NumberAnimation { duration: 100 } }
+                            }
+
+                            // Slider handle
+                            Rectangle {
+                                x: parent.width * (shell.brightnessPercent / 100) - 7
+                                y: -4
+                                width: 14
+                                height: 14
+                                radius: 7
+                                color: "#ffffff"
+
+                                Behavior on x { NumberAnimation { duration: 100 } }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.topMargin: -8
+                                anchors.bottomMargin: -8
+                                cursorShape: Qt.PointingHandCursor
+
+                                function updateBrightness(mouse) {
+                                    var pct = Math.max(1, Math.min(100, Math.round(mouse.x / width * 100)));
+                                    shell.brightnessPercent = pct;
+                                    brightnessSet.target = pct;
+                                    brightnessSet.running = true;
+                                }
+
+                                onPressed: mouse => updateBrightness(mouse)
+                                onPositionChanged: mouse => {
+                                    if (pressed) updateBrightness(mouse);
+                                }
+                            }
+                        }
+
+                        // Sun icon (bright)
+                        Canvas {
+                            width: 14
+                            height: 14
+                            Layout.alignment: Qt.AlignVCenter
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                var cx = 7;
+                                var cy = 7;
+                                ctx.strokeStyle = "#ffffff";
+                                ctx.lineWidth = 1.2;
+                                ctx.lineCap = "round";
+                                for (var i = 0; i < 8; i++) {
+                                    var angle = i * Math.PI / 4;
+                                    ctx.beginPath();
+                                    ctx.moveTo(cx + Math.cos(angle) * 4.5, cy + Math.sin(angle) * 4.5);
+                                    ctx.lineTo(cx + Math.cos(angle) * 6.5, cy + Math.sin(angle) * 6.5);
+                                    ctx.stroke();
+                                }
+                                ctx.beginPath();
+                                ctx.arc(cx, cy, 2.5, 0, 2 * Math.PI);
+                                ctx.stroke();
+                                ctx.fillStyle = Qt.rgba(1, 1, 1, 0.8);
+                                ctx.fill();
+                            }
+                        }
+                    }
+
+                    // Percentage label
+                    Text {
+                        text: shell.brightnessPercent + "%"
+                        color: Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 11
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+        }
+    }
+
+    // Battery tooltip - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: batteryTooltipWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.batteryHovered && !shell.batteryPopupOpen && shell.batteryTimeRemaining !== "" && shell.batteryHoveredScreen === modelData
+
+            anchors {
+                top: true
+                left: true
+            }
+            margins {
+                top: 34
+                left: shell.batteryIconX + shell.batteryIconWidth / 2 - (batteryTooltipText.implicitWidth + 16) / 2
+            }
+            implicitWidth: batteryTooltipText.implicitWidth + 16
+            implicitHeight: batteryTooltipText.implicitHeight + 10
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: Qt.rgba(1, 1, 1, 0.3)
+
+                Text {
+                    id: batteryTooltipText
+                    anchors.centerIn: parent
+                    text: (shell.batteryCharging ? "Full in " : "") + shell.batteryTimeRemaining + (shell.batteryCharging ? "" : " remaining")
+                    color: "#ffffff"
+                    font.pixelSize: 11
+                }
+            }
+        }
+    }
+
+    // Battery popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: batteryPopupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.batteryPopupOpen && shell.batteryPopupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.batteryPopupOpen && shell.batteryPopupScreen === modelData
+                windows: [batteryPopupWindow]
+                onCleared: {
+                    shell.batteryPopupOpen = false;
+                }
+            }
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 280
+            implicitHeight: batteryPopupContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: batteryPopupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    // Header
+                    Text {
+                        text: "Battery"
+                        color: "#ffffff"
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    // Large percentage
+                    Text {
+                        text: shell.batteryPercent + "%"
+                        color: "#ffffff"
+                        font.pixelSize: 28
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    // Status text
+                    Text {
+                        text: shell.batteryStatus
+                        color: Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 12
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    // Charge bar (read-only)
+                    Rectangle {
+                        width: parent.width
+                        height: 6
+                        radius: 3
+                        color: Qt.rgba(1, 1, 1, 0.2)
+
+                        Rectangle {
+                            width: parent.width * shell.batteryPercent / 100
+                            height: parent.height
+                            radius: 3
+                            color: {
+                                if (shell.batteryCharging) return Qt.rgba(0.4, 0.8, 0.4, 0.7);
+                                if (shell.batteryPercent <= 10) return Qt.rgba(0.9, 0.2, 0.2, 0.9);
+                                if (shell.batteryPercent <= 25) return Qt.rgba(0.95, 0.5, 0.15, 0.85);
+                                if (shell.batteryPercent <= 50) return Qt.rgba(0.95, 0.85, 0.2, 0.8);
+                                return Qt.rgba(0.4, 0.8, 0.4, 0.7);
+                            }
+
+                            Behavior on width { NumberAnimation { duration: 300 } }
+                        }
+                    }
+
+                    // Power draw
+                    RowLayout {
+                        visible: shell.batteryPowerDraw !== ""
+                        width: parent.width
+
+                        Text {
+                            text: "Power draw"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+
+                        Text {
+                            text: shell.batteryPowerDraw
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.15)
+                    }
+
+                    // Power profile
+                    Text {
+                        text: "Power Profile"
+                        color: "#ffffff"
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 28
+                        radius: 6
+                        color: Qt.rgba(1, 1, 1, 0.15)
+
+                        Row {
+                            anchors.fill: parent
+                            anchors.margins: 2
+
+                            Repeater {
+                                model: ["power-saver", "balanced", "performance"]
+
+                                Rectangle {
+                                    required property string modelData
+                                    required property int index
+                                    property bool isActive: shell.powerProfile === modelData
+                                    property bool hovered: false
+
+                                    width: parent.width / 3
+                                    height: parent.height
+                                    radius: 4
+                                    color: isActive ? Qt.rgba(1, 1, 1, 0.35) : hovered ? Qt.rgba(1, 1, 1, 0.15) : "transparent"
+
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: {
+                                            if (modelData === "power-saver") return "Saver";
+                                            if (modelData === "balanced") return "Balanced";
+                                            return "Performance";
+                                        }
+                                        color: isActive ? "#ffffff" : Qt.rgba(1, 1, 1, 0.7)
+                                        font.pixelSize: 11
+                                        font.bold: isActive
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: parent.hovered = true
+                                        onExited: parent.hovered = false
+                                        onClicked: {
+                                            powerProfileSet.profile = modelData;
+                                            powerProfileSet.running = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.15)
+                    }
+
+                    // Battery health
+                    RowLayout {
+                        width: parent.width
+
+                        Text {
+                            text: "Battery Health"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+
+                        Text {
+                            text: shell.batteryHealthPercent + "%"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        visible: shell.batteryHistoryCount >= 2
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.15)
+                    }
+
+                    // History header
+                    Text {
+                        visible: shell.batteryHistoryCount >= 2
+                        text: "Last Hour"
+                        color: Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 11
+                    }
+
+                    // Charge history sparkline
+                    Canvas {
+                        id: historyGraph
+                        visible: shell.batteryHistoryCount >= 2
+                        width: parent.width
+                        height: 60
+
+                        property var history: shell.batteryHistory
+                        onHistoryChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var h = history;
+                            if (h.length < 2) return;
+
+                            var maxPoints = 720;
+                            var stepX = width / (maxPoints - 1);
+                            var offset = maxPoints - h.length;
+
+                            // Grid lines at 25%, 50%, 75%
+                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                            ctx.lineWidth = 0.5;
+                            for (var g = 1; g <= 3; g++) {
+                                var gy = height - (height * g * 25 / 100);
+                                ctx.beginPath();
+                                ctx.moveTo(0, gy);
+                                ctx.lineTo(width, gy);
+                                ctx.stroke();
+                            }
+
+                            // Sparkline
+                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.7);
+                            ctx.lineWidth = 1.5;
+                            ctx.lineJoin = "round";
+                            ctx.beginPath();
+                            for (var i = 0; i < h.length; i++) {
+                                var x = (offset + i) * stepX;
+                                var y = height - (height * h[i] / 100);
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // System monitor popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: sysMonPopupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.sysMonPopupOpen && shell.sysMonPopupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.sysMonPopupOpen && shell.sysMonPopupScreen === modelData
+                windows: [sysMonPopupWindow]
+                onCleared: {
+                    shell.sysMonPopupOpen = false;
+                }
+            }
+
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 280
+            implicitHeight: sysMonPopupContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: sysMonPopupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    Text {
+                        text: "System Monitor"
+                        color: "#ffffff"
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    // CPU
+                    RowLayout {
+                        width: parent.width
+                        Text {
+                            text: "CPU"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: shell.cpuPercent + "%"
+                            color: "#ffffff"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 6
+                        radius: 3
+                        color: Qt.rgba(1, 1, 1, 0.2)
+
+                        Rectangle {
+                            width: parent.width * shell.cpuPercent / 100
+                            height: parent.height
+                            radius: 3
+                            color: shell.cpuPercent > 90 ? Qt.rgba(0.9, 0.2, 0.2, 0.9)
+                                 : shell.cpuPercent > 70 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
+                                 : Qt.rgba(0.4, 0.8, 0.4, 0.7)
+                            Behavior on width { NumberAnimation { duration: 300 } }
+                        }
+                    }
+
+                    Canvas {
+                        id: cpuGraph
+                        visible: shell.cpuHistoryCount >= 2
+                        width: parent.width
+                        height: 40
+
+                        property var history: shell.cpuHistory
+                        onHistoryChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var h = history;
+                            if (h.length < 2) return;
+                            var maxPoints = 60;
+                            var stepX = width / (maxPoints - 1);
+                            var offset = maxPoints - h.length;
+
+                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                            ctx.lineWidth = 0.5;
+                            for (var g = 1; g <= 3; g++) {
+                                var gy = height - (height * g * 25 / 100);
+                                ctx.beginPath();
+                                ctx.moveTo(0, gy);
+                                ctx.lineTo(width, gy);
+                                ctx.stroke();
+                            }
+
+                            ctx.fillStyle = Qt.rgba(0.4, 0.8, 0.4, 0.15);
+                            ctx.beginPath();
+                            for (var i = 0; i < h.length; i++) {
+                                var x = (offset + i) * stepX;
+                                var y = height - (height * h[i] / 100);
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.lineTo((offset + h.length - 1) * stepX, height);
+                            ctx.lineTo(offset * stepX, height);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            ctx.strokeStyle = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                            ctx.lineWidth = 1.5;
+                            ctx.lineJoin = "round";
+                            ctx.beginPath();
+                            for (var j = 0; j < h.length; j++) {
+                                var x2 = (offset + j) * stepX;
+                                var y2 = height - (height * h[j] / 100);
+                                if (j === 0) ctx.moveTo(x2, y2);
+                                else ctx.lineTo(x2, y2);
+                            }
+                            ctx.stroke();
+                        }
+                    }
+
+                    Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+
+                    // RAM
+                    RowLayout {
+                        width: parent.width
+                        Text {
+                            text: "Memory"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: shell.ramUsedGb + " / " + shell.ramTotalGb + " GB (" + shell.ramPercent + "%)"
+                            color: "#ffffff"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 6
+                        radius: 3
+                        color: Qt.rgba(1, 1, 1, 0.2)
+
+                        Rectangle {
+                            width: parent.width * shell.ramPercent / 100
+                            height: parent.height
+                            radius: 3
+                            color: shell.ramPercent > 90 ? Qt.rgba(0.9, 0.2, 0.2, 0.9)
+                                 : shell.ramPercent > 70 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
+                                 : Qt.rgba(0.3, 0.6, 0.9, 0.7)
+                            Behavior on width { NumberAnimation { duration: 300 } }
+                        }
+                    }
+
+                    Canvas {
+                        id: ramGraph
+                        visible: shell.ramHistoryCount >= 2
+                        width: parent.width
+                        height: 40
+
+                        property var history: shell.ramHistory
+                        onHistoryChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var h = history;
+                            if (h.length < 2) return;
+                            var maxPoints = 60;
+                            var stepX = width / (maxPoints - 1);
+                            var offset = maxPoints - h.length;
+
+                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                            ctx.lineWidth = 0.5;
+                            for (var g = 1; g <= 3; g++) {
+                                var gy = height - (height * g * 25 / 100);
+                                ctx.beginPath();
+                                ctx.moveTo(0, gy);
+                                ctx.lineTo(width, gy);
+                                ctx.stroke();
+                            }
+
+                            ctx.fillStyle = Qt.rgba(0.3, 0.6, 0.9, 0.15);
+                            ctx.beginPath();
+                            for (var i = 0; i < h.length; i++) {
+                                var x = (offset + i) * stepX;
+                                var y = height - (height * h[i] / 100);
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.lineTo((offset + h.length - 1) * stepX, height);
+                            ctx.lineTo(offset * stepX, height);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            ctx.strokeStyle = Qt.rgba(0.3, 0.6, 0.9, 0.8);
+                            ctx.lineWidth = 1.5;
+                            ctx.lineJoin = "round";
+                            ctx.beginPath();
+                            for (var j = 0; j < h.length; j++) {
+                                var x2 = (offset + j) * stepX;
+                                var y2 = height - (height * h[j] / 100);
+                                if (j === 0) ctx.moveTo(x2, y2);
+                                else ctx.lineTo(x2, y2);
+                            }
+                            ctx.stroke();
+                        }
+                    }
+
+                    Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+
+                    // Temperature
+                    RowLayout {
+                        width: parent.width
+                        Text {
+                            text: "CPU Temperature"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: shell.cpuTemp + "°C"
+                            color: shell.cpuTemp > 85 ? Qt.rgba(0.9, 0.2, 0.2, 0.9)
+                                 : shell.cpuTemp > 70 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
+                                 : "#ffffff"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+
+                    Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+
+                    // Disk
+                    RowLayout {
+                        width: parent.width
+                        Text {
+                            text: "Disk (/)"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: shell.diskUsed + " / " + shell.diskTotal + " (" + shell.diskPercent + "%)"
+                            color: "#ffffff"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 6
+                        radius: 3
+                        color: Qt.rgba(1, 1, 1, 0.2)
+
+                        Rectangle {
+                            width: parent.width * shell.diskPercent / 100
+                            height: parent.height
+                            radius: 3
+                            color: shell.diskPercent > 90 ? Qt.rgba(0.9, 0.2, 0.2, 0.9)
+                                 : shell.diskPercent > 80 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
+                                 : Qt.rgba(0.6, 0.5, 0.8, 0.7)
+                            Behavior on width { NumberAnimation { duration: 300 } }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Notification center popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: notifPopupWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.notifPopupOpen && shell.notifPopupScreen === modelData
+
+            HyprlandFocusGrab {
+                active: shell.notifPopupOpen && shell.notifPopupScreen === modelData
+                windows: [notifPopupWindow]
+                onCleared: {
+                    shell.notifPopupOpen = false;
+                }
+            }
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 320
+            implicitHeight: Math.min(notifPopupContent.implicitHeight + 24, 460)
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                Column {
+                    id: notifPopupContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    // Header
+                    RowLayout {
+                        width: parent.width
+
+                        Text {
+                            text: "Notifications"
+                            color: "#ffffff"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        // Clear all button
+                        Rectangle {
+                            visible: shell.notifCount > 0
+                            width: clearText.implicitWidth + 12
+                            height: 20
+                            radius: 4
+                            color: clearHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.15)
+
+                            Behavior on color { ColorAnimation { duration: 150 } }
+
+                            Text {
+                                id: clearText
+                                anchors.centerIn: parent
+                                text: "Clear all"
+                                color: "#ffffff"
+                                font.pixelSize: 11
+                            }
+
+                            MouseArea {
+                                id: clearHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: shell.clearNotifications()
+                            }
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // Empty state
+                    Text {
+                        visible: shell.notifCount === 0
+                        text: "No notifications"
+                        color: Qt.rgba(1, 1, 1, 0.5)
+                        font.pixelSize: 12
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        topPadding: 20
+                        bottomPadding: 20
+                    }
+
+                    // Notification list
+                    Flickable {
+                        visible: shell.notifCount > 0
+                        width: parent.width
+                        height: Math.min(contentHeight, 360)
+                        contentHeight: notifList.implicitHeight
+                        clip: true
+
+                        Column {
+                            id: notifList
+                            width: parent.width
+                            spacing: 6
+
+                            Repeater {
+                                model: shell.notifHistory
+
+                                Rectangle {
+                                    id: notifItem
+                                    required property var modelData
+                                    required property int index
+                                    property bool hovered: false
+                                    width: notifList.width
+                                    implicitHeight: notifItemContent.implicitHeight + 16
+                                    radius: 8
+                                    color: hovered ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.1)
+
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                                    RowLayout {
+                                        id: notifItemContent
+                                        anchors {
+                                            fill: parent
+                                            margins: 8
+                                        }
+                                        spacing: 8
+
+                                        Image {
+                                            source: {
+                                                if (modelData.image !== "") return modelData.image;
+                                                if (modelData.appIcon !== "") return "image://icon/" + modelData.appIcon;
+                                                return "";
+                                            }
+                                            visible: source !== ""
+                                            Layout.preferredWidth: 32
+                                            Layout.preferredHeight: 32
+                                            Layout.alignment: Qt.AlignTop
+                                            sourceSize.width: 32
+                                            sourceSize.height: 32
+                                        }
+
+                                        Column {
+                                            Layout.fillWidth: true
+                                            spacing: 4
+
+                                            RowLayout {
+                                                width: parent.width
+
+                                                Text {
+                                                    text: modelData.appName + "  ·  " + modelData.time
+                                                    color: Qt.rgba(1, 1, 1, 0.6)
+                                                    font.pixelSize: 10
+                                                    Layout.fillWidth: true
+                                                    elide: Text.ElideRight
+                                                }
+
+                                                // Dismiss button
+                                                Rectangle {
+                                                    width: 16
+                                                    height: 16
+                                                    radius: 8
+                                                    color: dismissHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: "×"
+                                                        color: Qt.rgba(1, 1, 1, 0.7)
+                                                        font.pixelSize: 12
+                                                    }
+
+                                                    MouseArea {
+                                                        id: dismissHover
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: shell.dismissNotification(notifItem.index)
+                                                    }
+                                                }
+                                            }
+
+                                            Text {
+                                                text: modelData.summary
+                                                color: "#ffffff"
+                                                font.pixelSize: 12
+                                                font.bold: true
+                                                width: parent.width
+                                                wrapMode: Text.WordWrap
+                                                elide: Text.ElideRight
+                                                maximumLineCount: 2
+                                            }
+
+                                            Text {
+                                                visible: modelData.body !== ""
+                                                text: modelData.body
+                                                color: Qt.rgba(1, 1, 1, 0.7)
+                                                font.pixelSize: 11
+                                                width: parent.width
+                                                wrapMode: Text.WordWrap
+                                                elide: Text.ElideRight
+                                                maximumLineCount: 3
+                                            }
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        z: -1
+                                        onEntered: notifItem.hovered = true
+                                        onExited: notifItem.hovered = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Toast notification popup - one per screen
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: toastWindow
+            required property var modelData
+            screen: modelData
+
+            visible: shell.toastVisible && shell.toastNotification !== null && !shell.notifPopupOpen
+
+            anchors {
+                top: true
+                right: true
+            }
+            margins {
+                top: 38
+                right: 8
+            }
+            implicitWidth: 300
+            implicitHeight: toastContent.implicitHeight + 24
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Qt.rgba(1, 1, 1, 0.3)
+                clip: true
+
+                RowLayout {
+                    id: toastContent
+                    anchors {
+                        fill: parent
+                        margins: 12
+                    }
+                    spacing: 8
+
+                    Image {
+                        source: {
+                            if (!shell.toastNotification) return "";
+                            if ((shell.toastNotification.image || "") !== "") return shell.toastNotification.image;
+                            if ((shell.toastNotification.appIcon || "") !== "") return "image://icon/" + shell.toastNotification.appIcon;
+                            return "";
+                        }
+                        visible: source !== ""
+                        Layout.preferredWidth: 32
+                        Layout.preferredHeight: 32
+                        Layout.alignment: Qt.AlignTop
+                        sourceSize.width: 32
+                        sourceSize.height: 32
+                    }
+
+                    Column {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        RowLayout {
+                            width: parent.width
+
+                            Text {
+                                text: shell.toastNotification ? (shell.toastNotification.appName || "Notification") : ""
+                                color: Qt.rgba(1, 1, 1, 0.6)
+                                font.pixelSize: 10
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+
+                            Rectangle {
+                                width: 16
+                                height: 16
+                                radius: 8
+                                color: toastDismissHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "×"
+                                    color: Qt.rgba(1, 1, 1, 0.7)
+                                    font.pixelSize: 12
+                                }
+
+                                MouseArea {
+                                    id: toastDismissHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: shell.toastVisible = false
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: shell.toastNotification ? (shell.toastNotification.summary || "") : ""
+                            color: "#ffffff"
+                            font.pixelSize: 12
+                            font.bold: true
+                            width: parent.width
+                            wrapMode: Text.WordWrap
+                            elide: Text.ElideRight
+                            maximumLineCount: 2
+                        }
+
+                        Text {
+                            visible: shell.toastNotification ? ((shell.toastNotification.body || "") !== "") : false
+                            text: shell.toastNotification ? (shell.toastNotification.body || "") : ""
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            width: parent.width
+                            wrapMode: Text.WordWrap
+                            elide: Text.ElideRight
+                            maximumLineCount: 3
+                        }
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    z: -1
+                    onClicked: {
+                        shell.toastVisible = false;
+                        shell.notifPopupScreen = toastWindow.modelData;
+                        shell.notifPopupOpen = true;
+                    }
+                }
+            }
+        }
+    }
+}
