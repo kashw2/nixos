@@ -1,0 +1,15 @@
+keys:
+  - &admin age1lattsxpas45jknrf2vparm5z5atqrer73qypzduececxnlqx4aks6l7h3e
+  - &home age1f8whdu83qh7xytlwvtsjnmzmqnedsjm75vxvaqa8f5rqhfje4a0sefv0cu
+  - &laptop age1xrq8qy3tzmhdpwckts0k3um2jv6fejlhkylg696j42k3m2xdysxsswt00h
+  - &thinkpad age1g4n2s97a0sg2k8aw37hrg2j68y9da5aqetwnh7y3dhqk3kyd49jsj8fg8x
+  - &media age1dasgx4zr6e4jpswg8qfphnmj8r03rxxxrt0tdla9jvrgnq5hdgks2c63xk
+creation_rules:
+  - path_regex: secrets/secrets\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *home
+          - *laptop
+          - *thinkpad
+          - *media
