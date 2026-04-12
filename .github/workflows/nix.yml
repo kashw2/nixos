@@ -1,0 +1,124 @@
+name: Nix
+on:
+  workflow_dispatch:
+  pull_request:
+  schedule:
+    - cron: 0 0 * * 0 # runs every week
+jobs:
+  update:
+    name: Update ${{ matrix.input }}
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        input:
+          - nixpkgs
+          - flake-parts
+          - import-tree
+          - disko
+          - colmena
+          - wrapper-modules
+          - hyprland
+          - hyprpaper
+          - hyprlock
+          - rose-pine-hyprcursor
+          - xdg-desktop-portal-hyprland
+          - nixvim
+          - neovim-nightly
+          - home-manager
+          - mcp-servers-nix
+          - sops-nix
+          - nixcord
+          - quickshell
+          - nix
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@31
+      - uses: DeterminateSystems/update-flake-lock@v28
+        with:
+          inputs: ${{ matrix.input }}
+          pr-title: 'build(nix): update ${{ matrix.inputs }}'
+          branch: update-${{ matrix.input }}-flake-input
+          pr-labels: |
+            dependencies
+            nix
+          token: ${{ secrets.GH_TOKEN }} # We have to use our own token because otherwise PRs won't run actions
+  flake-check:
+    name: Flake Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-devshell
+          restore-prefixes-first-match: nix-devshell
+      - run: nix develop --command nix flake check --impure
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
+  build-package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: true
+      matrix:
+        package:
+          - rofi
+          - nushell
+          - kitty
+          - sddm-sugar-candy
+          - hyprland
+          - hypridle
+          - hyprland
+          - hyprlock
+          - hyprpaper
+    steps:
+      - uses: actions/checkout@v6
+      - uses: wimpysworld/nothing-but-nix@v10
+        if: ${{ !env.ACT }}
+        with:
+          witness-carnage: true
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ matrix.package }}
+          restore-prefixes-first-match: nix-${{ matrix.package }}
+          gc-max-store-size-linux: 10G
+      - run: nix develop --command nix build .#${{ matrix.package }} --impure
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
+  build-configuration:
+    name: Build Configuration
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: true
+      matrix:
+        host:
+          - home
+          - laptop
+          - thinkpad
+          - media
+    steps:
+      - uses: actions/checkout@v6
+      - uses: wimpysworld/nothing-but-nix@v10
+        if: ${{ !env.ACT }}
+        with:
+          witness-carnage: true
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ matrix.host }}
+          restore-prefixes-first-match: nix-${{ matrix.host }}
+          gc-max-store-size-linux: 10G
+      - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
