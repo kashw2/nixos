@@ -31,7 +31,7 @@
             limits_config = {
               volume_enabled = true;
             };
-            security.secret_key = "5c2fd69cb13a873406a2dc5fbdaca973352fe08f8fa4f5e70a8c873fb08ed1e5";
+            security.secret_key = "$__file{${config.sops.secrets."grafana_secret_key".path}}";
           };
           provision = {
             enable = true;

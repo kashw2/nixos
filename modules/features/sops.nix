@@ -32,6 +32,10 @@
             path = "/home/keanu/.ssh/id_ed25519.pub";
           };
           "tailscale" = { };
+          "grafana_secret_key" = {
+            owner = "grafana";
+            group = "grafana";
+          };
           "github_pat" = { };
           "keanu_password".neededForUsers = true;
           "infracost_api_key" = {
