@@ -59,7 +59,13 @@
               exec-once=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper}
               exec-once=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle}
               exec-once=${lib.getExe' pkgs.wl-clipboard "wl-paste"} --watch ${lib.getExe pkgs.cliphist} store
-              exec-once=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.quickshell}
+              exec-once=${
+                lib.getExe (
+                  self.packages.${pkgs.stdenv.hostPlatform.system}.quickshell.wrap {
+                    inherit (config) isDesktop isLaptop;
+                  }
+                )
+              }
               animations {
                 bezier=easeOutQuint,   0.23, 1,    0.32, 1
                 bezier=easeInOutCubic, 0.65, 0.05, 0.36, 1
