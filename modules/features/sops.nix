@@ -1,7 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.sops =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     {
       imports = [
         inputs.sops-nix.nixosModules.sops
@@ -32,7 +37,7 @@
             path = "/home/keanu/.ssh/id_ed25519.pub";
           };
           "tailscale" = { };
-          "grafana_secret_key" = {
+          "grafana_secret_key" = lib.mkIf (config.services.grafana.enable) {
             owner = "grafana";
             group = "grafana";
           };
