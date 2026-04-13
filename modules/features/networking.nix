@@ -38,7 +38,7 @@
           "192.168.1.11" = [ "macmini.local" ];
           "192.168.1.12" = [
             "media.local"
-            "prometheus.media.local"
+            "mimir.media.local"
             "radarr.media.local"
             "sonarr.media.local"
             "grafana.media.local"
