@@ -8,6 +8,9 @@
       ...
     }:
     {
+      modules = [
+        self.nixosModules.buildboxDistributedBuilder
+      ];
       nix.distributedBuilds = true;
     };
 }
