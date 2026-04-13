@@ -47,6 +47,10 @@
             owner = "keanu";
             group = "keanu";
           };
+          "codestats_api_key" = {
+            owner = "keanu";
+            group = "keanu";
+          };
         };
 
         templates."nix-access-tokens" = {
