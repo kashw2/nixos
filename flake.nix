@@ -92,6 +92,7 @@
           { pkgs, ... }:
           {
             devShells.default = pkgs.mkShell {
+
               packages = [
                 inputs.colmena.packages.${pkgs.system}.colmena
                 pkgs.nix
