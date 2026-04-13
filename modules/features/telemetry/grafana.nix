@@ -39,9 +39,9 @@
               settings = {
                 datasources = [
                   {
-                    name = "Prometheus";
+                    name = "Mimir";
                     type = "prometheus";
-                    url = "http://127.0.0.1:${toString config.services.prometheus.port}";
+                    url = "http://127.0.0.1:${toString config.services.mimir.configuration.server.http_listen_port}/prometheus";
                     editable = false;
                   }
                   {
@@ -60,6 +60,10 @@
                 deleteDatasources = [
                   {
                     name = "Prometheus";
+                    orgId = 1;
+                  }
+                  {
+                    name = "Mimir";
                     orgId = 1;
                   }
                   {
