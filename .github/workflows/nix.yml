@@ -82,10 +82,6 @@ jobs:
           - hyprpaper
     steps:
       - uses: actions/checkout@v6
-      - uses: wimpysworld/nothing-but-nix@v10
-        if: ${{ !env.ACT }}
-        with:
-          witness-carnage: true
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
