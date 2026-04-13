@@ -9,6 +9,7 @@
     }:
     {
       modules = [
+        self.nixosModules.macminiDistributedBuilder
         self.nixosModules.buildboxDistributedBuilder
       ];
       nix.distributedBuilds = true;
