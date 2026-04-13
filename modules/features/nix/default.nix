@@ -9,7 +9,7 @@
     }:
     {
 
-      modules = [
+      imports = [
         self.nixosModules.distributedBuilds
       ];
 

@@ -8,7 +8,7 @@
       ...
     }:
     {
-      modules = [
+      imports = [
         self.nixosModules.homelabDistributedBuilder
         self.nixosModules.macminiDistributedBuilder
         self.nixosModules.buildboxDistributedBuilder
