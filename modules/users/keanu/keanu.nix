@@ -83,6 +83,22 @@
             videos = "${config.users.users.keanu.home}/Videos";
             music = "${config.users.users.keanu.home}/Pictures";
           };
+          # /home/keanu is wiped on boot
+          home.persistence."/persist" = {
+            directories = [
+              ".ssh"
+              ".local/state"
+              ".local/share/nix"
+              "Downloads"
+              "Documents"
+            ]
+            ++ lib.optionals (!config.isServer) [
+              ".config/discord"
+              ".config/quickshell"
+              ".mozilla"
+            ];
+            files = [ ];
+          };
           mcp-servers.programs = {
             nixos.enable = true;
             "sequential-thinking".enable = true;
