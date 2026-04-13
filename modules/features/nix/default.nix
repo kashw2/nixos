@@ -9,6 +9,10 @@
     }:
     {
 
+      modules = [
+        self.nixosModules.distributedBuilds
+      ];
+
       nixpkgs.config = {
         allowUnfree = true;
         nvidia.acceptLicense = builtins.elem "nvidia" config.services.xserver.videoDrivers;
