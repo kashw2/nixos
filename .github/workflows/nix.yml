@@ -80,6 +80,8 @@ jobs:
           - hyprland
           - hyprlock
           - hyprpaper
+          - atone-nvim
+          - codestats
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
