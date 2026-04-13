@@ -119,6 +119,6 @@ jobs:
           primary-key: nix-${{ matrix.host }}
           restore-prefixes-first-match: nix-${{ matrix.host }}
           gc-max-store-size-linux: 10G
-      - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose
+      - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
