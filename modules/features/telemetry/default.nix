@@ -10,7 +10,7 @@
         self.nixosModules.loki
         self.nixosModules.grafana
         self.nixosModules.tempo
-        self.nixosModules.prometheus
+        self.nixosModules.mimir
       ];
 
       options.features.telemetry.role = lib.mkOption {
@@ -19,7 +19,7 @@
           "client"
         ];
         default = "client";
-        description = "Whether this machine is a telemetry host (runs the LGTP stack) or a client (only exports metrics).";
+        description = "Whether this machine is a telemetry host (runs the LGTM stack) or a client (only exports metrics).";
       };
 
     };

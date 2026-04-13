@@ -35,7 +35,7 @@
                 endpoint = "127.0.0.1:4318"
               }
               output {
-                ${lib.optionalString config.services.prometheus.enable ''
+                ${lib.optionalString config.services.mimir.enable ''
                   metrics = [otelcol.processor.batch.batch.input]
                 ''}
                 ${lib.optionalString config.services.loki.enable ''
@@ -46,7 +46,7 @@
             }
             otelcol.processor.batch "batch" {
               output {
-                ${lib.optionalString config.services.prometheus.enable ''
+                ${lib.optionalString config.services.mimir.enable ''
                   metrics = [
                     otelcol.exporter.prometheus.default.input,
                   ]
@@ -66,7 +66,7 @@
                 endpoint = "http://192.168.1.7:5318"
               }
             }
-            ${lib.optionalString config.services.prometheus.enable ''
+            ${lib.optionalString config.services.mimir.enable ''
               otelcol.exporter.prometheus "default" {
                 forward_to = [prometheus.remote_write.writer.receiver]
               }
@@ -77,21 +77,47 @@
               }
             ''}
           ''
-          + lib.optionalString config.services.prometheus.exporters.node.enable ''
-            prometheus.scrape "default" {
-              targets = array.concat(
-                [{
-                  job         = "alloy",
-                  __address__ = "127.0.0.1:12345",
-                }],
-              )
+          + lib.optionalString config.services.mimir.enable ''
+            prometheus.scrape "alloy" {
+              targets = [{
+                job         = "alloy",
+                __address__ = "127.0.0.1:12345",
+              }]
               forward_to = [
-                  prometheus.remote_write.writer.receiver,
+                prometheus.remote_write.writer.receiver,
+              ]
+            }
+            prometheus.scrape "nixosConfiguration" {
+              scrape_interval = "5s"
+              scrape_timeout  = "5s"
+              targets = [
+                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.5:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.6:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.7:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.8:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.9:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.10:${toString config.services.prometheus.exporters.node.port}"},
+                {"__address__" = "192.168.1.11:${toString config.services.prometheus.exporters.node.port}"},
+              ]
+              forward_to = [
+                prometheus.remote_write.writer.receiver,
+              ]
+            }
+            prometheus.scrape "openwrt" {
+              scrape_interval = "5s"
+              scrape_timeout  = "5s"
+              honor_labels = true
+              targets = [
+                {"__address__" = "${config.networking.defaultGateway.address}:9100"},
+              ]
+              forward_to = [
+                prometheus.remote_write.writer.receiver,
               ]
             }
             prometheus.remote_write "writer" {
               endpoint {
-                url = "http://192.168.1.7:${toString config.services.prometheus.port}/api/v1/write"
+                url = "http://127.0.0.1:${toString config.services.mimir.configuration.server.http_listen_port}/api/v1/push"
               }
             }
           ''

@@ -194,7 +194,7 @@
               // mkVirtualHost "flaresolverr" config.services.flaresolverr.port
               // mkVirtualHost "flood" config.services.flood.port
               // mkVirtualHost "deluge" config.services.deluge.web.port
-              // mkVirtualHost "prometheus" config.services.prometheus.port
+              // mkVirtualHost "mimir" config.services.mimir.configuration.server.http_listen_port
               // mkVirtualHost "grafana" config.services.grafana.settings.server.http_port
               // mkVirtualHost "loki" config.services.loki.configuration.server.http_listen_port
               // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port
