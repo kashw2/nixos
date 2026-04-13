@@ -9,9 +9,11 @@
     }:
     {
       modules = [
+        self.nixosModules.homelabDistributedBuilder
         self.nixosModules.macminiDistributedBuilder
         self.nixosModules.buildboxDistributedBuilder
       ];
+
       nix.distributedBuilds = true;
     };
 }
