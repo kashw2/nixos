@@ -114,6 +114,24 @@ ShellRoot {
     property string diskUsed: ""
     property string diskTotal: ""
     property int diskPercent: 0
+    property real netRxBytes: 0
+    property real netTxBytes: 0
+    property real netPrevRx: 0
+    property real netPrevTx: 0
+    property real netPrevTime: 0
+    property real netRxRate: 0
+    property real netTxRate: 0
+    property var netRxHistory: []
+    property var netTxHistory: []
+    property int netHistoryCount: 0
+    property real netRxPeak: 1
+
+    function formatBytesPerSec(bps) {
+        if (bps < 1024) return bps.toFixed(0) + " B/s";
+        if (bps < 1024 * 1024) return (bps / 1024).toFixed(1) + " KB/s";
+        if (bps < 1024 * 1024 * 1024) return (bps / (1024 * 1024)).toFixed(1) + " MB/s";
+        return (bps / (1024 * 1024 * 1024)).toFixed(2) + " GB/s";
+    }
 
     function addNotification(appName, summary, body, appIcon, image) {
         var list = shell.notifHistory.slice();
@@ -418,6 +436,7 @@ ShellRoot {
             cpuCheck.running = true;
             ramCheck.running = true;
             tempCheck.running = true;
+            netCheck.running = true;
             var ch = shell.cpuHistory.slice();
             ch.push(shell.cpuPercent);
             if (ch.length > 60) ch = ch.slice(ch.length - 60);
@@ -644,6 +663,62 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: diskCheck.running = true
+    }
+
+    Process {
+        id: netCheck
+        command: ["sh", "-c", "cat /proc/net/dev"]
+        running: true
+        property real accRx: 0
+        property real accTx: 0
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                var idx = line.indexOf(":");
+                if (idx < 0) return;
+                var iface = line.substring(0, idx).trim();
+                if (iface === "lo" || iface.indexOf("docker") === 0
+                    || iface.indexOf("veth") === 0 || iface.indexOf("br-") === 0
+                    || iface.indexOf("virbr") === 0 || iface.indexOf("tun") === 0
+                    || iface.indexOf("tap") === 0) return;
+                var parts = line.substring(idx + 1).trim().split(/\s+/);
+                if (parts.length < 16) return;
+                netCheck.accRx += parseFloat(parts[0]) || 0;
+                netCheck.accTx += parseFloat(parts[8]) || 0;
+            }
+        }
+        onExited: {
+            var now = Date.now() / 1000;
+            if (shell.netPrevTime > 0 && now > shell.netPrevTime) {
+                var dt = now - shell.netPrevTime;
+                var rxR = Math.max(0, (accRx - shell.netPrevRx) / dt);
+                var txR = Math.max(0, (accTx - shell.netPrevTx) / dt);
+                shell.netRxRate = rxR;
+                shell.netTxRate = txR;
+                var rxH = shell.netRxHistory.slice();
+                var txH = shell.netTxHistory.slice();
+                rxH.push(rxR);
+                txH.push(txR);
+                if (rxH.length > 60) rxH = rxH.slice(rxH.length - 60);
+                if (txH.length > 60) txH = txH.slice(txH.length - 60);
+                shell.netRxHistory = rxH;
+                shell.netTxHistory = txH;
+                shell.netHistoryCount = rxH.length;
+                var peak = 1;
+                for (var i = 0; i < rxH.length; i++) {
+                    if (rxH[i] > peak) peak = rxH[i];
+                    if (txH[i] > peak) peak = txH[i];
+                }
+                shell.netRxPeak = peak;
+            }
+            shell.netPrevRx = accRx;
+            shell.netPrevTx = accTx;
+            shell.netPrevTime = now;
+            shell.netRxBytes = accRx;
+            shell.netTxBytes = accTx;
+            accRx = 0;
+            accTx = 0;
+        }
     }
 
     SystemClock {
@@ -3350,6 +3425,112 @@ ShellRoot {
                                  : shell.diskPercent > 80 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
                                  : Qt.rgba(0.6, 0.5, 0.8, 0.7)
                             Behavior on width { NumberAnimation { duration: 300 } }
+                        }
+                    }
+
+                    Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+
+                    // Network
+                    RowLayout {
+                        width: parent.width
+                        Text {
+                            text: "Network"
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: 8
+                        Text {
+                            text: "↓ " + shell.formatBytesPerSec(shell.netRxRate)
+                            color: Qt.rgba(0.4, 0.8, 0.4, 1.0)
+                            font.pixelSize: 11
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: "↑ " + shell.formatBytesPerSec(shell.netTxRate)
+                            color: Qt.rgba(0.95, 0.6, 0.3, 1.0)
+                            font.pixelSize: 11
+                            font.bold: true
+                            horizontalAlignment: Text.AlignRight
+                        }
+                    }
+
+                    Canvas {
+                        id: netGraph
+                        visible: shell.netHistoryCount >= 2
+                        width: parent.width
+                        height: 40
+
+                        property var rxHistory: shell.netRxHistory
+                        property var txHistory: shell.netTxHistory
+                        property real peak: shell.netRxPeak
+                        onRxHistoryChanged: requestPaint()
+                        onTxHistoryChanged: requestPaint()
+                        onPeakChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var rx = rxHistory;
+                            var tx = txHistory;
+                            if (rx.length < 2) return;
+                            var maxPoints = 60;
+                            var stepX = width / (maxPoints - 1);
+                            var offset = maxPoints - rx.length;
+                            var scale = peak > 0 ? peak : 1;
+
+                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                            ctx.lineWidth = 0.5;
+                            for (var g = 1; g <= 3; g++) {
+                                var gy = height - (height * g * 25 / 100);
+                                ctx.beginPath();
+                                ctx.moveTo(0, gy);
+                                ctx.lineTo(width, gy);
+                                ctx.stroke();
+                            }
+
+                            // RX fill + line
+                            ctx.fillStyle = Qt.rgba(0.4, 0.8, 0.4, 0.15);
+                            ctx.beginPath();
+                            for (var i = 0; i < rx.length; i++) {
+                                var x = (offset + i) * stepX;
+                                var y = height - (height * Math.min(rx[i] / scale, 1));
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.lineTo((offset + rx.length - 1) * stepX, height);
+                            ctx.lineTo(offset * stepX, height);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            ctx.strokeStyle = Qt.rgba(0.4, 0.8, 0.4, 0.9);
+                            ctx.lineWidth = 1.5;
+                            ctx.lineJoin = "round";
+                            ctx.beginPath();
+                            for (var j = 0; j < rx.length; j++) {
+                                var x2 = (offset + j) * stepX;
+                                var y2 = height - (height * Math.min(rx[j] / scale, 1));
+                                if (j === 0) ctx.moveTo(x2, y2);
+                                else ctx.lineTo(x2, y2);
+                            }
+                            ctx.stroke();
+
+                            // TX line
+                            ctx.strokeStyle = Qt.rgba(0.95, 0.6, 0.3, 0.9);
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            for (var k = 0; k < tx.length; k++) {
+                                var x3 = (offset + k) * stepX;
+                                var y3 = height - (height * Math.min(tx[k] / scale, 1));
+                                if (k === 0) ctx.moveTo(x3, y3);
+                                else ctx.lineTo(x3, y3);
+                            }
+                            ctx.stroke();
                         }
                     }
                 }
