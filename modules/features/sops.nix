@@ -41,7 +41,8 @@
             owner = "grafana";
             group = "grafana";
           };
-          "github_pat" = { };
+          "github_kashw2_pat" = { };
+          "github_tablogs_pat" = { };
           "keanu_password".neededForUsers = true;
           "infracost_api_key" = {
             owner = "keanu";
@@ -54,7 +55,9 @@
         };
 
         templates."nix-access-tokens" = {
-          content = "access-tokens = github.com=${config.sops.placeholder.github_pat}";
+          content = "access-tokens = github.com=${config.sops.placeholder.github_kashw2_pat} github.com/tablogs=${config.sops.placeholder.github_tablogs_pat}";
+          group = "wheel";
+          mode = "0440";
         };
       };
     };
