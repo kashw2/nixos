@@ -14,6 +14,10 @@ ShellRoot {
     property var popupScreen: null
     property string selectedNetworkName: ""
     property string passwordInput: ""
+    property string eapIdentityInput: ""
+    property string eapPasswordInput: ""
+    property bool eapConnecting: false
+    property string eapError: ""
 
     property var wifiDev: {
         var devs = Networking.devices.values;
@@ -414,6 +418,50 @@ ShellRoot {
                 }
             }
         }
+    }
+
+    Process {
+        id: eapConnectionAdd
+        property string ssid: ""
+        property string identity: ""
+        property string password: ""
+        command: ["nmcli", "connection", "add", "type", "wifi", "con-name", ssid, "ssid", ssid, "wifi-sec.key-mgmt", "wpa-eap", "802-1x.eap", "peap", "802-1x.phase2-auth", "mschapv2", "802-1x.identity", identity, "802-1x.password", password]
+        onExited: (code, status) => {
+            if (code === 0) {
+                eapConnectionUp.ssid = ssid;
+                eapConnectionUp.running = true;
+            } else {
+                shell.eapError = "Failed to create connection profile";
+                shell.eapConnecting = false;
+            }
+        }
+    }
+
+    Process {
+        id: eapConnectionUp
+        property string ssid: ""
+        command: ["nmcli", "connection", "up", ssid]
+        onExited: (code, status) => {
+            if (code === 0) {
+                shell.selectedNetworkName = "";
+                shell.eapIdentityInput = "";
+                shell.eapPasswordInput = "";
+                shell.eapError = "";
+                shell.eapConnecting = false;
+                shell.wifiPopupOpen = false;
+            } else {
+                shell.eapError = "Authentication failed";
+                shell.eapConnecting = false;
+                eapConnectionDelete.ssid = ssid;
+                eapConnectionDelete.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: eapConnectionDelete
+        property string ssid: ""
+        command: ["nmcli", "connection", "delete", ssid]
     }
 
     Timer {
@@ -1648,6 +1696,10 @@ ShellRoot {
                     shell.wifiPopupOpen = false;
                     shell.selectedNetworkName = "";
                     shell.passwordInput = "";
+                    shell.eapIdentityInput = "";
+                    shell.eapPasswordInput = "";
+                    shell.eapError = "";
+                    shell.eapConnecting = false;
                 }
             }
             anchors {
@@ -1924,6 +1976,13 @@ ShellRoot {
                                                 if (modelData.known) {
                                                     modelData.connect();
                                                     shell.wifiPopupOpen = false;
+                                                } else if (modelData.security === WifiSecurityType.WpaEap || modelData.security === WifiSecurityType.Wpa2Eap) {
+                                                    shell.selectedNetworkName = modelData.name;
+                                                    shell.eapIdentityInput = "";
+                                                    shell.eapPasswordInput = "";
+                                                    shell.eapError = "";
+                                                    shell.eapConnecting = false;
+                                                    eapIdentityField.forceActiveFocus();
                                                 } else {
                                                     shell.selectedNetworkName = modelData.name;
                                                     shell.passwordInput = "";
@@ -1935,7 +1994,7 @@ ShellRoot {
 
                                     // Password input row
                                     Rectangle {
-                                        visible: shell.selectedNetworkName === modelData.name && !modelData.known
+                                        visible: shell.selectedNetworkName === modelData.name && !modelData.known && modelData.security !== WifiSecurityType.WpaEap && modelData.security !== WifiSecurityType.Wpa2Eap
                                         width: parent.width
                                         height: visible ? 36 : 0
                                         radius: 6
@@ -2003,6 +2062,160 @@ ShellRoot {
                                                             shell.selectedNetworkName = "";
                                                             shell.passwordInput = "";
                                                             shell.wifiPopupOpen = false;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // EAP credentials form
+                                    Rectangle {
+                                        visible: shell.selectedNetworkName === modelData.name && !modelData.known && (modelData.security === WifiSecurityType.WpaEap || modelData.security === WifiSecurityType.Wpa2Eap)
+                                        width: parent.width
+                                        height: visible ? eapColumn.implicitHeight + 16 : 0
+                                        radius: 6
+                                        color: Qt.rgba(1, 1, 1, 0.08)
+                                        clip: true
+
+                                        Behavior on height { NumberAnimation { duration: 150 } }
+
+                                        Column {
+                                            id: eapColumn
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.top: parent.top
+                                            anchors.margins: 8
+                                            spacing: 6
+
+                                            // Identity/username field
+                                            Rectangle {
+                                                width: parent.width
+                                                height: 24
+                                                radius: 4
+                                                color: Qt.rgba(0, 0, 0, 0.3)
+
+                                                TextInput {
+                                                    id: eapIdentityField
+                                                    anchors.fill: parent
+                                                    anchors.leftMargin: 6
+                                                    anchors.rightMargin: 6
+                                                    verticalAlignment: TextInput.AlignVCenter
+                                                    color: "#ffffff"
+                                                    font.pixelSize: 12
+                                                    clip: true
+                                                    onTextChanged: shell.eapIdentityInput = text
+
+                                                    Text {
+                                                        anchors.fill: parent
+                                                        verticalAlignment: Text.AlignVCenter
+                                                        text: "Identity"
+                                                        color: Qt.rgba(1, 1, 1, 0.3)
+                                                        font.pixelSize: 12
+                                                        visible: !eapIdentityField.text && !eapIdentityField.activeFocus
+                                                    }
+
+                                                    Keys.onReturnPressed: eapPasswordField.forceActiveFocus()
+                                                }
+                                            }
+
+                                            // Password field
+                                            Rectangle {
+                                                width: parent.width
+                                                height: 24
+                                                radius: 4
+                                                color: Qt.rgba(0, 0, 0, 0.3)
+
+                                                TextInput {
+                                                    id: eapPasswordField
+                                                    anchors.fill: parent
+                                                    anchors.leftMargin: 6
+                                                    anchors.rightMargin: 6
+                                                    verticalAlignment: TextInput.AlignVCenter
+                                                    color: "#ffffff"
+                                                    font.pixelSize: 12
+                                                    echoMode: TextInput.Password
+                                                    clip: true
+                                                    onTextChanged: shell.eapPasswordInput = text
+
+                                                    Text {
+                                                        anchors.fill: parent
+                                                        verticalAlignment: Text.AlignVCenter
+                                                        text: "Password"
+                                                        color: Qt.rgba(1, 1, 1, 0.3)
+                                                        font.pixelSize: 12
+                                                        visible: !eapPasswordField.text && !eapPasswordField.activeFocus
+                                                    }
+
+                                                    Keys.onReturnPressed: {
+                                                        if (shell.eapIdentityInput.length > 0 && shell.eapPasswordInput.length > 0 && !shell.eapConnecting) {
+                                                            shell.eapConnecting = true;
+                                                            shell.eapError = "";
+                                                            eapConnectionAdd.ssid = modelData.name;
+                                                            eapConnectionAdd.identity = shell.eapIdentityInput;
+                                                            eapConnectionAdd.password = shell.eapPasswordInput;
+                                                            eapConnectionAdd.running = true;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Connect button and status row
+                                            RowLayout {
+                                                width: parent.width
+                                                spacing: 6
+
+                                                Text {
+                                                    visible: shell.eapConnecting
+                                                    text: "Connecting..."
+                                                    color: Qt.rgba(1, 1, 1, 0.5)
+                                                    font.pixelSize: 11
+                                                    Layout.fillWidth: true
+                                                }
+
+                                                Text {
+                                                    visible: shell.eapError !== "" && !shell.eapConnecting
+                                                    text: shell.eapError
+                                                    color: "#ff6b6b"
+                                                    font.pixelSize: 11
+                                                    Layout.fillWidth: true
+                                                }
+
+                                                Item {
+                                                    visible: !shell.eapConnecting && shell.eapError === ""
+                                                    Layout.fillWidth: true
+                                                }
+
+                                                Rectangle {
+                                                    width: 56
+                                                    height: 24
+                                                    radius: 4
+                                                    color: eapConnectHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                                                    opacity: shell.eapConnecting ? 0.5 : 1.0
+
+                                                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: "Connect"
+                                                        color: "#ffffff"
+                                                        font.pixelSize: 11
+                                                    }
+
+                                                    MouseArea {
+                                                        id: eapConnectHover
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        cursorShape: shell.eapConnecting ? Qt.BusyCursor : Qt.PointingHandCursor
+                                                        onClicked: {
+                                                            if (shell.eapIdentityInput.length > 0 && shell.eapPasswordInput.length > 0 && !shell.eapConnecting) {
+                                                                shell.eapConnecting = true;
+                                                                shell.eapError = "";
+                                                                eapConnectionAdd.ssid = modelData.name;
+                                                                eapConnectionAdd.identity = shell.eapIdentityInput;
+                                                                eapConnectionAdd.password = shell.eapPasswordInput;
+                                                                eapConnectionAdd.running = true;
+                                                            }
                                                         }
                                                     }
                                                 }
