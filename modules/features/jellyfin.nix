@@ -9,10 +9,6 @@
         JELLYFIN_WEB_DIR = "${pkgs.jellyfin-web.out}/share/jellyfin-web";
       };
 
-      systemd.services.flood.serviceConfig = {
-        RestrictAddressFamilies = [ "AF_NETLINK" ];
-      };
-
       hardware = {
         enableAllFirmware = true;
         intel-gpu-tools.enable = true;
