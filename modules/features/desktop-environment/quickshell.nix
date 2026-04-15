@@ -33,7 +33,7 @@
         ++ lib.optionals (config.isLaptop) [
           pkgs.brightnessctl
         ];
-        flags."-p" = ./shell;
+        flags."-p" = ./quickshell;
       };
     };
 }
