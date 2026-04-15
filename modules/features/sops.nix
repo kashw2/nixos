@@ -20,13 +20,24 @@
 
       sops = {
         defaultSopsFile = ../../secrets/secrets.yaml;
-        age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
         # Primary key path, placed by the installer ISO from a USB-provided
         # keys.txt on first install so sops-nix can decrypt on first boot.
         # On existing deployed hosts this file doesn't exist and sops-nix
         # falls back to sshKeyPaths above.
         age.keyFile = "/var/lib/sops-nix/key.txt";
 
+        # Read the sops age decryption key from its persistent location
+        # rather than /etc/ssh. The impermanence `files` bind mount that
+        # puts the key at /etc/ssh/ssh_host_ed25519_key is a stage-2
+        # systemd unit and can race the sops `neededForUsers` activation
+        # step on fresh boots when it loses, decryption silently fails
+        # and users with hashedPasswordFile end up passwordless.
+        # Hosts without impermanence keep the default /etc/ssh path set
+        # in modules/features/sops.nix.
+        sops.age.sshKeyPaths = lib.mkForce [
+          "/persist/etc/ssh/ssh_host_ed25519_key"
+        ];
         secrets = {
           "ssh/${config.networking.hostName}/id_ed25519" = {
             owner = "keanu";

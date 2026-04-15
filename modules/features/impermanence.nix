@@ -55,19 +55,6 @@
         # sops writes during early activation — must be up in stage 1.
         fileSystems."/persist".neededForBoot = true;
 
-        # Read the sops age decryption key from its persistent location
-        # rather than /etc/ssh. The impermanence `files` bind mount that
-        # puts the key at /etc/ssh/ssh_host_ed25519_key is a stage-2
-        # systemd unit and can race the sops `neededForUsers` activation
-        # step on fresh boots when it loses, decryption silently fails
-        # and users with hashedPasswordFile end up passwordless.
-        # Hosts without impermanence keep the default /etc/ssh path set
-        # in modules/features/sops.nix.
-        # TODO: Upon full impermanence rollout remove this and make it the default in sops.nix
-        sops.age.sshKeyPaths = lib.mkForce [
-          "/persist/etc/ssh/ssh_host_ed25519_key"
-        ];
-
         # /home is an ephemeral mount used as a target for home.persistence
         # bind mounts; impermanence requires it be marked neededForBoot.
         fileSystems."/home".neededForBoot = true;
