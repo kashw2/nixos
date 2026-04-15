@@ -12,12 +12,22 @@
       imports = [
         self.nixosModules.mediaHardwareConfiguration
         self.nixosModules.mediaDiskoConfiguration
+        self.nixosModules.impermanence
         self.nixosModules.serverTemplate
         self.nixosModules.jellyfin
         self.nixosModules.keanu
       ];
 
       features.telemetry.role = "host";
+
+      # Values consumed by modules/features/impermanence.nix. The unit
+      # name is systemd-escaped: `/` → `-`, and each original `-` in the
+      # path becomes `\x2d` (double-backslashed here to survive the
+      # nix string parser).
+      impermanence = {
+        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
+        rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
+      };
 
       networking = {
         hostName = "media";
