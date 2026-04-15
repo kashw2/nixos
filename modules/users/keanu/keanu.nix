@@ -9,11 +9,6 @@
     }:
     {
 
-      options.isServer = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-      };
-
       config = {
         users.groups.keanu = { };
 
