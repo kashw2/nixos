@@ -37,6 +37,14 @@ in
         text = ''
           set -euo pipefail
 
+          # Self-escalate: mount/umount, disko-install, and writing to /mnt
+          # all require root. The installer ISO auto-logs in as an
+          # unprivileged user, so re-exec under sudo preserving the
+          # environment (NIX_PATH etc).
+          if [ "$(id -u)" -ne 0 ]; then
+            exec sudo -E "$0" "$@"
+          fi
+
           HOST_NAME=${lib.escapeShellArg hostName}
           FLAKE_PATH=/etc/nixos-config
           KEY_DEST=/tmp/sops-key.txt
@@ -130,8 +138,9 @@ in
           # The disko config for this host declares the target disk; we
           # surface it here so the user can sanity-check before wiping.
           # ---------------------------------------------------------------
-          TARGET_DISK=$(nix --extra-experimental-features 'nix-command flakes' \
-            eval --raw \
+          TARGET_DISK=$(NIXPKGS_ALLOW_UNFREE=1 \
+            nix --extra-experimental-features 'nix-command flakes' \
+            eval --impure --raw \
             "$FLAKE_PATH#nixosConfigurations.$HOST_NAME.config.disko.devices.disk.main.device")
           echo "Target disk (from disko config): $TARGET_DISK"
           if [ -e "$TARGET_DISK" ]; then
@@ -218,7 +227,7 @@ in
         ║
         ║  1. Plug in a USB containing your sops age key as 'keys.txt'
         ║     (anywhere within 3 directory levels of the filesystem root).
-        ║  2. Run:   install-host
+        ║  2. Run:   sudo install-host
         ║
         ║  The installer will confirm the target disk before wiping.
         ╚════════════════════════════════════════════════════════════════╝
@@ -247,6 +256,12 @@ in
         "nix-command"
         "flakes"
       ];
+
+      # The host flake currently requires allowUnfree to evaluate (it
+      # references terraform among other unfree packages). disko-install
+      # invokes `nix build --impure` internally, so exporting this env var
+      # in the installer session is sufficient for evaluation to succeed.
+      environment.sessionVariables.NIXPKGS_ALLOW_UNFREE = "1";
     };
 
   # Expose one installer ISO package per host as
