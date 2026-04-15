@@ -47,6 +47,10 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
