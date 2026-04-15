@@ -192,6 +192,25 @@ ShellRoot {
         powerProfileSet.running = true;
     }
 
+    function toggleBluetooth() {
+        btToggle.turnOn = !shell.bluetoothPowered;
+        btToggle.running = true;
+    }
+
+    function connectBluetoothDevice(mac) {
+        btConnect.mac = mac;
+        btConnect.running = true;
+    }
+
+    function disconnectBluetoothDevice(mac) {
+        btDisconnect.mac = mac;
+        btDisconnect.running = true;
+    }
+
+    function refreshBluetooth() {
+        btControllerCheck.running = true;
+    }
+
     NotificationServer {
         id: notifServer
         keepOnReload: true
@@ -2276,266 +2295,7 @@ ShellRoot {
     }
 
     // Bluetooth popup - one per screen
-    Variants {
-        model: Quickshell.screens
-
-        PanelWindow {
-            id: btPopupWindow
-            required property var modelData
-            screen: modelData
-
-            visible: shell.btPopupOpen && shell.btPopupScreen === modelData
-
-            HyprlandFocusGrab {
-                active: shell.btPopupOpen && shell.btPopupScreen === modelData
-                windows: [btPopupWindow]
-                onCleared: {
-                    shell.btPopupOpen = false;
-                }
-            }
-            anchors {
-                top: true
-                right: true
-            }
-            margins {
-                top: 38
-                right: 8
-            }
-            implicitWidth: 280
-            implicitHeight: btPopupContent.implicitHeight + 24
-            exclusionMode: ExclusionMode.Ignore
-            color: "transparent"
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 12
-                color: Qt.rgba(1, 1, 1, 0.3)
-                clip: true
-
-                Column {
-                    id: btPopupContent
-                    anchors {
-                        fill: parent
-                        margins: 12
-                    }
-                    spacing: 8
-
-                    // Bluetooth toggle
-                    Rectangle {
-                        width: parent.width
-                        height: 32
-                        radius: 6
-                        color: btToggleHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                        Behavior on color { ColorAnimation { duration: 150 } }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-
-                            Text {
-                                text: "Bluetooth"
-                                color: "#ffffff"
-                                font.pixelSize: 13
-                                font.bold: true
-                                Layout.fillWidth: true
-                            }
-
-                            Rectangle {
-                                width: 36
-                                height: 20
-                                radius: 10
-                                color: shell.bluetoothPowered ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
-
-                                Behavior on color { ColorAnimation { duration: 200 } }
-
-                                Rectangle {
-                                    width: 16
-                                    height: 16
-                                    radius: 8
-                                    y: 2
-                                    x: shell.bluetoothPowered ? parent.width - width - 2 : 2
-                                    color: "#ffffff"
-
-                                    Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
-                                }
-                            }
-                        }
-
-                        MouseArea {
-                            id: btToggleHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                btToggle.turnOn = !shell.bluetoothPowered;
-                                btToggle.running = true;
-                            }
-                        }
-                    }
-
-                    // Separator
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        color: Qt.rgba(1, 1, 1, 0.1)
-                    }
-
-                    // Connected devices header
-                    Text {
-                        text: "Connected"
-                        color: Qt.rgba(1, 1, 1, 0.6)
-                        font.pixelSize: 11
-                        font.bold: true
-                        visible: shell.bluetoothPowered && shell.btConnectedDevices.length > 0
-                    }
-
-                    // Connected devices list
-                    Repeater {
-                        model: shell.bluetoothPowered ? shell.btPairedDevices : []
-
-                        delegate: Rectangle {
-                            required property var modelData
-                            property bool isConnected: shell.btConnectedDevices.indexOf(modelData.mac) !== -1
-                            property bool hovered: false
-
-                            visible: isConnected
-                            width: btPopupContent.width
-                            height: 36
-                            radius: 6
-                            color: hovered ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
-
-                            Behavior on color { ColorAnimation { duration: 150 } }
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
-                                spacing: 8
-
-                                Text {
-                                    text: modelData.name
-                                    color: "#ffffff"
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    Layout.fillWidth: true
-                                }
-
-                                Text {
-                                    text: "Connected"
-                                    color: Qt.rgba(1, 1, 1, 0.7)
-                                    font.pixelSize: 11
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: parent.hovered = true
-                                onExited: parent.hovered = false
-                                onClicked: {
-                                    btDisconnect.mac = modelData.mac;
-                                    btDisconnect.running = true;
-                                }
-                            }
-                        }
-                    }
-
-                    // Separator between connected and paired
-                    Rectangle {
-                        visible: shell.bluetoothPowered && shell.btConnectedDevices.length > 0
-                        width: parent.width
-                        height: 1
-                        color: Qt.rgba(1, 1, 1, 0.1)
-                    }
-
-                    // Paired devices header
-                    Text {
-                        text: "Paired"
-                        color: Qt.rgba(1, 1, 1, 0.6)
-                        font.pixelSize: 11
-                        font.bold: true
-                        visible: shell.bluetoothPowered && shell.btPairedDevices.length > 0
-                    }
-
-                    // Paired devices list
-                    Flickable {
-                        visible: shell.bluetoothPowered
-                        width: parent.width
-                        height: Math.min(contentHeight, 250)
-                        contentHeight: btDeviceColumn.implicitHeight
-                        clip: true
-
-                        Column {
-                            id: btDeviceColumn
-                            width: parent.width
-                            spacing: 2
-
-                            Repeater {
-                                model: shell.btPairedDevices
-
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    property bool isConnected: shell.btConnectedDevices.indexOf(modelData.mac) !== -1
-                                    property bool hovered: false
-
-                                    visible: !isConnected
-                                    width: btDeviceColumn.width
-                                    height: 36
-                                    radius: 6
-                                    color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                                    RowLayout {
-                                        anchors.fill: parent
-                                        anchors.leftMargin: 10
-                                        anchors.rightMargin: 10
-                                        spacing: 8
-
-                                        Text {
-                                            text: modelData.name
-                                            color: "#ffffff"
-                                            font.pixelSize: 13
-                                            Layout.fillWidth: true
-                                        }
-
-                                        Text {
-                                            text: "Paired"
-                                            color: Qt.rgba(1, 1, 1, 0.5)
-                                            font.pixelSize: 11
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onEntered: parent.hovered = true
-                                        onExited: parent.hovered = false
-                                        onClicked: {
-                                            btConnect.mac = modelData.mac;
-                                            btConnect.running = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Bluetooth off message
-                    Text {
-                        visible: !shell.bluetoothPowered
-                        text: "Bluetooth is disabled"
-                        color: Qt.rgba(1, 1, 1, 0.5)
-                        font.pixelSize: 12
-                    }
-                }
-            }
-        }
-    }
+    BluetoothPopup { shell: shell }
 
     // Volume popup - one per screen
     VolumePopup { shell: shell }
