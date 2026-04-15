@@ -45,6 +45,13 @@ in
             exec sudo -E "$0" "$@"
           fi
 
+          # Offline install: the ISO embeds the target closure and every
+          # flake input source tree in /nix/store, so no network is needed
+          # for evaluation or build. Tell Nix not to talk to the registry
+          # or to substituters, otherwise even with the paths locally
+          # present Nix will try to validate them against cache.nixos.org.
+          export NIX_CONFIG=$'substituters =\nuse-registries = false\nexperimental-features = nix-command flakes'
+
           HOST_NAME=${lib.escapeShellArg hostName}
           FLAKE_PATH=/etc/nixos-config
           KEY_DEST=/tmp/sops-key.txt
@@ -140,7 +147,7 @@ in
           # ---------------------------------------------------------------
           TARGET_DISK=$(NIXPKGS_ALLOW_UNFREE=1 \
             nix --extra-experimental-features 'nix-command flakes' \
-            eval --impure --raw \
+            eval --impure --offline --raw \
             "$FLAKE_PATH#nixosConfigurations.$HOST_NAME.config.disko.devices.disk.main.device")
           echo "Target disk (from disko config): $TARGET_DISK"
           if [ -e "$TARGET_DISK" ]; then
