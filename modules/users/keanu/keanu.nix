@@ -9,11 +9,6 @@
     }:
     {
 
-      options.isServer = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-      };
-
       config = {
         users.groups.keanu = { };
 
@@ -50,7 +45,6 @@
               pkgs.ansible
               pkgs.antigravity
               pkgs.claude-code
-              pkgs.opencode
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
@@ -61,18 +55,18 @@
               pkgs.nodejs_24
               pkgs.bruno
               pkgs.vlc
-              pkgs.obs-studio
               pkgs.d2
               pkgs.nixos-anywhere
+              pkgs.nixpkgs-review
+            ]
+            ++ lib.optionals (config.isDesktop) [
+              pkgs.opencode
+              pkgs.obs-studio
             ]
             ++ [
               inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
-              pkgs.nu_scripts
-              pkgs.nixpkgs-review
               pkgs.nix-update
               pkgs.hydra-check
-              pkgs.sops
-              pkgs.ssh-to-age
             ];
           openssh.authorizedKeys.keyFiles = (
             map (key: ./.ssh/${key}) (builtins.attrNames (builtins.readDir ./.ssh))

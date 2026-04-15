@@ -11,8 +11,7 @@
         self.nixosModules.virtualisation
       ];
 
-      desktopEnvironment.isLaptop = false;
-      desktopEnvironment.isDesktop = true;
+      isDesktop = true;
 
       boot.loader.grub = {
         enable = true;
