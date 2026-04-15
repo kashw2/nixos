@@ -2,6 +2,7 @@ import Quickshell
 import QtQuick
 
 Variants {
+    id: root
     required property var shell
 
     model: Quickshell.screens
@@ -11,7 +12,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        visible: shell.weatherEffectType !== "none"
+        visible: root.shell.weatherEffectType !== "none"
 
         anchors {
             top: true
@@ -30,8 +31,8 @@ Variants {
             anchors.fill: parent
 
             property var particles: []
-            property bool isSnow: shell.weatherEffectType === "snow"
-            property bool isThunder: shell.weatherEffectType === "thunder"
+            property bool isSnow: root.shell.weatherEffectType === "snow"
+            property bool isThunder: root.shell.weatherEffectType === "thunder"
             property int particleCount: isSnow ? 150 : 250
             property real flashOpacity: 0.0
 

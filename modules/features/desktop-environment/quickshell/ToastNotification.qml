@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 
 Variants {
+    id: root
     required property var shell
 
     model: Quickshell.screens
@@ -12,7 +13,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        visible: shell.toastVisible && shell.toastNotification !== null && !shell.notifPopupOpen
+        visible: root.shell.toastVisible && root.shell.toastNotification !== null && !root.shell.notifPopupOpen
 
         anchors {
             top: true
@@ -43,9 +44,9 @@ Variants {
 
                 Image {
                     source: {
-                        if (!shell.toastNotification) return "";
-                        if ((shell.toastNotification.image || "") !== "") return shell.toastNotification.image;
-                        if ((shell.toastNotification.appIcon || "") !== "") return "image://icon/" + shell.toastNotification.appIcon;
+                        if (!root.shell.toastNotification) return "";
+                        if ((root.shell.toastNotification.image || "") !== "") return root.shell.toastNotification.image;
+                        if ((root.shell.toastNotification.appIcon || "") !== "") return "image://icon/" + root.shell.toastNotification.appIcon;
                         return "";
                     }
                     visible: source !== ""
@@ -64,7 +65,7 @@ Variants {
                         width: parent.width
 
                         Text {
-                            text: shell.toastNotification ? (shell.toastNotification.appName || "Notification") : ""
+                            text: root.shell.toastNotification ? (root.shell.toastNotification.appName || "Notification") : ""
                             color: Qt.rgba(1, 1, 1, 0.6)
                             font.pixelSize: 10
                             Layout.fillWidth: true
@@ -89,13 +90,13 @@ Variants {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: shell.toastVisible = false
+                                onClicked: root.shell.toastVisible = false
                             }
                         }
                     }
 
                     Text {
-                        text: shell.toastNotification ? (shell.toastNotification.summary || "") : ""
+                        text: root.shell.toastNotification ? (root.shell.toastNotification.summary || "") : ""
                         color: "#ffffff"
                         font.pixelSize: 12
                         font.bold: true
@@ -106,8 +107,8 @@ Variants {
                     }
 
                     Text {
-                        visible: shell.toastNotification ? ((shell.toastNotification.body || "") !== "") : false
-                        text: shell.toastNotification ? (shell.toastNotification.body || "") : ""
+                        visible: root.shell.toastNotification ? ((root.shell.toastNotification.body || "") !== "") : false
+                        text: root.shell.toastNotification ? (root.shell.toastNotification.body || "") : ""
                         color: Qt.rgba(1, 1, 1, 0.7)
                         font.pixelSize: 11
                         width: parent.width
@@ -122,9 +123,9 @@ Variants {
                 anchors.fill: parent
                 z: -1
                 onClicked: {
-                    shell.toastVisible = false;
-                    shell.notifPopupScreen = toastWindow.modelData;
-                    shell.notifPopupOpen = true;
+                    root.shell.toastVisible = false;
+                    root.shell.notifPopupScreen = toastWindow.modelData;
+                    root.shell.notifPopupOpen = true;
                 }
             }
         }
