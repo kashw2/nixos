@@ -89,6 +89,8 @@
               ".ssh"
               ".local/state"
               ".local/share/nix"
+              ".local/share/nvim" # neovim state (shada, swap, undo, plugin data)
+              ".config/nushell" # nushell history
               "Downloads"
               "Documents"
             ]
@@ -96,8 +98,14 @@
               ".config/discord"
               ".config/quickshell"
               ".mozilla"
+              ".aws" # awscli credentials + config
+              ".azure" # azure-cli auth
+              ".config/gh" # gh cli auth
+              ".claude" # claude-code projects, shell snapshots, todos
             ];
-            files = [ ];
+            files = lib.optionals (!config.isServer) [
+              ".claude.json" # claude-code per-project config + auth
+            ];
           };
           mcp-servers.programs = {
             nixos.enable = true;
