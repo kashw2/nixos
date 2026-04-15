@@ -45,6 +45,8 @@ ShellRoot {
     property var btPopupScreen: null
     property var btPairedDevices: []
     property var btConnectedDevices: []
+    property var btDiscoveredDevices: []
+    property bool btScanning: false
 
     property bool hasBattery: false
     property int batteryPercent: 0
@@ -205,6 +207,11 @@ ShellRoot {
     function disconnectBluetoothDevice(mac) {
         btDisconnect.mac = mac;
         btDisconnect.running = true;
+    }
+
+    function pairBluetoothDevice(mac) {
+        btPair.mac = mac;
+        btPair.running = true;
     }
 
     function refreshBluetooth() {
@@ -649,6 +656,81 @@ ShellRoot {
         onExited: {
             btDeviceCheck.devices = [];
             btDeviceCheck.running = true;
+        }
+    }
+
+    // Scan while the bluetooth popup is open.
+    // `bluetoothctl scan on` without --timeout does NOT actually start discovery
+    // in non-interactive mode (it only sets the discovery filter). --timeout uses
+    // a different code path that calls StartDiscovery. We restart it in onExited
+    // while the popup is still open to keep scanning going.
+    Process {
+        id: btScan
+        command: ["bluetoothctl", "--timeout", "30", "scan", "on"]
+        running: shell.btPopupOpen && shell.bluetoothPowered
+        onRunningChanged: shell.btScanning = running
+        onExited: (code, status) => {
+            if (shell.btPopupOpen && shell.bluetoothPowered) {
+                btScan.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: btDiscoveredCheck
+        command: ["bluetoothctl", "devices"]
+        property var devices: []
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString().trim();
+                if (line.startsWith("Device ")) {
+                    var parts = line.substring(7);
+                    var mac = parts.substring(0, 17);
+                    var name = parts.substring(18);
+                    btDiscoveredCheck.devices.push({ mac: mac, name: name });
+                }
+            }
+        }
+        onExited: (code, status) => {
+            var pairedMacs = shell.btPairedDevices.map(function(d) { return d.mac; });
+            // Exclude devices that look like raw MAC addresses (unnamed devices are reported
+            // with `-` as the separator, e.g. name "4A-D0-CF-29-58-81" for MAC 4A:D0:CF:29:58:81),
+            // and filter out already-paired devices.
+            shell.btDiscoveredDevices = btDiscoveredCheck.devices.filter(function(d) {
+                if (pairedMacs.indexOf(d.mac) !== -1) return false;
+                if (!d.name) return false;
+                if (d.name === d.mac) return false;
+                if (d.name === d.mac.replace(/:/g, "-")) return false;
+                return true;
+            });
+            btDiscoveredCheck.devices = [];
+        }
+    }
+
+    // Poll for newly discovered devices while the popup is open.
+    Timer {
+        interval: 2500
+        repeat: true
+        running: shell.btPopupOpen && shell.bluetoothPowered
+        triggeredOnStart: true
+        onTriggered: {
+            btDiscoveredCheck.devices = [];
+            btDiscoveredCheck.running = true;
+        }
+    }
+
+    Process {
+        id: btPair
+        property string mac: ""
+        command: ["bluetoothctl", "pair", mac]
+        onExited: (code, status) => {
+            // Refresh paired list and auto-connect on successful pair.
+            btDeviceCheck.devices = [];
+            btDeviceCheck.running = true;
+            if (code === 0) {
+                btConnect.mac = btPair.mac;
+                btConnect.running = true;
+            }
         }
     }
 

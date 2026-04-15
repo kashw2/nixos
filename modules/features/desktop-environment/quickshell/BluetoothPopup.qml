@@ -246,6 +246,106 @@ Variants {
                     }
                 }
 
+                // Separator between paired and available
+                Rectangle {
+                    visible: root.shell.bluetoothPowered && root.shell.btDiscoveredDevices.length > 0
+                    width: parent.width
+                    height: 1
+                    color: Qt.rgba(1, 1, 1, 0.1)
+                }
+
+                // Available devices header
+                RowLayout {
+                    width: parent.width
+                    visible: root.shell.bluetoothPowered
+                    spacing: 6
+
+                    Text {
+                        text: "Available"
+                        color: Qt.rgba(1, 1, 1, 0.6)
+                        font.pixelSize: 11
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+
+                    Text {
+                        text: root.shell.btScanning ? "Scanning…" : ""
+                        color: Qt.rgba(1, 1, 1, 0.4)
+                        font.pixelSize: 10
+                        font.italic: true
+                    }
+                }
+
+                // Available (discovered, unpaired) devices list
+                Flickable {
+                    visible: root.shell.bluetoothPowered
+                    width: parent.width
+                    height: Math.min(contentHeight, 180)
+                    contentHeight: btAvailableColumn.implicitHeight
+                    clip: true
+
+                    Column {
+                        id: btAvailableColumn
+                        width: parent.width
+                        spacing: 2
+
+                        Repeater {
+                            model: root.shell.btDiscoveredDevices
+
+                            delegate: Rectangle {
+                                required property var modelData
+                                property bool hovered: false
+
+                                width: btAvailableColumn.width
+                                height: 36
+                                radius: 6
+                                color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                                Behavior on color { ColorAnimation { duration: 150 } }
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 10
+                                    anchors.rightMargin: 10
+                                    spacing: 8
+
+                                    Text {
+                                        text: modelData.name
+                                        color: "#ffffff"
+                                        font.pixelSize: 13
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Text {
+                                        text: "Pair"
+                                        color: Qt.rgba(1, 1, 1, 0.5)
+                                        font.pixelSize: 11
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onEntered: parent.hovered = true
+                                    onExited: parent.hovered = false
+                                    onClicked: root.shell.pairBluetoothDevice(modelData.mac)
+                                }
+                            }
+                        }
+
+                        Text {
+                            visible: root.shell.btDiscoveredDevices.length === 0
+                            text: root.shell.btScanning ? "Searching for devices…" : "No devices found"
+                            color: Qt.rgba(1, 1, 1, 0.4)
+                            font.pixelSize: 12
+                            font.italic: true
+                            leftPadding: 10
+                        }
+                    }
+                }
+
                 // Bluetooth off message
                 Text {
                     visible: !root.shell.bluetoothPowered
