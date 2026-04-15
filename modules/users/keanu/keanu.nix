@@ -62,7 +62,6 @@
             ]
             ++ [
               inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
-              pkgs.nu_scripts
               pkgs.nixpkgs-review
               pkgs.nix-update
               pkgs.hydra-check

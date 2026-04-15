@@ -17,6 +17,7 @@
           pkgs.zoxide
           pkgs.starship
           pkgs.carapace
+          pkgs.nu_scripts
         ];
         passthru.shellPath = "/bin/nu";
         flags."--config" = pkgs.writeText "config.nu" ''
