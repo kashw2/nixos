@@ -53,7 +53,47 @@
           {
             assertion = config.isServer || config.isLaptop || config.isDesktop;
             message = "A host must declare its type by setting one of isServer, isLaptop, or isDesktop to true. Did you forget to import serverTemplate, laptopTemplate, or desktopTemplate?";
-          }
+        }
+      ];
+
+      # Impermanence wipes / on every boot, so mutable changes to /etc/shadow
+      # would not survive. Keanu's password is managed declaratively via
+      # sops-nix (users.users.keanu.hashedPasswordFile), so mutable users
+      # would be misleading.
+      users.mutableUsers = false;
+
+      environment = {
+        shells = [ self.packages.${pkgs.stdenv.hostPlatform.system}.nushell ];
+        localBinInPath = true;
+
+        sessionVariables = {
+          TERM = "kitty";
+          EDITOR = "nvim";
+          NIXPKGS_ALLOW_UNFREE = 1;
+          NIXPKGS_ALLOW_INSECURE = 1;
+        };
+
+        etc."current-system-packages".text =
+          let
+            packages = map (p: p.name) config.environment.systemPackages;
+            sortedUnique = builtins.sort builtins.lessThan (lib.lists.unique packages);
+            formatted = lib.strings.concatLines sortedUnique;
+          in
+          formatted;
+
+        systemPackages = [
+          pkgs.nano
+          pkgs.openssl
+          pkgs.killall
+          pkgs.lsof
+          pkgs.btop
+          pkgs.watch
+          pkgs.tree
+          pkgs.curl
+          pkgs.cliphist
+          pkgs.unzip
+          pkgs.git
+          self.packages.${pkgs.stdenv.hostPlatform.system}.fastfetch
         ];
 
         boot = {
