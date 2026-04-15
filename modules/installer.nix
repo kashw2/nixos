@@ -156,8 +156,14 @@ in
           # host's disko config, mounts at /mnt, and runs nixos-install.
           # ---------------------------------------------------------------
           echo "Running disko-install..."
+          # Pass --disk main explicitly. disko-install internally does
+          # `boot.loader.grub.devices = lib.mkVMOverride (lib.attrValues diskMappings)`
+          # at priority 10, so without a --disk mapping grub.devices gets
+          # forced to [] and the bootloader assertion fails. nixos-anywhere
+          # also passes this; matching its behavior here.
           disko-install \
             --flake "$FLAKE_PATH#$HOST_NAME" \
+            --disk main "$TARGET_DISK" \
             --write-efi-boot-entries
 
           # ---------------------------------------------------------------

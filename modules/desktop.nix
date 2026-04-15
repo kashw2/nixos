@@ -1,7 +1,7 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.desktopTemplate =
-    { config, pkgs, lib, ... }:
+    { pkgs, lib, ... }:
     {
 
       imports = [
@@ -19,9 +19,6 @@
         useOSProber = true;
         efiSupport = true;
         efiInstallAsRemovable = true;
-        # Dual BIOS+EFI: point at the whole disk so GRUB can write to the
-        # EF02 partition allocated in each host's disko config.
-        devices = [ config.disko.devices.disk.main.device ];
       };
 
       fonts.packages = [
