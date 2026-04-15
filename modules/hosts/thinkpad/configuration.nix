@@ -12,12 +12,6 @@
         self.nixosModules.keanu
       ];
 
-      # Impermanence wipes / on every boot, so mutable changes to /etc/shadow
-      # would not survive. Keanu's password is managed declaratively via
-      # sops-nix (users.users.keanu.hashedPasswordFile), so mutable users
-      # would be misleading.
-      users.mutableUsers = false;
-
       # Values consumed by modules/features/impermanence.nix. The unit
       # name is systemd-escaped: `/` → `-`, and each original `-` in the
       # path becomes `\x2d` (double-backslashed here to survive the
