@@ -177,10 +177,14 @@ in
           # at priority 10, so without a --disk mapping grub.devices gets
           # forced to [] and the bootloader assertion fails. nixos-anywhere
           # also passes this; matching its behavior here.
+          #
+          # Intentionally NOT passing --write-efi-boot-entries: the host
+          # templates set boot.loader.grub.efiInstallAsRemovable = true
+          # (GRUB installs to /EFI/BOOT/BOOTX64.EFI, no NVRAM entry). That
+          # flag would set canTouchEfiVariables = true, which conflicts.
           disko-install \
             --flake "$FLAKE_PATH#$HOST_NAME" \
-            --disk main "$TARGET_DISK" \
-            --write-efi-boot-entries
+            --disk main "$TARGET_DISK"
 
           # ---------------------------------------------------------------
           # Step 4: Place the age key on the target so sops-nix can decrypt
