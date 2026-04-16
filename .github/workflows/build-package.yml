@@ -1,0 +1,94 @@
+name: Build Package
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - flake.nix
+      - flake.lock
+      - modules/features/rofi.nix
+      - modules/features/nushell.nix
+      - modules/features/kitty.nix
+      - modules/features/desktop-environment/sddm-sugar-candy.nix
+      - modules/features/desktop-environment/hyprland.nix
+      - modules/features/desktop-environment/hypridle.nix
+      - modules/features/desktop-environment/hyprlock.nix
+      - modules/features/desktop-environment/hyprpaper.nix
+      - modules/features/nixvim/atone-nvim.nix
+      - modules/features/nixvim/codestats.nix
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.detect.outputs.packages }}
+      has-packages: ${{ steps.detect.outputs.has-packages }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: detect
+        run: |
+          ALL='["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats"]'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "packages=$ALL" >> "$GITHUB_OUTPUT"
+            echo "has-packages=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+
+          if echo "$CHANGED" | grep -qE '^flake\.(nix|lock)$'; then
+            echo "packages=$ALL" >> "$GITHUB_OUTPUT"
+            echo "has-packages=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          declare -A PACKAGE_PATHS=(
+            ["rofi"]="modules/features/rofi.nix"
+            ["nushell"]="modules/features/nushell.nix"
+            ["kitty"]="modules/features/kitty.nix"
+            ["sddm-sugar-candy"]="modules/features/desktop-environment/sddm-sugar-candy.nix"
+            ["hyprland"]="modules/features/desktop-environment/hyprland.nix"
+            ["hypridle"]="modules/features/desktop-environment/hypridle.nix"
+            ["hyprlock"]="modules/features/desktop-environment/hyprlock.nix"
+            ["hyprpaper"]="modules/features/desktop-environment/hyprpaper.nix"
+            ["atone-nvim"]="modules/features/nixvim/atone-nvim.nix"
+            ["codestats"]="modules/features/nixvim/codestats.nix"
+          )
+
+          PACKAGES=()
+          for pkg in "${!PACKAGE_PATHS[@]}"; do
+            if echo "$CHANGED" | grep -q "^${PACKAGE_PATHS[$pkg]}$"; then
+              PACKAGES+=("\"$pkg\"")
+            fi
+          done
+
+          if [ ${#PACKAGES[@]} -eq 0 ]; then
+            echo "packages=[]" >> "$GITHUB_OUTPUT"
+            echo "has-packages=false" >> "$GITHUB_OUTPUT"
+          else
+            JOINED=$(IFS=,; echo "${PACKAGES[*]}")
+            echo "packages=[$JOINED]" >> "$GITHUB_OUTPUT"
+            echo "has-packages=true" >> "$GITHUB_OUTPUT"
+          fi
+  build:
+    name: Build ${{ matrix.package }}
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has-packages == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ matrix.package }}
+          restore-prefixes-first-match: nix-${{ matrix.package }}
+          gc-max-store-size-linux: 10G
+      - run: nix develop --command nix build .#${{ matrix.package }} --impure
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
