@@ -61,6 +61,7 @@ in
           HOST_NAME=${lib.escapeShellArg hostName}
           FLAKE_PATH=/etc/nixos-config
           KEY_DEST=/tmp/sops-key.txt
+          SSH_KEY_DIR=/tmp/ssh-host-keys
           MOUNT_POINT=/tmp/keymnt
           WAIT_TIMEOUT=120
 
@@ -69,8 +70,11 @@ in
               umount "$MOUNT_POINT" || true
             fi
             rm -f "$KEY_DEST"
+            rm -rf "$SSH_KEY_DIR"
           }
           trap cleanup EXIT
+
+          mkdir -p "$SSH_KEY_DIR"
 
           mkdir -p "$MOUNT_POINT"
 
@@ -122,6 +126,19 @@ in
                   echo "Found valid age key at: $dev:$(realpath --relative-to="$MOUNT_POINT" "$keyfile")"
                   cp "$keyfile" "$KEY_DEST"
                   chmod 0400 "$KEY_DEST"
+
+                  # Also grab SSH host keys from sops/<hostname>/ if present.
+                  local ssh_src="$MOUNT_POINT/sops/$HOST_NAME"
+                  if [ -d "$ssh_src" ]; then
+                    for keyname in ssh_host_ed25519_key ssh_host_ed25519_key.pub; do
+                      if [ -f "$ssh_src/$keyname" ]; then
+                        cp "$ssh_src/$keyname" "$SSH_KEY_DIR/$keyname"
+                        chmod 0600 "$SSH_KEY_DIR/$keyname"
+                        echo "Found SSH host key: sops/$HOST_NAME/$keyname"
+                      fi
+                    done
+                  fi
+
                   umount "$MOUNT_POINT"
                   return 0
                 fi
@@ -191,8 +208,17 @@ in
           # Belt-and-suspenders: pass the offline-forcing options explicitly
           # via --option so they survive even if NIX_CONFIG inheritance
           # breaks through a sudo/re-exec boundary inside disko-install.
+          # Build --extra-files args: always the sops age key, plus any
+          # SSH host keys found on the USB under sops/<hostname>/.
+          extra_files_args=(--extra-files "$KEY_DEST" /var/lib/sops-nix/key.txt)
+          for keyname in ssh_host_ed25519_key ssh_host_ed25519_key.pub; do
+            if [ -f "$SSH_KEY_DIR/$keyname" ]; then
+              extra_files_args+=(--extra-files "$SSH_KEY_DIR/$keyname" "/etc/ssh/$keyname")
+            fi
+          done
+
           disko-install \
-            --extra-files "$KEY_DEST" /var/lib/sops-nix/key.txt \
+            "''${extra_files_args[@]}" \
             --option substituters "" \
             --option flake-registry "" \
             --option use-registries false \
@@ -235,6 +261,8 @@ in
         ║
         ║  1. Plug in a USB containing your sops age key as 'keys.txt'
         ║     (anywhere within 3 directory levels of the filesystem root).
+        ║     Optional: place SSH host keys under sops/${hostName}/
+        ║     (ssh_host_ed25519_key + .pub).
         ║  2. Run:   sudo install-host
         ║
         ║  The installer will confirm the target disk before wiping.
