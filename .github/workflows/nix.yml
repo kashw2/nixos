@@ -67,7 +67,9 @@ jobs:
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-devshell
-          restore-prefixes-first-match: nix-devshell
+          restore-prefixes-first-match: |
+            nix-devshell
+            nix-
       - run: nix develop --command nix flake check --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
@@ -146,8 +148,10 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nix-${{ matrix.host }}
-          restore-prefixes-first-match: nix-${{ matrix.host }}
+          primary-key: nix-host
+          restore-prefixes-first-match: |
+            nix-host
+            nix-
           gc-max-store-size-linux: 10G
       - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
         env:
