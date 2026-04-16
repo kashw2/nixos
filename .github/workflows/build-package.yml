@@ -90,7 +90,9 @@ jobs:
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-${{ matrix.package }}
-          restore-prefixes-first-match: nix-${{ matrix.package }}
+          restore-prefixes-first-match: |
+            nix-${{ matrix.package }}
+            nix-
           gc-max-store-size-linux: 10G
       - run: nix develop --command nix build .#${{ matrix.package }} --impure
         env:
