@@ -50,7 +50,13 @@ in
           # for evaluation or build. Tell Nix not to talk to the registry
           # or to substituters, otherwise even with the paths locally
           # present Nix will try to validate them against cache.nixos.org.
-          export NIX_CONFIG=$'substituters =\nuse-registries = false\nexperimental-features = nix-command flakes'
+          #
+          # flake-registry= (empty) is critical: without it, nix still
+          # fetches https://channels.nixos.org/flake-registry.json on every
+          # flake eval, even when use-registries=false. disko-install's
+          # internal `nix build` doesn't pass --offline, so we rely on
+          # NIX_CONFIG being inherited by the child nix process.
+          export NIX_CONFIG=$'substituters =\nuse-substitutes = false\nuse-registries = false\nflake-registry =\ntarball-ttl = 0\nexperimental-features = nix-command flakes'
 
           HOST_NAME=${lib.escapeShellArg hostName}
           FLAKE_PATH=/etc/nixos-config
@@ -182,7 +188,13 @@ in
           # templates set boot.loader.grub.efiInstallAsRemovable = true
           # (GRUB installs to /EFI/BOOT/BOOTX64.EFI, no NVRAM entry). That
           # flag would set canTouchEfiVariables = true, which conflicts.
+          # Belt-and-suspenders: pass the offline-forcing options explicitly
+          # via --option so they survive even if NIX_CONFIG inheritance
+          # breaks through a sudo/re-exec boundary inside disko-install.
           disko-install \
+            --option substituters "" \
+            --option flake-registry "" \
+            --option use-registries false \
             --flake "$FLAKE_PATH#$HOST_NAME" \
             --disk main "$TARGET_DISK"
 
@@ -228,7 +240,6 @@ in
         installHost
       ];
 
-
       # install-iso already auto-logins root on tty1; add a clear banner so
       # the user knows the one command to run.
       users.motd = ''
@@ -253,13 +264,12 @@ in
       # trees are embedded in the ISO. The closure lets the installer skip
       # compilation; the input sources let `nix eval` against
       # /etc/nixos-config resolve all inputs without network access.
-      system.extraDependencies =
-        [
-          self.nixosConfigurations.${hostName}.config.system.build.toplevel
-        ]
-        ++ builtins.filter (p: p != null) (
-          map (v: v.outPath or null) (builtins.attrValues (builtins.removeAttrs inputs [ "self" ]))
-        );
+      system.extraDependencies = [
+        self.nixosConfigurations.${hostName}.config.system.build.toplevel
+      ]
+      ++ builtins.filter (p: p != null) (
+        map (v: v.outPath or null) (builtins.attrValues (builtins.removeAttrs inputs [ "self" ]))
+      );
 
       # flakes + nix-command are required by disko-install --flake and the
       # key-discovery `nix eval` call in install-host.
