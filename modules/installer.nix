@@ -21,9 +21,9 @@ in
     let
       # install-host: the single command the user runs after booting the ISO.
       # Searches USB block devices for a keys.txt file (up to depth 3),
-      # validates it as an age key, copies it into place, then runs
-      # disko-install. After install, drops the key at
-      # /mnt/var/lib/sops-nix/key.txt so sops-nix can decrypt on first boot.
+      # validates it as an age key, then runs disko-install with
+      # --extra-files to inject the key into the target filesystem before
+      # nixos-install runs, so sops-nix can decrypt during activation.
       installHost = pkgs.writeShellApplication {
         name = "install-host";
         runtimeInputs = [
@@ -192,26 +192,12 @@ in
           # via --option so they survive even if NIX_CONFIG inheritance
           # breaks through a sudo/re-exec boundary inside disko-install.
           disko-install \
+            --extra-files "$KEY_DEST" /var/lib/sops-nix/key.txt \
             --option substituters "" \
             --option flake-registry "" \
             --option use-registries false \
             --flake "$FLAKE_PATH#$HOST_NAME" \
             --disk main "$TARGET_DISK"
-
-          # ---------------------------------------------------------------
-          # Step 4: Place the age key on the target so sops-nix can decrypt
-          # on first boot. /mnt should still be mounted after disko-install.
-          # ---------------------------------------------------------------
-          if mountpoint -q /mnt; then
-            install -d -m 0755 -o 0 -g 0 /mnt/var/lib/sops-nix
-            install -m 0400 -o 0 -g 0 "$KEY_DEST" /mnt/var/lib/sops-nix/key.txt
-            echo "Placed sops age key at /mnt/var/lib/sops-nix/key.txt"
-            umount -R /mnt
-          else
-            echo "WARNING: /mnt is not mounted after disko-install; cannot place sops key." >&2
-            echo "Mount the target root and copy $KEY_DEST to /var/lib/sops-nix/key.txt (mode 0400) manually before rebooting." >&2
-            exit 1
-          fi
 
           echo
           echo "=== Install complete for '$HOST_NAME'. Reboot when ready. ==="
