@@ -35,9 +35,10 @@
         # and users with hashedPasswordFile end up passwordless.
         # Hosts without impermanence keep the default /etc/ssh path set
         # in modules/features/sops.nix.
-        sops.age.sshKeyPaths = lib.mkForce [
+        age.sshKeyPaths = lib.mkForce [
           "/persist/etc/ssh/ssh_host_ed25519_key"
         ];
+
         secrets = {
           "ssh/${config.networking.hostName}/id_ed25519" = {
             owner = "keanu";
