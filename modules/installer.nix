@@ -19,6 +19,46 @@ in
       ...
     }:
     let
+      # xcp wrapper: disko-install uses xcp (a Rust file copier) to bulk-copy
+      # store paths. xcp preserves xattrs by default, which fails on the
+      # installer ISO's overlayfs with "Failed to copy xattrs … Operation not
+      # supported". xcp's only disable flag (--no-perms) also drops file
+      # permissions, which is too broad. Override with parallel cp -dRp which
+      # preserves mode/ownership/timestamps/links but never touches xattrs.
+      xcpWrapper = pkgs.writeShellScriptBin "xcp" ''
+        target=""
+        sources=()
+        while [[ $# -gt 0 ]]; do
+          case "$1" in
+            --recursive) ;;
+            --target-directory) target="$2"; shift ;;
+            *) sources+=("$1") ;;
+          esac
+          shift
+        done
+
+        # Copy in parallel (nproc jobs) to match xcp's throughput.
+        # -dRp preserves mode, ownership, timestamps, and links but
+        # never attempts xattr copies (unlike -a / --preserve=all).
+        maxjobs=$(${pkgs.coreutils}/bin/nproc)
+        total=''${#sources[@]}
+        n=0
+        for src in "''${sources[@]}"; do
+          while [ "$(jobs -pr | wc -l)" -ge "$maxjobs" ]; do
+            wait -n 2>/dev/null || true
+          done
+          ${pkgs.coreutils}/bin/cp -dRp "$src" "$target/" &
+          n=$((n + 1))
+          if (( n % 50 == 0 )); then
+            echo "  copied $n / $total store paths..." >&2
+          fi
+        done
+        wait
+      '';
+      diskoInstall = inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install.override {
+        xcp = xcpWrapper;
+      };
+
       # install-host: the single command the user runs after booting the ISO.
       # Searches USB block devices for a keys.txt file (up to depth 3),
       # validates it as an age key, then runs disko-install with
@@ -32,7 +72,7 @@ in
           pkgs.findutils
           pkgs.gnugrep
           pkgs.age # age-keygen for validation
-          inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
+          diskoInstall
         ];
         text = ''
           set -euo pipefail
@@ -248,7 +288,7 @@ in
         pkgs.e2fsprogs
         pkgs.btrfs-progs
         inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko
-        inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
+        diskoInstall
         installHost
       ];
 
