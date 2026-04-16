@@ -75,6 +75,14 @@
 
         home-manager.users.keanu = {
           home.stateVersion = config.system.stateVersion;
+          xdg.userDirs = {
+            createDirectories = !config.isServer;
+            documents = "${config.users.users.keanu.home}/Documents";
+            download = "${config.users.users.keanu.home}/Downloads";
+            pictures = "${config.users.users.keanu.home}/Pictures";
+            videos = "${config.users.users.keanu.home}/Videos";
+            music = "${config.users.users.keanu.home}/Pictures";
+          };
           mcp-servers.programs = {
             nixos.enable = true;
             "sequential-thinking".enable = true;
