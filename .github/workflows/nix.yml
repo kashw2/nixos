@@ -4,9 +4,9 @@ on:
   pull_request:
     paths:
       - '*.nix'
-      - 'flake.lock'
-      - 'modules/**'
-      - 'secrets/**'
+      - flake.lock
+      - modules/**
+      - secrets/**
   schedule:
     - cron: 0 0 * * 0 # runs every week
 concurrency:
@@ -71,18 +71,43 @@ jobs:
       - run: nix develop --command nix flake check --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
+  detect-hosts:
+    name: Detect Hosts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    outputs:
+      hosts: ${{ steps.detect.outputs.hosts }}
+    steps:
+      - id: detect
+        run: |
+          ALL='["home","laptop","thinkpad","media"]'
+          DESKTOP_LAPTOP='["home","laptop","thinkpad"]'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BRANCH="${{ github.head_ref }}"
+          DESKTOP_LAPTOP_INPUTS="hyprland hyprpaper hyprlock rose-pine-hyprcursor xdg-desktop-portal-hyprland quickshell"
+
+          for input in $DESKTOP_LAPTOP_INPUTS; do
+            if [ "$BRANCH" = "update-${input}-flake-input" ]; then
+              echo "hosts=$DESKTOP_LAPTOP" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
   build-configuration:
     name: Build Configuration
+    needs: detect-hosts
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        host:
-          - home
-          - laptop
-          - thinkpad
-          - media
+        host: ${{ fromJSON(needs.detect-hosts.outputs.hosts) }}
     steps:
       - uses: actions/checkout@v6
       - uses: wimpysworld/nothing-but-nix@v10
