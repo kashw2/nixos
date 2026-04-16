@@ -15,6 +15,9 @@ on:
       - modules/features/desktop-environment/hyprpaper.nix
       - modules/features/nixvim/atone-nvim.nix
       - modules/features/nixvim/codestats.nix
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   detect-changes:
     name: Detect Changes
