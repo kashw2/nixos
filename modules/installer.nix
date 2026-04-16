@@ -19,51 +19,19 @@ in
       ...
     }:
     let
-      # xcp wrapper: disko-install uses xcp (a Rust file copier) to bulk-copy
-      # store paths. xcp preserves xattrs by default, which fails on the
-      # installer ISO's overlayfs with "Failed to copy xattrs … Operation not
-      # supported". xcp's only disable flag (--no-perms) also drops file
-      # permissions, which is too broad. Override with parallel cp -dRp which
-      # preserves mode/ownership/timestamps/links but never touches xattrs.
-      xcpWrapper = pkgs.writeShellScriptBin "xcp" ''
-        target=""
-        sources=()
-        while [[ $# -gt 0 ]]; do
-          case "$1" in
-            --recursive) ;;
-            --target-directory) target="$2"; shift ;;
-            *) sources+=("$1") ;;
-          esac
-          shift
-        done
-
-        # Copy in parallel (nproc jobs) to match xcp's throughput.
-        # -dRp preserves mode, ownership, timestamps, and links but
-        # never attempts xattr copies (unlike -a / --preserve=all).
-        maxjobs=$(${pkgs.coreutils}/bin/nproc)
-        total=''${#sources[@]}
-        n=0
-        for src in "''${sources[@]}"; do
-          while [ "$(jobs -pr | wc -l)" -ge "$maxjobs" ]; do
-            wait -n 2>/dev/null || true
-          done
-          ${pkgs.coreutils}/bin/cp -dRp "$src" "$target/" &
-          n=$((n + 1))
-          if (( n % 50 == 0 )); then
-            echo "  copied $n / $total store paths..." >&2
-          fi
-        done
-        wait
-      '';
-      diskoInstall = inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install.override {
-        xcp = xcpWrapper;
-      };
+      # Pre-built artifacts from the target host's NixOS configuration.
+      # These are evaluated at ISO build time, eliminating all flake
+      # evaluation (and thus network access) at install time.
+      targetConfig = self.nixosConfigurations.${hostName}.config;
+      diskoScript = targetConfig.system.build.diskoScript;
+      systemToplevel = targetConfig.system.build.toplevel;
+      targetDisk = targetConfig.disko.devices.disk.main.device;
 
       # install-host: the single command the user runs after booting the ISO.
       # Searches USB block devices for a keys.txt file (up to depth 3),
-      # validates it as an age key, then runs disko-install with
-      # --extra-files to inject the key into the target filesystem before
-      # nixos-install runs, so sops-nix can decrypt during activation.
+      # validates it as an age key, then partitions + formats the target
+      # disk, injects the key, and runs nixos-install with the pre-built
+      # system closure — all without any network access.
       installHost = pkgs.writeShellApplication {
         name = "install-host";
         runtimeInputs = [
@@ -72,34 +40,19 @@ in
           pkgs.findutils
           pkgs.gnugrep
           pkgs.age # age-keygen for validation
-          diskoInstall
         ];
         text = ''
           set -euo pipefail
 
-          # Self-escalate: mount/umount, disko-install, and writing to /mnt
-          # all require root. The installer ISO auto-logs in as an
-          # unprivileged user, so re-exec under sudo preserving the
-          # environment (NIX_PATH etc).
+          # Self-escalate: mount/umount, disko, and writing to /mnt all
+          # require root. The installer ISO auto-logs in as an unprivileged
+          # user, so re-exec under sudo preserving the environment.
           if [ "$(id -u)" -ne 0 ]; then
             exec sudo -E "$0" "$@"
           fi
 
-          # Offline install: the ISO embeds the target closure and every
-          # flake input source tree in /nix/store, so no network is needed
-          # for evaluation or build. Tell Nix not to talk to the registry
-          # or to substituters, otherwise even with the paths locally
-          # present Nix will try to validate them against cache.nixos.org.
-          #
-          # flake-registry= (empty) is critical: without it, nix still
-          # fetches https://channels.nixos.org/flake-registry.json on every
-          # flake eval, even when use-registries=false. disko-install's
-          # internal `nix build` doesn't pass --offline, so we rely on
-          # NIX_CONFIG being inherited by the child nix process.
-          export NIX_CONFIG=$'substituters =\nuse-substitutes = false\nuse-registries = false\nflake-registry =\ntarball-ttl = 0\nexperimental-features = nix-command flakes'
-
           HOST_NAME=${lib.escapeShellArg hostName}
-          FLAKE_PATH=/etc/nixos-config
+          TARGET_DISK=${lib.escapeShellArg targetDisk}
           KEY_DEST=/tmp/sops-key.txt
           SSH_KEY_DIR=/tmp/ssh-host-keys
           MOUNT_POINT=/tmp/keymnt
@@ -205,13 +158,9 @@ in
 
           # ---------------------------------------------------------------
           # Step 2: Show the target disk and ask for confirmation.
-          # The disko config for this host declares the target disk; we
-          # surface it here so the user can sanity-check before wiping.
+          # The target disk path is baked in from the host's disko config
+          # at ISO build time.
           # ---------------------------------------------------------------
-          TARGET_DISK=$(NIXPKGS_ALLOW_UNFREE=1 \
-            nix --extra-experimental-features 'nix-command flakes' \
-            eval --impure --offline --raw \
-            "$FLAKE_PATH#nixosConfigurations.$HOST_NAME.config.disko.devices.disk.main.device")
           echo "Target disk (from disko config): $TARGET_DISK"
           if [ -e "$TARGET_DISK" ]; then
             echo "Disk is present:"
@@ -219,7 +168,7 @@ in
           else
             echo "WARNING: $TARGET_DISK does not exist on this machine." >&2
             echo "The disko config hardcodes a disk-by-id path that doesn't match." >&2
-            echo "You can pass --disk main /dev/XXX to disko-install manually, or edit the host's disko.nix." >&2
+            echo "Rebuild the ISO with the correct device in the host's disko.nix." >&2
           fi
           echo
           echo "THIS WILL ERASE THE DISK ABOVE."
@@ -231,39 +180,34 @@ in
           fi
 
           # ---------------------------------------------------------------
-          # Step 3: Run disko-install. This partitions + formats per the
-          # host's disko config, mounts at /mnt, and runs nixos-install.
+          # Step 3: Partition, format, mount, inject secrets, and install.
+          # Uses the pre-built disko script and system closure — no flake
+          # evaluation or network access required.
           # ---------------------------------------------------------------
-          echo "Running disko-install..."
-          # Pass --disk main explicitly. disko-install internally does
-          # `boot.loader.grub.devices = lib.mkVMOverride (lib.attrValues diskMappings)`
-          # at priority 10, so without a --disk mapping grub.devices gets
-          # forced to [] and the bootloader assertion fails. nixos-anywhere
-          # also passes this; matching its behavior here.
-          #
-          # Intentionally NOT passing --write-efi-boot-entries: the host
-          # templates set boot.loader.grub.efiInstallAsRemovable = true
-          # (GRUB installs to /EFI/BOOT/BOOTX64.EFI, no NVRAM entry). That
-          # flag would set canTouchEfiVariables = true, which conflicts.
-          # Belt-and-suspenders: pass the offline-forcing options explicitly
-          # via --option so they survive even if NIX_CONFIG inheritance
-          # breaks through a sudo/re-exec boundary inside disko-install.
-          # Build --extra-files args: always the sops age key, plus any
-          # SSH host keys found on the USB under sops/<hostname>/.
-          extra_files_args=(--extra-files "$KEY_DEST" /var/lib/sops-nix/key.txt)
+          echo "Partitioning and formatting..."
+          DISKO_SKIP_SWAP=1 ${diskoScript}
+
+          echo "Injecting secrets into target filesystem..."
+          mkdir -p /mnt/var/lib/sops-nix
+          cp "$KEY_DEST" /mnt/var/lib/sops-nix/key.txt
+          chmod 0400 /mnt/var/lib/sops-nix/key.txt
+
           for keyname in ssh_host_ed25519_key ssh_host_ed25519_key.pub; do
             if [ -f "$SSH_KEY_DIR/$keyname" ]; then
-              extra_files_args+=(--extra-files "$SSH_KEY_DIR/$keyname" "/etc/ssh/$keyname")
+              mkdir -p /mnt/etc/ssh
+              cp "$SSH_KEY_DIR/$keyname" "/mnt/etc/ssh/$keyname"
+              chmod 0600 "/mnt/etc/ssh/$keyname"
+              echo "Installed SSH host key: $keyname"
             fi
           done
 
-          disko-install \
-            "''${extra_files_args[@]}" \
-            --option substituters "" \
-            --option flake-registry "" \
-            --option use-registries false \
-            --flake "$FLAKE_PATH#$HOST_NAME" \
-            --disk main "$TARGET_DISK"
+          echo "Installing NixOS (copying store closure + bootloader)..."
+          NIX_CONFIG=$'substituters =' \
+            ${config.system.build.nixos-install}/bin/nixos-install \
+              --system ${systemToplevel} \
+              --root /mnt \
+              --no-channel-copy \
+              --no-root-password
 
           echo
           echo "=== Install complete for '$HOST_NAME'. Reboot when ready. ==="
@@ -271,14 +215,6 @@ in
       };
     in
     {
-      imports = [
-        inputs.disko.nixosModules.disko
-      ];
-
-      # Embed the flake source at a stable path so disko-install can find
-      # the target host config offline.
-      environment.etc."nixos-config".source = self;
-
       environment.systemPackages = [
         pkgs.age
         pkgs.util-linux
@@ -287,8 +223,6 @@ in
         pkgs.dosfstools
         pkgs.e2fsprogs
         pkgs.btrfs-progs
-        inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko
-        diskoInstall
         installHost
       ];
 
@@ -314,29 +248,15 @@ in
       # isoImage.isoBaseName to image.baseName in nixpkgs 25.05+.)
       image.baseName = lib.mkForce "nixos-installer-${hostName}";
 
-      # Ensure the target host's full closure AND the flake's input source
-      # trees are embedded in the ISO. The closure lets the installer skip
-      # compilation; the input sources let `nix eval` against
-      # /etc/nixos-config resolve all inputs without network access.
+      # Embed the target host's full system closure and disko script in
+      # the ISO so the installer can run fully offline. The system closure
+      # transitively includes every store path the installed system needs;
+      # the disko script bundles its own tool dependencies (parted, mkfs,
+      # btrfs-progs, etc.) which are NOT part of the target system closure.
       system.extraDependencies = [
-        self.nixosConfigurations.${hostName}.config.system.build.toplevel
-      ]
-      ++ builtins.filter (p: p != null) (
-        map (v: v.outPath or null) (builtins.attrValues (builtins.removeAttrs inputs [ "self" ]))
-      );
-
-      # flakes + nix-command are required by disko-install --flake and the
-      # key-discovery `nix eval` call in install-host.
-      nix.settings.experimental-features = [
-        "nix-command"
-        "flakes"
+        systemToplevel
+        diskoScript
       ];
-
-      # The host flake currently requires allowUnfree to evaluate (it
-      # references terraform among other unfree packages). disko-install
-      # invokes `nix build --impure` internally, so exporting this env var
-      # in the installer session is sufficient for evaluation to succeed.
-      environment.sessionVariables.NIXPKGS_ALLOW_UNFREE = "1";
     };
 
   # Expose one installer ISO package per host as
