@@ -19,7 +19,7 @@
       };
 
       nix = {
-        package = inputs.nix.packages.${pkgs.stdenv.hostPlatform.system}.nix;
+        package = pkgs.nix;
         optimise.automatic = true;
         gc.automatic = true;
         channel.enable = false; # All hosts use flakes

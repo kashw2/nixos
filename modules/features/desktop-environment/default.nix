@@ -12,17 +12,13 @@
       ...
     }:
     {
-      environment.systemPackages = [
-        inputs.rose-pine-hyprcursor.packages.${pkgs.stdenv.hostPlatform.system}.default
-      ];
+      environment.systemPackages = [ pkgs.rose-pine-hyprcursor ];
 
       programs.hyprland = {
         enable = true;
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprland.wrap {
           inherit (config) isLaptop isDesktop;
         };
-        portalPackage =
-          inputs.xdg-desktop-portal-hyprland.packages.${pkgs.stdenv.hostPlatform.system}.default;
       };
 
       programs.hyprlock = {

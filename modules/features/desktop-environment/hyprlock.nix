@@ -10,7 +10,7 @@
     {
       imports = [ wlib.modules.default ];
       config = {
-        package = inputs.hyprlock.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
+        package = pkgs.hyprlock;
         flags."--config" = pkgs.writeText "hyprlock.conf" ''
           background {
             monitor=
