@@ -19,8 +19,6 @@
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprland.wrap {
           inherit (config) isLaptop isDesktop;
         };
-        portalPackage =
-          inputs.xdg-desktop-portal-hyprland.packages.${pkgs.stdenv.hostPlatform.system}.default;
       };
 
       programs.hyprlock = {
