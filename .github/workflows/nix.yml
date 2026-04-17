@@ -32,19 +32,12 @@ jobs:
           - disko
           - colmena
           - wrapper-modules
-          - hyprland
           - hyprpaper
-          - hyprlock
-          - rose-pine-hyprcursor
-          - xdg-desktop-portal-hyprland
           - nixvim
-          - neovim-nightly
           - home-manager
           - mcp-servers-nix
           - sops-nix
           - nixcord
-          - quickshell
-          - nix
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@31
