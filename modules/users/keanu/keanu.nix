@@ -91,6 +91,7 @@
               ".local/share/nix"
               ".local/share/nvim" # neovim state (shada, swap, undo, plugin data)
               ".config/nushell" # nushell history
+              ".config/sops" # sops CLI age key
               "Downloads"
               "Documents"
             ]
