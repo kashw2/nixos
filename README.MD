@@ -33,6 +33,44 @@ nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'
 4. Add the host's SSH keys: `nix-shell -p sops age --run 'sops secrets/secrets.yaml'`
 5. Import `self.nixosModules.sops` in the new host's configuration
 
-# Nixos Anywehre
+# Nixos Anywhere
 
-https://nix-community.github.io/nixos-anywhere/howtos/no-os.html
+Because every host uses impermanence + sops-nix, `/persist` needs the sops age key and ed25519 host key seeded prior to first activation — otherwise sops can't decrypt and `keanu_password` never materialises. `deploy-host` (defined in `modules/deploy.nix`) stages those files from the key USB and invokes `nixos-anywhere --extra-files` in one step.
+
+## Usage
+
+On the target: boot the NixOS minimal installer ISO and set a root password (`sudo passwd root` in the installer console). This is required because `nixos-anywhere` runs as root for disko/install; the installer's `nixos` user isn't a workable substitute.
+
+On the deploy machine, with the key USB mounted:
+
+```bash
+nix run .#deploy-host -- --host laptop --ip 192.168.1.6
+```
+
+Type the root password when `ssh-copy-id` prompts (once).
+
+### Flags
+
+- `--host <name>` — host attr in `flake.nixosConfigurations` (`home`, `laptop`, `thinkpad`, `media`).
+- `--ip <addr>` — target IP or hostname. Connection is always made as `root`.
+- `--path <usb-root>` — USB root path. Defaults to the first directory under `/run/media/$USER`.
+
+Expected USB layout (same as the `install-host` ISO installer):
+
+```
+<usb-root>/sops/admin/keys.txt
+<usb-root>/sops/<host>/ssh_host_ed25519_key
+<usb-root>/sops/<host>/ssh_host_ed25519_key.pub
+```
+
+After the target reboots, log in as `keanu` with the password from `secrets/secrets.yaml`.
+
+# Troubleshooting
+
+## `lib.fileset.gitTracked`: Expected the argument (some nix store path) to point to a local working tree
+
+### Solution
+
+- Navigate to the store path and examine to try and determine what package the path refers to.
+- Remove the package from your configuration and retry
+- Readd the program after installation
