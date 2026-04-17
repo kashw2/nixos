@@ -139,6 +139,7 @@ jobs:
         if: ${{ !env.ACT }}
         with:
           witness-carnage: true
+          root-safe-haven: 10240
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
