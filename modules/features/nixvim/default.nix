@@ -14,7 +14,7 @@
 
       programs.nixvim = {
         enable = true;
-        package = pkgs.neovim;
+        package = pkgs.neovim-unwrapped;
         viAlias = true;
         vimAlias = true;
         globalOpts = {

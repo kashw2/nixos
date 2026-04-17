@@ -67,10 +67,6 @@
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix = {
-      url = "github:nixos/nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
