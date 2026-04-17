@@ -21,9 +21,18 @@
       # Ensure the persist-side .ssh directory exists with keanu ownership
       # and 0700 before sops places secrets into it — sops would otherwise
       # create it as root:root 0755, which ssh-client rejects.
+      #
+      # Also stage a user-owned copy of the age key at the sops CLI default
+      # path so `sops secrets/...` works for keanu without sudo. `C` copies
+      # once on first boot; rotating the source won't refresh — delete the
+      # copy to retrigger.
       systemd.tmpfiles.rules = [
         "d /persist/home/keanu 0700 keanu keanu -"
         "d /persist/home/keanu/.ssh 0700 keanu keanu -"
+        "d /persist/home/keanu/.config 0700 keanu keanu -"
+        "d /persist/home/keanu/.config/sops 0700 keanu keanu -"
+        "d /persist/home/keanu/.config/sops/age 0700 keanu keanu -"
+        "C /persist/home/keanu/.config/sops/age/keys.txt 0400 keanu keanu - /persist/var/lib/sops-nix/key.txt"
       ];
 
       sops = {
