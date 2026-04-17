@@ -27,9 +27,11 @@ jobs:
       has-packages: ${{ steps.detect.outputs.has-packages }}
     steps:
       - uses: actions/checkout@v6
+        if: ${{ !env.ACT }}
         with:
           fetch-depth: 0
       - id: detect
+        if: ${{ !env.ACT }}
         run: |
           ALL='["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats"]'
 
@@ -78,12 +80,12 @@ jobs:
   build:
     name: Build ${{ matrix.package }}
     needs: detect-changes
-    if: needs.detect-changes.outputs.has-packages == 'true'
+    if: needs.detect-changes.outputs.has-packages != 'false'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats"]') }}
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
