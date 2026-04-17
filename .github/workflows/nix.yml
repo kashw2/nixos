@@ -70,6 +70,7 @@ jobs:
           restore-prefixes-first-match: |
             nix-devshell
             nix-
+          save: false
       - run: nix develop --command nix flake check --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
