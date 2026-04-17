@@ -22,7 +22,7 @@
         };
       };
       config = {
-        package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
+        package = pkgs.hyprland;
         # nix-wrapper-modules doesn't forward passthru from the original package,
         # so we must re-declare providedSessions even though upstream Hyprland sets it.
         binName = "start-hyprland";
