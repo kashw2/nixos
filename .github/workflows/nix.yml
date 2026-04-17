@@ -82,9 +82,11 @@ jobs:
       hosts: ${{ steps.detect.outputs.hosts }}
     steps:
       - uses: actions/checkout@v6
+        if: ${{ !env.ACT }}
         with:
           fetch-depth: 0
       - id: detect
+        if: ${{ !env.ACT }}
         run: |
           ALL='["home","laptop","thinkpad","media"]'
           DESKTOP='["home","laptop","thinkpad"]'
@@ -139,7 +141,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        host: ${{ fromJSON(needs.detect-hosts.outputs.hosts) }}
+        host: ${{ fromJSON(needs.detect-hosts.outputs.hosts || '["home","laptop","thinkpad","media"]') }}
     steps:
       - uses: actions/checkout@v6
       - uses: wimpysworld/nothing-but-nix@v10

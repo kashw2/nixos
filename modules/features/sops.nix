@@ -21,6 +21,11 @@
       sops = {
         defaultSopsFile = ../../secrets/secrets.yaml;
         age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+        # Primary key path, placed by the installer ISO from a USB-provided
+        # keys.txt on first install so sops-nix can decrypt on first boot.
+        # On existing deployed hosts this file doesn't exist and sops-nix
+        # falls back to sshKeyPaths above.
+        age.keyFile = "/var/lib/sops-nix/key.txt";
 
         secrets = {
           "ssh/${config.networking.hostName}/id_ed25519" = {
