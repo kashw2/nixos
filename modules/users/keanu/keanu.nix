@@ -96,7 +96,6 @@
             ]
             ++ lib.optionals (!config.isServer) [
               ".config/discord"
-              ".config/quickshell"
               ".mozilla"
               ".aws" # awscli credentials + config
               ".azure" # azure-cli auth
