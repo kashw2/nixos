@@ -12,9 +12,7 @@
       ...
     }:
     {
-      environment.systemPackages = [
-        inputs.rose-pine-hyprcursor.packages.${pkgs.stdenv.hostPlatform.system}.default
-      ];
+      environment.systemPackages = [ pkgs.rose-pine-hyprcursor ];
 
       programs.hyprland = {
         enable = true;

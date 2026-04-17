@@ -33,9 +33,7 @@
           "share/applications/*.desktop"
           "share/wayland-sessions/*.desktop"
         ];
-        extraPackages = [
-          inputs.rose-pine-hyprcursor.packages.${pkgs.stdenv.hostPlatform.system}.default
-        ];
+        extraPackages = [ pkgs.rose-pine-hyprcursor ];
         addFlag =
           let
             monitorConfiguration =
