@@ -96,7 +96,9 @@
             ]
             ++ lib.optionals (!config.isServer) [
               ".config/discord"
+              ".config/Vencord" # Vencord plugins etc
               ".mozilla"
+              ".config/mozilla"
               ".aws" # awscli credentials + config
               ".azure" # azure-cli auth
               ".config/gh" # gh cli auth
