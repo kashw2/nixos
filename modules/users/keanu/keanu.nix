@@ -83,6 +83,32 @@
             videos = "${config.users.users.keanu.home}/Videos";
             music = "${config.users.users.keanu.home}/Pictures";
           };
+          # /home/keanu is wiped on boot
+          home.persistence."/persist" = {
+            directories = [
+              ".ssh"
+              ".local/state"
+              ".local/share/nix"
+              ".local/share/nvim" # neovim state (shada, swap, undo, plugin data)
+              ".config/nushell" # nushell history
+              ".config/sops" # sops CLI age key
+              "Downloads"
+              "Documents"
+            ]
+            ++ lib.optionals (!config.isServer) [
+              ".config/discord"
+              ".config/Vencord" # Vencord plugins etc
+              ".mozilla"
+              ".config/mozilla"
+              ".aws" # awscli credentials + config
+              ".azure" # azure-cli auth
+              ".config/gh" # gh cli auth
+              ".claude" # claude-code projects, shell snapshots, todos
+            ];
+            files = lib.optionals (!config.isServer) [
+              ".claude.json" # claude-code per-project config + auth
+            ];
+          };
           mcp-servers.programs = {
             nixos.enable = true;
             "sequential-thinking".enable = true;

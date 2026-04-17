@@ -21,7 +21,7 @@
         };
       };
       config = {
-        package = pkgs.quickshell;
+        package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
         extraPackages = [
           pkgs.networkmanager
           pkgs.bluez

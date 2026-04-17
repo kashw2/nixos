@@ -32,19 +32,13 @@ jobs:
           - disko
           - colmena
           - wrapper-modules
-          - hyprland
           - hyprpaper
-          - hyprlock
-          - rose-pine-hyprcursor
-          - xdg-desktop-portal-hyprland
           - nixvim
-          - neovim-nightly
           - home-manager
           - mcp-servers-nix
           - sops-nix
           - nixcord
           - quickshell
-          - nix
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
@@ -66,10 +60,8 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nix-devshell
-          restore-prefixes-first-match: |
-            nix-devshell
-            nix-
+          primary-key: nix-host
+          restore-prefixes-first-match: nix-
           save: false
       - run: nix develop --command nix flake check --impure
         env:
@@ -148,6 +140,7 @@ jobs:
         if: ${{ !env.ACT }}
         with:
           witness-carnage: true
+          root-safe-haven: 10240
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
