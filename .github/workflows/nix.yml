@@ -38,6 +38,7 @@ jobs:
           - mcp-servers-nix
           - sops-nix
           - nixcord
+          - quickshell
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@31
