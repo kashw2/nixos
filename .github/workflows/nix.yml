@@ -47,7 +47,7 @@ jobs:
           - nix
     steps:
       - uses: actions/checkout@v6
-      - uses: cachix/install-nix-action@31
+      - uses: cachix/install-nix-action@v31
       - uses: DeterminateSystems/update-flake-lock@v28
         with:
           inputs: ${{ matrix.input }}
