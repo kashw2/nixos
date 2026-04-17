@@ -188,15 +188,20 @@ in
           DISKO_SKIP_SWAP=1 ${diskoScript}
 
           echo "Injecting secrets into target filesystem..."
-          mkdir -p /mnt/var/lib/sops-nix
-          cp "$KEY_DEST" /mnt/var/lib/sops-nix/key.txt
-          chmod 0400 /mnt/var/lib/sops-nix/key.txt
+          # Write to /mnt/persist/... — /mnt/var and /mnt/etc live on the
+          # `root` btrfs subvolume, which the rollback-root initrd service
+          # wipes on first boot. Impermanence then bind-mounts these paths
+          # from /persist at runtime (see modules/features/impermanence.nix
+          # and modules/features/sops.nix).
+          mkdir -p /mnt/persist/var/lib/sops-nix
+          cp "$KEY_DEST" /mnt/persist/var/lib/sops-nix/key.txt
+          chmod 0400 /mnt/persist/var/lib/sops-nix/key.txt
 
           for keyname in ssh_host_ed25519_key ssh_host_ed25519_key.pub; do
             if [ -f "$SSH_KEY_DIR/$keyname" ]; then
-              mkdir -p /mnt/etc/ssh
-              cp "$SSH_KEY_DIR/$keyname" "/mnt/etc/ssh/$keyname"
-              chmod 0600 "/mnt/etc/ssh/$keyname"
+              mkdir -p /mnt/persist/etc/ssh
+              cp "$SSH_KEY_DIR/$keyname" "/mnt/persist/etc/ssh/$keyname"
+              chmod 0600 "/mnt/persist/etc/ssh/$keyname"
               echo "Installed SSH host key: $keyname"
             fi
           done
