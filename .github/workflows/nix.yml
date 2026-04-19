@@ -51,7 +51,8 @@ jobs:
       - uses: DeterminateSystems/update-flake-lock@v28
         with:
           inputs: ${{ matrix.input }}
-          pr-title: 'build(nix): update ${{ matrix.input }}'
+          commit-msg: 'build(nix): update ${{ matrix.input }}'
+          pr-title: Update ${{ matrix.input }}
           branch: update-${{ matrix.input }}-flake-input
           pr-labels: |
             dependencies
