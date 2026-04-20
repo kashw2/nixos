@@ -1,6 +1,14 @@
 name: Nix
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '*.nix'
+      - flake.lock
+      - modules/**
+      - secrets/**
   pull_request:
     paths:
       - '*.nix'
@@ -61,24 +69,26 @@ jobs:
   flake-check:
     name: Flake Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nix-devshell
+          primary-key: nix-devshell-${{ hashFiles('flake.lock') }}
           restore-prefixes-first-match: |
-            nix-devshell
+            nix-devshell-
+            nix-packages-common-${{ hashFiles('flake.lock') }}
+            nix-packages-common-
             nix-
-          save: false
+          gc-max-store-size-linux: 3G
       - run: nix develop --command nix flake check --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
   detect-hosts:
     name: Detect Hosts
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     outputs:
       hosts: ${{ steps.detect.outputs.hosts }}
     steps:
@@ -92,7 +102,7 @@ jobs:
           ALL='["home","laptop","thinkpad","media"]'
           DESKTOP='["home","laptop","thinkpad"]'
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "push" ]; then
             echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -138,7 +148,7 @@ jobs:
     name: Build Configuration
     needs: detect-hosts
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -152,11 +162,42 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nix-host
+          primary-key: nix-host-${{ matrix.host }}-${{ hashFiles('flake.lock') }}
           restore-prefixes-first-match: |
-            nix-host
+            nix-host-${{ matrix.host }}-
+            nix-hosts-common-${{ hashFiles('flake.lock') }}
+            nix-hosts-common-
             nix-
-          gc-max-store-size-linux: 10G
+          gc-max-store-size-linux: 6G
       - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
+  merge-hosts:
+    name: Merge Host Caches
+    needs: build-configuration
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: wimpysworld/nothing-but-nix@v10
+        if: ${{ !env.ACT }}
+        with:
+          witness-carnage: true
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-hosts-common-${{ hashFiles('flake.lock') }}
+          restore-prefixes-all-matches: |
+            nix-host-home-${{ hashFiles('flake.lock') }}
+            nix-host-laptop-${{ hashFiles('flake.lock') }}
+            nix-host-thinkpad-${{ hashFiles('flake.lock') }}
+            nix-host-media-${{ hashFiles('flake.lock') }}
+          gc-max-store-size-linux: 6G
+          purge: true
+          purge-prefixes: |
+            nix-hosts-common-
+            nix-host-
+          purge-created: 0
+          purge-primary-key: never
