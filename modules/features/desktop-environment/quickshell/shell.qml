@@ -78,6 +78,11 @@ ShellRoot {
     property bool micMuted: false
     property real micLevel: 0
 
+    // Audio devices for the volume popup's output/input selectors.
+    // Each entry: { id: int, name: string, isDefault: bool }
+    property var audioSinks: []
+    property var audioSources: []
+
     property string weatherCondition: ""
     property string weatherTemp: ""
     property bool weatherEffectsEnabled: true
@@ -188,6 +193,15 @@ ShellRoot {
 
     function toggleMicMute() {
         micToggleMute.running = true;
+    }
+
+    function setDefaultAudioDevice(id) {
+        audioDeviceSet.target = id;
+        audioDeviceSet.running = true;
+    }
+
+    onVolumePopupOpenChanged: {
+        if (volumePopupOpen) audioDevicesCheck.running = true;
     }
 
     function setPowerProfile(profile) {
@@ -467,6 +481,62 @@ ShellRoot {
         }
     }
 
+    // Parses `wpctl status` to extract audio sinks/sources and which is default.
+    // Output lines from the awk script are `kind|isDefault|id|name`.
+    Process {
+        id: audioDevicesCheck
+        command: ["sh", "-c",
+            "wpctl status 2>/dev/null | awk '"
+            + "/^Audio/{a=1;next} "
+            + "/^Video/{a=0} "
+            + "a&&/:$/{m=\"\"} "
+            + "a&&/Sinks:$/{m=\"sink\";next} "
+            + "a&&/Sources:$/{m=\"source\";next} "
+            + "m&&match($0,/[0-9]+\\./){"
+            + "d=($0~/\\*/)?\"1\":\"0\";"
+            + "line=substr($0,RSTART);"
+            + "id=substr(line,1,RLENGTH-1);"
+            + "rest=substr(line,RLENGTH+1);"
+            + "sub(/^[ \\t]+/,\"\",rest);"
+            + "sub(/[ \\t]+\\[.*$/,\"\",rest);"
+            + "print m\"|\"d\"|\"id\"|\"rest"
+            + "}'"
+        ]
+        running: true
+        property var pendingSinks: []
+        property var pendingSources: []
+        stdout: SplitParser {
+            onRead: data => {
+                var parts = data.toString().trim().split("|");
+                if (parts.length < 4) return;
+                var id = parseInt(parts[2]);
+                if (isNaN(id)) return;
+                var entry = { id: id, name: parts[3], isDefault: parts[1] === "1" };
+                if (parts[0] === "sink") audioDevicesCheck.pendingSinks.push(entry);
+                else if (parts[0] === "source") audioDevicesCheck.pendingSources.push(entry);
+            }
+        }
+        onExited: {
+            shell.audioSinks = pendingSinks;
+            shell.audioSources = pendingSources;
+            pendingSinks = [];
+            pendingSources = [];
+        }
+    }
+
+    Process {
+        id: audioDeviceSet
+        property int target: 0
+        command: ["wpctl", "set-default", target.toString()]
+        onRunningChanged: {
+            if (!running) {
+                audioDevicesCheck.running = true;
+                volumeCheck.running = true;
+                micCheck.running = true;
+            }
+        }
+    }
+
     // Streams ~10 peak-amplitude samples per second from the default input
     // source. u8 mono @ 8 kHz keeps CPU and bandwidth trivial; the awk loop
     // emits the largest per-chunk distance from the 128 silence midpoint.
@@ -571,6 +641,7 @@ ShellRoot {
             brightnessCheck.running = true;
             volumeCheck.running = true;
             micCheck.running = true;
+            if (shell.volumePopupOpen) audioDevicesCheck.running = true;
             btControllerCheck.running = true;
             cpuCheck.running = true;
             ramCheck.running = true;
