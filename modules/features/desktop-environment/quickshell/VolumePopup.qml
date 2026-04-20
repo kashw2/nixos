@@ -31,7 +31,7 @@ Variants {
             top: 38
             right: 8
         }
-        implicitWidth: 240
+        implicitWidth: 280
         implicitHeight: volumePopupContent.implicitHeight + 24
         exclusionMode: ExclusionMode.Ignore
         color: "transparent"
@@ -201,6 +201,67 @@ Variants {
                     color: Qt.rgba(1, 1, 1, 0.7)
                     font.pixelSize: 11
                     anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Column {
+                    width: parent.width
+                    spacing: 2
+                    visible: root.shell.audioSinks.length > 0
+
+                    Text {
+                        text: "Output"
+                        color: Qt.rgba(1, 1, 1, 0.5)
+                        font.pixelSize: 10
+                    }
+
+                    Repeater {
+                        model: root.shell.audioSinks
+
+                        Rectangle {
+                            required property var modelData
+                            width: parent.width
+                            height: 22
+                            radius: 4
+                            color: sinkHover.containsMouse ? Qt.rgba(1, 1, 1, 0.15)
+                                 : modelData.isDefault ? Qt.rgba(1, 1, 1, 0.08)
+                                 : "transparent"
+
+                            Row {
+                                anchors.fill: parent
+                                anchors.leftMargin: 6
+                                anchors.rightMargin: 6
+                                spacing: 6
+
+                                Rectangle {
+                                    width: 8
+                                    height: 8
+                                    radius: 4
+                                    color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Qt.rgba(1, 1, 1, 0.25)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+
+                                Text {
+                                    text: modelData.name
+                                    color: "#ffffff"
+                                    font.pixelSize: 11
+                                    font.bold: modelData.isDefault
+                                    elide: Text.ElideRight
+                                    width: parent.width - 20
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+
+                            MouseArea {
+                                id: sinkHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (!modelData.isDefault) root.shell.setDefaultAudioDevice(modelData.id);
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Separator
@@ -405,6 +466,67 @@ Variants {
                     color: Qt.rgba(1, 1, 1, 0.5)
                     font.pixelSize: 9
                     anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Column {
+                    width: parent.width
+                    spacing: 2
+                    visible: root.shell.audioSources.length > 0
+
+                    Text {
+                        text: "Input"
+                        color: Qt.rgba(1, 1, 1, 0.5)
+                        font.pixelSize: 10
+                    }
+
+                    Repeater {
+                        model: root.shell.audioSources
+
+                        Rectangle {
+                            required property var modelData
+                            width: parent.width
+                            height: 22
+                            radius: 4
+                            color: sourceHover.containsMouse ? Qt.rgba(1, 1, 1, 0.15)
+                                 : modelData.isDefault ? Qt.rgba(1, 1, 1, 0.08)
+                                 : "transparent"
+
+                            Row {
+                                anchors.fill: parent
+                                anchors.leftMargin: 6
+                                anchors.rightMargin: 6
+                                spacing: 6
+
+                                Rectangle {
+                                    width: 8
+                                    height: 8
+                                    radius: 4
+                                    color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Qt.rgba(1, 1, 1, 0.25)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+
+                                Text {
+                                    text: modelData.name
+                                    color: "#ffffff"
+                                    font.pixelSize: 11
+                                    font.bold: modelData.isDefault
+                                    elide: Text.ElideRight
+                                    width: parent.width - 20
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+
+                            MouseArea {
+                                id: sourceHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (!modelData.isDefault) root.shell.setDefaultAudioDevice(modelData.id);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
