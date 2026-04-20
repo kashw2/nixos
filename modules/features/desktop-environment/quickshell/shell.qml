@@ -76,6 +76,7 @@ ShellRoot {
 
     property int micGainPercent: 0
     property bool micMuted: false
+    property real micLevel: 0
 
     property string weatherCondition: ""
     property string weatherTemp: ""
@@ -463,6 +464,35 @@ ShellRoot {
         command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
         onRunningChanged: {
             if (!running) micCheck.running = true;
+        }
+    }
+
+    // Streams ~10 peak-amplitude samples per second from the default input
+    // source. u8 mono @ 8 kHz keeps CPU and bandwidth trivial; the awk loop
+    // emits the largest per-chunk distance from the 128 silence midpoint.
+    Process {
+        id: micMeter
+        command: ["sh", "-c",
+            "exec pw-cat -r --raw --rate=8000 --channels=1 --format=u8 - 2>/dev/null"
+            + " | stdbuf -o0 od -An -v -tu1 -w800"
+            + " | stdbuf -oL awk '{m=0;for(i=1;i<=NF;i++){v=$i-128;if(v<0)v=-v;if(v>m)m=v}print m;fflush()}'"
+        ]
+        running: shell.volumePopupOpen
+        stdout: SplitParser {
+            onRead: data => {
+                var v = parseInt(data.toString().trim());
+                if (isNaN(v)) return;
+                var newLevel = Math.min(1, v / 128);
+                // Fast attack, gentle decay so the meter feels analog.
+                if (newLevel > shell.micLevel) {
+                    shell.micLevel = newLevel;
+                } else {
+                    shell.micLevel = shell.micLevel * 0.7 + newLevel * 0.3;
+                }
+            }
+        }
+        onRunningChanged: {
+            if (!running) shell.micLevel = 0;
         }
     }
 

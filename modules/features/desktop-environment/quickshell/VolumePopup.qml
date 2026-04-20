@@ -364,6 +364,48 @@ Variants {
                     font.pixelSize: 11
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
+
+                // Mic input level meter — shows that the input source is
+                // actually capturing audio. Bars stay dark when muted.
+                Item {
+                    width: parent.width
+                    height: 14
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 2
+
+                        Repeater {
+                            model: 20
+
+                            Rectangle {
+                                required property int index
+                                property real threshold: (index + 0.5) / 20
+                                property bool active: !root.shell.micMuted && root.shell.micLevel >= threshold
+
+                                width: 7
+                                height: index < 10 ? 7 : (index < 16 ? 10 : 13)
+                                radius: 1
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: {
+                                    if (!active) return Qt.rgba(1, 1, 1, 0.12);
+                                    if (threshold > 0.8) return Qt.rgba(0.95, 0.3, 0.3, 0.9);
+                                    if (threshold > 0.55) return Qt.rgba(0.95, 0.85, 0.2, 0.85);
+                                    return Qt.rgba(0.4, 0.85, 0.4, 0.85);
+                                }
+                                Behavior on color { ColorAnimation { duration: 80 } }
+                            }
+                        }
+                    }
+                }
+
+                // Caption shown when muted, otherwise show "Input"
+                Text {
+                    text: root.shell.micMuted ? "input muted" : "input level"
+                    color: Qt.rgba(1, 1, 1, 0.5)
+                    font.pixelSize: 9
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
             }
         }
     }

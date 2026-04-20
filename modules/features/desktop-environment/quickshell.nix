@@ -21,7 +21,7 @@
         };
       };
       config = {
-        package = pkgs.quickshell;
+        package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
         extraPackages = [
           pkgs.networkmanager
           pkgs.bluez
@@ -29,6 +29,7 @@
           pkgs.curl
           pkgs.upower
           pkgs.power-profiles-daemon
+          pkgs.pipewire
         ]
         ++ lib.optionals (config.isLaptop) [
           pkgs.brightnessctl
