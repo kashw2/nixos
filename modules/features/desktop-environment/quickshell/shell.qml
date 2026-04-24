@@ -64,6 +64,10 @@ ShellRoot {
     property real batteryIconWidth: 0
     property bool batteryPopupOpen: false
     property var batteryPopupScreen: null
+
+    property bool overflowPopupOpen: false
+    property var overflowPopupScreen: null
+
     property bool hasBrightness: false
     property int brightnessPercent: 0
     property bool brightnessPopupOpen: false
@@ -207,6 +211,18 @@ ShellRoot {
     function setPowerProfile(profile) {
         powerProfileSet.profile = profile;
         powerProfileSet.running = true;
+    }
+
+    function openOverflowPopupFor(screen) {
+        shell.wifiPopupOpen = false;
+        shell.btPopupOpen = false;
+        shell.volumePopupOpen = false;
+        shell.brightnessPopupOpen = false;
+        shell.batteryPopupOpen = false;
+        shell.notifPopupOpen = false;
+        shell.sysMonPopupOpen = false;
+        shell.overflowPopupScreen = screen;
+        shell.overflowPopupOpen = true;
     }
 
     function toggleBluetooth() {
@@ -1020,6 +1036,10 @@ ShellRoot {
             required property var modelData
             screen: modelData
 
+            // Tray overflow kicks in on narrow monitors. Hides lower-priority
+            // icons (sysMon, brightness) behind the chevron.
+            property bool trayOverflow: width > 0 && width < 1200
+
             anchors {
                 top: true
                 left: true
@@ -1040,15 +1060,20 @@ ShellRoot {
                     Layout.alignment: Qt.AlignLeft
 
                     Repeater {
-                        model: 10
+                        model: Hyprland.workspaces.values
 
                         Rectangle {
-                            required property int index
-                            property int wsId: index + 1
+                            required property var modelData
+                            property int wsId: modelData ? modelData.id : -1
+                            property string wsName: modelData && modelData.name ? modelData.name : ""
+                            property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
+                            property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
                             property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
                             property bool hovered: false
 
-                            width: 24
+                            visible: wsId > 0
+                            implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
+                            width: visible ? implicitWidth : 0
                             height: 22
                             radius: 4
                             color: isActive ? Qt.rgba(1, 1, 1, 0.5)
@@ -1058,8 +1083,9 @@ ShellRoot {
                             Behavior on color { ColorAnimation { duration: 150 } }
 
                             Text {
+                                id: wsLabel
                                 anchors.centerIn: parent
-                                text: parent.wsId
+                                text: parent.label
                                 color: "#ffffff"
                                 font.pixelSize: 12
                                 font.bold: parent.isActive
@@ -1078,6 +1104,52 @@ ShellRoot {
                 }
 
                 Item { Layout.fillWidth: true }
+
+                // === Tray overflow chevron ===
+                Rectangle {
+                    id: overflowButton
+                    property bool hovered: false
+                    visible: barWindow.trayOverflow
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 26
+                    implicitHeight: 22
+                    radius: 4
+                    color: hovered || shell.overflowPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 2
+
+                        Repeater {
+                            model: 3
+
+                            Rectangle {
+                                width: 3
+                                height: 3
+                                radius: 1.5
+                                color: "#ffffff"
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            if (shell.overflowPopupOpen) {
+                                shell.overflowPopupOpen = false;
+                            } else {
+                                shell.openOverflowPopupFor(barWindow.modelData);
+                            }
+                        }
+                    }
+                }
 
                 // === Battery icon ===
                 Rectangle {
@@ -1185,6 +1257,7 @@ ShellRoot {
                                 shell.brightnessPopupOpen = false;
                                 shell.notifPopupOpen = false;
                                 shell.sysMonPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 shell.batteryPopupScreen = barWindow.modelData;
                                 shell.batteryPopupOpen = true;
                             }
@@ -1196,6 +1269,7 @@ ShellRoot {
                 Rectangle {
                     id: sysMonButton
                     property bool hovered: false
+                    visible: !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
                     implicitHeight: 22
@@ -1256,6 +1330,7 @@ ShellRoot {
                                 shell.brightnessPopupOpen = false;
                                 shell.batteryPopupOpen = false;
                                 shell.notifPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 shell.sysMonPopupScreen = barWindow.modelData;
                                 shell.sysMonPopupOpen = true;
                             }
@@ -1267,7 +1342,7 @@ ShellRoot {
                 Rectangle {
                     id: brightnessButton
                     property bool hovered: false
-                    visible: shell.hasBrightness
+                    visible: shell.hasBrightness && !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
                     implicitHeight: 22
@@ -1341,6 +1416,7 @@ ShellRoot {
                                 shell.batteryPopupOpen = false;
                                 shell.notifPopupOpen = false;
                                 shell.sysMonPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 shell.brightnessPopupScreen = barWindow.modelData;
                                 shell.brightnessPopupOpen = true;
                             }
@@ -1442,6 +1518,7 @@ ShellRoot {
                                 shell.batteryPopupOpen = false;
                                 shell.notifPopupOpen = false;
                                 shell.sysMonPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 shell.volumePopupScreen = barWindow.modelData;
                                 shell.volumePopupOpen = true;
                             }
@@ -1508,6 +1585,7 @@ ShellRoot {
                                 shell.batteryPopupOpen = false;
                                 shell.notifPopupOpen = false;
                                 shell.sysMonPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 btControllerCheck.running = true;
                             }
                         }
@@ -1638,6 +1716,7 @@ ShellRoot {
                                 shell.batteryPopupOpen = false;
                                 shell.notifPopupOpen = false;
                                 shell.sysMonPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 if (shell.wifiDev) shell.wifiDev.scannerEnabled = true;
                             }
                             shell.selectedNetworkName = "";
@@ -1732,6 +1811,7 @@ ShellRoot {
                                 shell.brightnessPopupOpen = false;
                                 shell.batteryPopupOpen = false;
                                 shell.sysMonPopupOpen = false;
+                                shell.overflowPopupOpen = false;
                                 shell.notifPopupScreen = barWindow.modelData;
                                 shell.notifPopupOpen = true;
                             }
@@ -1932,6 +2012,9 @@ ShellRoot {
 
     // Battery popup - one per screen
     BatteryPopup { shell: shell }
+
+    // Tray overflow menu - one per screen
+    TrayOverflowPopup { shell: shell }
 
     // System monitor popup - one per screen
     SystemMonitorPopup { shell: shell }
