@@ -1736,7 +1736,11 @@ ShellRoot {
                         anchors.verticalCenter: parent.verticalCenter
 
                         property string cond: shell.weatherCondition
+                        property color iconColor: Theme.iconPrimary
                         onCondChanged: requestPaint()
+                        onIconColorChanged: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+                        Component.onCompleted: requestPaint()
 
                         function weatherType() {
                             var c = cond;
@@ -1755,8 +1759,8 @@ ShellRoot {
                             ctx.clearRect(0, 0, width, height);
                             var type = weatherType();
 
-                            ctx.strokeStyle = Theme.iconPrimary;
-                            ctx.fillStyle = Theme.iconPrimary;
+                            ctx.strokeStyle = iconColor;
+                            ctx.fillStyle = iconColor;
                             ctx.lineWidth = 1.3;
                             ctx.lineCap = "round";
 
