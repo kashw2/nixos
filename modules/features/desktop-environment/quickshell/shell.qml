@@ -1106,17 +1106,19 @@ ShellRoot {
                 Item { Layout.fillWidth: true }
 
                 // === Tray overflow chevron ===
-                Rectangle {
+                BarButton {
                     id: overflowButton
-                    property bool hovered: false
                     visible: barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 26
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.overflowPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.overflowPopupOpen
+                    onClicked: {
+                        if (shell.overflowPopupOpen) {
+                            shell.overflowPopupOpen = false;
+                        } else {
+                            shell.openOverflowPopupFor(barWindow.modelData);
+                        }
+                    }
 
                     Row {
                         anchors.centerIn: parent
@@ -1134,35 +1136,38 @@ ShellRoot {
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.overflowPopupOpen) {
-                                shell.overflowPopupOpen = false;
-                            } else {
-                                shell.openOverflowPopupFor(barWindow.modelData);
-                            }
-                        }
-                    }
                 }
 
                 // === Battery icon ===
-                Rectangle {
+                BarButton {
                     id: batteryButton
-                    property bool hovered: false
                     visible: shell.hasBattery
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 34
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.batteryPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.batteryPopupOpen
+                    onEntered: {
+                        shell.batteryHovered = true;
+                        shell.batteryHoveredScreen = barWindow.modelData;
+                        var pos = batteryButton.mapToItem(null, 0, 0);
+                        shell.batteryIconX = pos.x;
+                        shell.batteryIconWidth = batteryButton.width;
+                    }
+                    onExited: shell.batteryHovered = false
+                    onClicked: {
+                        if (shell.batteryPopupOpen) {
+                            shell.batteryPopupOpen = false;
+                        } else {
+                            shell.wifiPopupOpen = false;
+                            shell.btPopupOpen = false;
+                            shell.volumePopupOpen = false;
+                            shell.brightnessPopupOpen = false;
+                            shell.notifPopupOpen = false;
+                            shell.sysMonPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            shell.batteryPopupScreen = barWindow.modelData;
+                            shell.batteryPopupOpen = true;
+                        }
+                    }
 
                     Canvas {
                         id: batteryCanvas
@@ -1233,50 +1238,30 @@ ShellRoot {
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: {
-                            parent.hovered = true;
-                            shell.batteryHovered = true;
-                            shell.batteryHoveredScreen = barWindow.modelData;
-                            var pos = parent.mapToItem(null, 0, 0);
-                            shell.batteryIconX = pos.x;
-                            shell.batteryIconWidth = parent.width;
-                        }
-                        onExited: { parent.hovered = false; shell.batteryHovered = false; }
-                        onClicked: {
-                            if (shell.batteryPopupOpen) {
-                                shell.batteryPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                shell.batteryPopupScreen = barWindow.modelData;
-                                shell.batteryPopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
                 // === System monitor icon ===
-                Rectangle {
+                BarButton {
                     id: sysMonButton
-                    property bool hovered: false
                     visible: !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.sysMonPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.sysMonPopupOpen
+                    onClicked: {
+                        if (shell.sysMonPopupOpen) {
+                            shell.sysMonPopupOpen = false;
+                        } else {
+                            shell.wifiPopupOpen = false;
+                            shell.btPopupOpen = false;
+                            shell.volumePopupOpen = false;
+                            shell.brightnessPopupOpen = false;
+                            shell.batteryPopupOpen = false;
+                            shell.notifPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            shell.sysMonPopupScreen = barWindow.modelData;
+                            shell.sysMonPopupOpen = true;
+                        }
+                    }
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1313,43 +1298,30 @@ ShellRoot {
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.sysMonPopupOpen) {
-                                shell.sysMonPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                shell.sysMonPopupScreen = barWindow.modelData;
-                                shell.sysMonPopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Brightness icon ===
-                Rectangle {
+                BarButton {
                     id: brightnessButton
-                    property bool hovered: false
                     visible: shell.hasBrightness && !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.brightnessPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.brightnessPopupOpen
+                    onClicked: {
+                        if (shell.brightnessPopupOpen) {
+                            shell.brightnessPopupOpen = false;
+                        } else {
+                            shell.wifiPopupOpen = false;
+                            shell.btPopupOpen = false;
+                            shell.volumePopupOpen = false;
+                            shell.batteryPopupOpen = false;
+                            shell.notifPopupOpen = false;
+                            shell.sysMonPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            shell.brightnessPopupScreen = barWindow.modelData;
+                            shell.brightnessPopupOpen = true;
+                        }
+                    }
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1399,42 +1371,29 @@ ShellRoot {
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.brightnessPopupOpen) {
-                                shell.brightnessPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                shell.brightnessPopupScreen = barWindow.modelData;
-                                shell.brightnessPopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Volume icon ===
-                Rectangle {
+                BarButton {
                     id: volumeButton
-                    property bool hovered: false
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.volumePopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.volumePopupOpen
+                    onClicked: {
+                        if (shell.volumePopupOpen) {
+                            shell.volumePopupOpen = false;
+                        } else {
+                            shell.wifiPopupOpen = false;
+                            shell.btPopupOpen = false;
+                            shell.brightnessPopupOpen = false;
+                            shell.batteryPopupOpen = false;
+                            shell.notifPopupOpen = false;
+                            shell.sysMonPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            shell.volumePopupScreen = barWindow.modelData;
+                            shell.volumePopupOpen = true;
+                        }
+                    }
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1501,44 +1460,28 @@ ShellRoot {
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.volumePopupOpen) {
-                                shell.volumePopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                shell.volumePopupScreen = barWindow.modelData;
-                                shell.volumePopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Bluetooth icon ===
-                Rectangle {
+                BarButton {
                     id: btButton
-                    property bool hovered: false
                     visible: shell.hasBluetooth
-
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.btPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.btPopupOpen
+                    onClicked: {
+                        shell.btPopupOpen = !shell.btPopupOpen;
+                        shell.btPopupScreen = barWindow.modelData;
+                        if (shell.btPopupOpen) {
+                            shell.brightnessPopupOpen = false;
+                            shell.volumePopupOpen = false;
+                            shell.batteryPopupOpen = false;
+                            shell.notifPopupOpen = false;
+                            shell.sysMonPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            btControllerCheck.running = true;
+                        }
+                    }
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1569,41 +1512,29 @@ ShellRoot {
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            shell.btPopupOpen = !shell.btPopupOpen;
-                            shell.btPopupScreen = barWindow.modelData;
-                            if (shell.btPopupOpen) {
-                                shell.brightnessPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                btControllerCheck.running = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Right: WiFi icon ===
-                Rectangle {
+                BarButton {
                     id: wifiButton
-                    property bool hovered: false
-
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.wifiPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.wifiPopupOpen
+                    onClicked: {
+                        shell.wifiPopupOpen = !shell.wifiPopupOpen;
+                        shell.popupScreen = barWindow.modelData;
+                        if (shell.wifiPopupOpen) {
+                            shell.brightnessPopupOpen = false;
+                            shell.volumePopupOpen = false;
+                            shell.batteryPopupOpen = false;
+                            shell.notifPopupOpen = false;
+                            shell.sysMonPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            if (shell.wifiDev) shell.wifiDev.scannerEnabled = true;
+                        }
+                        shell.selectedNetworkName = "";
+                        shell.passwordInput = "";
+                    }
 
                     // WiFi icon
                     Canvas {
@@ -1700,42 +1631,29 @@ ShellRoot {
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            shell.wifiPopupOpen = !shell.wifiPopupOpen;
-                            shell.popupScreen = barWindow.modelData;
-                            if (shell.wifiPopupOpen) {
-                                shell.brightnessPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                if (shell.wifiDev) shell.wifiDev.scannerEnabled = true;
-                            }
-                            shell.selectedNetworkName = "";
-                            shell.passwordInput = "";
-                        }
-                    }
                 }
 
                 // === Notification bell icon ===
-                Rectangle {
+                BarButton {
                     id: notifButton
-                    property bool hovered: false
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.notifPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.notifPopupOpen
+                    onClicked: {
+                        if (shell.notifPopupOpen) {
+                            shell.notifPopupOpen = false;
+                        } else {
+                            shell.wifiPopupOpen = false;
+                            shell.btPopupOpen = false;
+                            shell.volumePopupOpen = false;
+                            shell.brightnessPopupOpen = false;
+                            shell.batteryPopupOpen = false;
+                            shell.sysMonPopupOpen = false;
+                            shell.overflowPopupOpen = false;
+                            shell.notifPopupScreen = barWindow.modelData;
+                            shell.notifPopupOpen = true;
+                        }
+                    }
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1792,29 +1710,6 @@ ShellRoot {
                             color: "#ffffff"
                             font.pixelSize: 8
                             font.bold: true
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.notifPopupOpen) {
-                                shell.notifPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.overflowPopupOpen = false;
-                                shell.notifPopupScreen = barWindow.modelData;
-                                shell.notifPopupOpen = true;
-                            }
                         }
                     }
                 }
