@@ -5,13 +5,15 @@ import Quickshell.Services.Notifications
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    property bool wifiPopupOpen: false
-    property var popupScreen: null
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow"
+    property string activePopup: ""
+    property var activePopupScreen: null
     property string selectedNetworkName: ""
     property string passwordInput: ""
     property string eapIdentityInput: ""
@@ -41,8 +43,6 @@ ShellRoot {
 
     property bool hasBluetooth: false
     property bool bluetoothPowered: false
-    property bool btPopupOpen: false
-    property var btPopupScreen: null
     property var btPairedDevices: []
     property var btConnectedDevices: []
     property var btDiscoveredDevices: []
@@ -62,17 +62,12 @@ ShellRoot {
     property var batteryHoveredScreen: null
     property real batteryIconX: 0
     property real batteryIconWidth: 0
-    property bool batteryPopupOpen: false
-    property var batteryPopupScreen: null
+
     property bool hasBrightness: false
     property int brightnessPercent: 0
-    property bool brightnessPopupOpen: false
-    property var brightnessPopupScreen: null
 
     property int volumePercent: 0
     property bool volumeMuted: false
-    property bool volumePopupOpen: false
-    property var volumePopupScreen: null
 
     property int micGainPercent: 0
     property bool micMuted: false
@@ -102,16 +97,12 @@ ShellRoot {
         weatherEffectOverride = modes[(idx + 1) % modes.length];
     }
 
-    property bool notifPopupOpen: false
-    property var notifPopupScreen: null
     property bool toastVisible: false
     property var toastNotification: null
     property var notifHistory: []
     property int notifCount: 0
 
     // System monitor
-    property bool sysMonPopupOpen: false
-    property var sysMonPopupScreen: null
     property real cpuPercent: 0
     property var cpuHistory: []
     property int cpuHistoryCount: 0
@@ -143,6 +134,13 @@ ShellRoot {
         if (bps < 1024 * 1024) return (bps / 1024).toFixed(1) + " KB/s";
         if (bps < 1024 * 1024 * 1024) return (bps / (1024 * 1024)).toFixed(1) + " MB/s";
         return (bps / (1024 * 1024 * 1024)).toFixed(2) + " GB/s";
+    }
+
+    function pushHistory(arr, value, maxLen) {
+        var copy = arr.slice();
+        copy.push(value);
+        if (copy.length > maxLen) copy = copy.slice(copy.length - maxLen);
+        return copy;
     }
 
     function addNotification(appName, summary, body, appIcon, image) {
@@ -200,13 +198,32 @@ ShellRoot {
         audioDeviceSet.running = true;
     }
 
-    onVolumePopupOpenChanged: {
-        if (volumePopupOpen) audioDevicesCheck.running = true;
+    onActivePopupChanged: {
+        if (activePopup === "volume") audioDevicesCheck.running = true;
     }
 
     function setPowerProfile(profile) {
         powerProfileSet.profile = profile;
         powerProfileSet.running = true;
+    }
+
+    function openPopup(name, screen) {
+        shell.activePopup = name;
+        shell.activePopupScreen = screen;
+    }
+
+    function togglePopup(name, screen) {
+        if (shell.activePopup === name) {
+            shell.activePopup = "";
+            shell.activePopupScreen = null;
+        } else {
+            openPopup(name, screen);
+        }
+    }
+
+    function closePopup() {
+        shell.activePopup = "";
+        shell.activePopupScreen = null;
     }
 
     function toggleBluetooth() {
@@ -547,7 +564,7 @@ ShellRoot {
             + " | stdbuf -o0 od -An -v -tu1 -w800"
             + " | stdbuf -oL awk '{m=0;for(i=1;i<=NF;i++){v=$i-128;if(v<0)v=-v;if(v>m)m=v}print m;fflush()}'"
         ]
-        running: shell.volumePopupOpen
+        running: shell.activePopup === "volume"
         stdout: SplitParser {
             onRead: data => {
                 var v = parseInt(data.toString().trim());
@@ -609,7 +626,7 @@ ShellRoot {
                 shell.eapPasswordInput = "";
                 shell.eapError = "";
                 shell.eapConnecting = false;
-                shell.wifiPopupOpen = false;
+                shell.closePopup();
             } else {
                 shell.eapError = "Authentication failed";
                 shell.eapConnecting = false;
@@ -641,28 +658,19 @@ ShellRoot {
             brightnessCheck.running = true;
             volumeCheck.running = true;
             micCheck.running = true;
-            if (shell.volumePopupOpen) audioDevicesCheck.running = true;
+            if (shell.activePopup === "volume") audioDevicesCheck.running = true;
             btControllerCheck.running = true;
             cpuCheck.running = true;
             ramCheck.running = true;
             tempCheck.running = true;
             netCheck.running = true;
-            var ch = shell.cpuHistory.slice();
-            ch.push(shell.cpuPercent);
-            if (ch.length > 60) ch = ch.slice(ch.length - 60);
-            shell.cpuHistory = ch;
-            shell.cpuHistoryCount = ch.length;
-            var rh = shell.ramHistory.slice();
-            rh.push(shell.ramPercent);
-            if (rh.length > 60) rh = rh.slice(rh.length - 60);
-            shell.ramHistory = rh;
-            shell.ramHistoryCount = rh.length;
+            shell.cpuHistory = pushHistory(shell.cpuHistory, shell.cpuPercent, 60);
+            shell.cpuHistoryCount = shell.cpuHistory.length;
+            shell.ramHistory = pushHistory(shell.ramHistory, shell.ramPercent, 60);
+            shell.ramHistoryCount = shell.ramHistory.length;
             if (shell.hasBattery) {
-                var h = shell.batteryHistory.slice();
-                h.push(shell.batteryPercent);
-                if (h.length > 720) h = h.slice(h.length - 720);
-                shell.batteryHistory = h;
-                shell.batteryHistoryCount = h.length;
+                shell.batteryHistory = pushHistory(shell.batteryHistory, shell.batteryPercent, 720);
+                shell.batteryHistoryCount = shell.batteryHistory.length;
             }
         }
     }
@@ -768,10 +776,10 @@ ShellRoot {
     Process {
         id: btScan
         command: ["bluetoothctl", "--timeout", "30", "scan", "on"]
-        running: shell.btPopupOpen && shell.bluetoothPowered
+        running: shell.activePopup === "bt" && shell.bluetoothPowered
         onRunningChanged: shell.btScanning = running
         onExited: (code, status) => {
-            if (shell.btPopupOpen && shell.bluetoothPowered) {
+            if (shell.activePopup === "bt" && shell.bluetoothPowered) {
                 btScan.running = true;
             }
         }
@@ -812,7 +820,7 @@ ShellRoot {
     Timer {
         interval: 2500
         repeat: true
-        running: shell.btPopupOpen && shell.bluetoothPowered
+        running: shell.activePopup === "bt" && shell.bluetoothPowered
         triggeredOnStart: true
         onTriggered: {
             btDiscoveredCheck.devices = [];
@@ -980,12 +988,8 @@ ShellRoot {
                 var txR = Math.max(0, (accTx - shell.netPrevTx) / dt);
                 shell.netRxRate = rxR;
                 shell.netTxRate = txR;
-                var rxH = shell.netRxHistory.slice();
-                var txH = shell.netTxHistory.slice();
-                rxH.push(rxR);
-                txH.push(txR);
-                if (rxH.length > 60) rxH = rxH.slice(rxH.length - 60);
-                if (txH.length > 60) txH = txH.slice(txH.length - 60);
+                var rxH = pushHistory(shell.netRxHistory, rxR, 60);
+                var txH = pushHistory(shell.netTxHistory, txR, 60);
                 shell.netRxHistory = rxH;
                 shell.netTxHistory = txH;
                 shell.netHistoryCount = rxH.length;
@@ -1020,13 +1024,17 @@ ShellRoot {
             required property var modelData
             screen: modelData
 
+            // Tray overflow kicks in on narrow monitors. Hides lower-priority
+            // icons (sysMon, brightness) behind the chevron.
+            property bool trayOverflow: width > 0 && width < 1200
+
             anchors {
                 top: true
                 left: true
                 right: true
             }
             implicitHeight: 30
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.barBg
 
             RowLayout {
                 anchors.fill: parent
@@ -1040,27 +1048,33 @@ ShellRoot {
                     Layout.alignment: Qt.AlignLeft
 
                     Repeater {
-                        model: 10
+                        model: Hyprland.workspaces.values
 
                         Rectangle {
-                            required property int index
-                            property int wsId: index + 1
+                            required property var modelData
+                            property int wsId: modelData ? modelData.id : -1
+                            property string wsName: modelData && modelData.name ? modelData.name : ""
+                            property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
+                            property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
                             property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
                             property bool hovered: false
 
-                            width: 24
+                            visible: wsId > 0
+                            implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
+                            width: visible ? implicitWidth : 0
                             height: 22
                             radius: 4
-                            color: isActive ? Qt.rgba(1, 1, 1, 0.5)
-                                : hovered ? Qt.rgba(1, 1, 1, 0.3)
+                            color: isActive ? Theme.workspaceActive
+                                : hovered ? Theme.workspaceHover
                                 : "transparent"
 
                             Behavior on color { ColorAnimation { duration: 150 } }
 
                             Text {
+                                id: wsLabel
                                 anchors.centerIn: parent
-                                text: parent.wsId
-                                color: "#ffffff"
+                                text: parent.label
+                                color: Theme.text
                                 font.pixelSize: 12
                                 font.bold: parent.isActive
                             }
@@ -1079,18 +1093,49 @@ ShellRoot {
 
                 Item { Layout.fillWidth: true }
 
+                // === Tray overflow chevron ===
+                BarButton {
+                    id: overflowButton
+                    visible: barWindow.trayOverflow
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: 26
+                    active: shell.activePopup === "overflow"
+                    onClicked: shell.togglePopup("overflow", barWindow.modelData)
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 2
+
+                        Repeater {
+                            model: 3
+
+                            Rectangle {
+                                width: 3
+                                height: 3
+                                radius: 1.5
+                                color: Theme.iconPrimary
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+                    }
+                }
+
                 // === Battery icon ===
-                Rectangle {
+                BarButton {
                     id: batteryButton
-                    property bool hovered: false
                     visible: shell.hasBattery
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 34
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.batteryPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "battery"
+                    onEntered: {
+                        shell.batteryHovered = true;
+                        shell.batteryHoveredScreen = barWindow.modelData;
+                        var pos = batteryButton.mapToItem(null, 0, 0);
+                        shell.batteryIconX = pos.x;
+                        shell.batteryIconWidth = batteryButton.width;
+                    }
+                    onExited: shell.batteryHovered = false
+                    onClicked: shell.togglePopup("battery", barWindow.modelData)
 
                     Canvas {
                         id: batteryCanvas
@@ -1100,15 +1145,17 @@ ShellRoot {
 
                         property int percent: shell.batteryPercent
                         property bool charging: shell.batteryCharging
+                        property color toggleGreen: Theme.toggleGreen
                         onPercentChanged: requestPaint()
                         onChargingChanged: requestPaint()
+                        onToggleGreenChanged: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
 
                             // Battery outline
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineJoin = "round";
                             ctx.beginPath();
@@ -1116,7 +1163,7 @@ ShellRoot {
                             ctx.stroke();
 
                             // Terminal nub
-                            ctx.fillStyle = "#ffffff";
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.beginPath();
                             ctx.roundedRect(21, 3, 2.5, 5, 1, 1);
                             ctx.fill();
@@ -1125,7 +1172,7 @@ ShellRoot {
                             var pct = percent / 100;
                             var fillColor;
                             if (charging) {
-                                fillColor = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                                fillColor = toggleGreen;
                             } else if (percent <= 10) {
                                 fillColor = Qt.rgba(0.9, 0.2, 0.2, 0.9);
                             } else if (percent <= 25) {
@@ -1133,7 +1180,7 @@ ShellRoot {
                             } else if (percent <= 50) {
                                 fillColor = Qt.rgba(0.95, 0.85, 0.2, 0.8);
                             } else {
-                                fillColor = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                                fillColor = toggleGreen;
                             }
 
                             // Inner fill
@@ -1148,7 +1195,7 @@ ShellRoot {
 
                             // Charging bolt
                             if (charging) {
-                                ctx.fillStyle = "#ffffff";
+                                ctx.fillStyle = Theme.iconPrimary;
                                 ctx.beginPath();
                                 ctx.moveTo(12, 1);
                                 ctx.lineTo(8, 6.5);
@@ -1161,59 +1208,65 @@ ShellRoot {
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: {
-                            parent.hovered = true;
-                            shell.batteryHovered = true;
-                            shell.batteryHoveredScreen = barWindow.modelData;
-                            var pos = parent.mapToItem(null, 0, 0);
-                            shell.batteryIconX = pos.x;
-                            shell.batteryIconWidth = parent.width;
-                        }
-                        onExited: { parent.hovered = false; shell.batteryHovered = false; }
-                        onClicked: {
-                            if (shell.batteryPopupOpen) {
-                                shell.batteryPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.batteryPopupScreen = barWindow.modelData;
-                                shell.batteryPopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
-                // === System monitor icon ===
-                Rectangle {
+                // === System monitor sparkline (CPU + RAM) ===
+                BarButton {
                     id: sysMonButton
-                    property bool hovered: false
+                    visible: !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.sysMonPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "sysMon"
+                    onClicked: shell.togglePopup("sysMon", barWindow.modelData)
 
                     Canvas {
+                        id: sysMonIcon
                         anchors.centerIn: parent
                         width: 14
                         height: 14
 
+                        readonly property int maxPoints: 60
+                        readonly property real xMin: 1.5
+                        readonly property real xMax: 12.5
+                        readonly property real yMin: 1.5
+                        readonly property real yMax: 8.5
+
+                        property var cpuH: shell.cpuHistory
+                        property var ramH: shell.ramHistory
+                        onCpuHChanged: requestPaint()
+                        onRamHChanged: requestPaint()
+
+                        Component.onCompleted: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+
+                        function drawSeries(ctx, h, color, lw) {
+                            if (!h || h.length < 2) return;
+                            var usableW = xMax - xMin;
+                            var usableH = yMax - yMin;
+                            var stepX = usableW / (maxPoints - 1);
+                            var offset = maxPoints - h.length;
+                            ctx.strokeStyle = color;
+                            ctx.lineWidth = lw;
+                            ctx.lineJoin = "round";
+                            ctx.lineCap = "round";
+                            ctx.beginPath();
+                            for (var i = 0; i < h.length; i++) {
+                                var x = xMin + (offset + i) * stepX;
+                                var v = Math.max(0, Math.min(100, h[i]));
+                                var y = yMax - (usableH * v / 100);
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.stroke();
+                        }
+
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
+                            ctx.lineCap = "round";
                             ctx.lineJoin = "round";
                             ctx.beginPath();
                             ctx.roundedRect(0.5, 0.5, 13, 10, 1.5, 1.5);
@@ -1226,55 +1279,32 @@ ShellRoot {
                             ctx.moveTo(7, 10.5);
                             ctx.lineTo(7, 11.5);
                             ctx.stroke();
-                            ctx.lineWidth = 1.2;
-                            ctx.lineCap = "round";
-                            ctx.beginPath();
-                            ctx.moveTo(2, 7);
-                            ctx.lineTo(4, 7);
-                            ctx.lineTo(5.5, 3);
-                            ctx.lineTo(7, 8);
-                            ctx.lineTo(8.5, 4);
-                            ctx.lineTo(10, 7);
-                            ctx.lineTo(12, 7);
-                            ctx.stroke();
-                        }
-                    }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.sysMonPopupOpen) {
-                                shell.sysMonPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupScreen = barWindow.modelData;
-                                shell.sysMonPopupOpen = true;
+                            var haveCpu = cpuH && cpuH.length >= 2;
+                            var haveRam = ramH && ramH.length >= 2;
+                            if (!haveCpu && !haveRam) {
+                                ctx.strokeStyle = Theme.iconDim;
+                                ctx.lineWidth = 0.8;
+                                ctx.beginPath();
+                                ctx.moveTo(xMin, yMax);
+                                ctx.lineTo(xMax, yMax);
+                                ctx.stroke();
+                                return;
                             }
+                            drawSeries(ctx, ramH, Theme.graphRam, 0.8);
+                            drawSeries(ctx, cpuH, Theme.graphCpu, 1.0);
                         }
                     }
                 }
 
                 // === Brightness icon ===
-                Rectangle {
+                BarButton {
                     id: brightnessButton
-                    property bool hovered: false
-                    visible: shell.hasBrightness
+                    visible: shell.hasBrightness && !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.brightnessPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "brightness"
+                    onClicked: shell.togglePopup("brightness", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1282,7 +1312,11 @@ ShellRoot {
                         height: 14
 
                         property int pct: shell.brightnessPercent
+                        property color iconColor: Theme.iconPrimary
                         onPctChanged: requestPaint()
+                        onIconColorChanged: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+                        Component.onCompleted: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
@@ -1292,8 +1326,7 @@ ShellRoot {
                             var cy = 7;
                             var r = 3;
 
-                            // Sun rays
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = iconColor;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             var rayLen = 2;
@@ -1310,55 +1343,28 @@ ShellRoot {
                                 ctx.stroke();
                             }
 
-                            // Sun circle
                             var opacity = 0.4 + (pct / 100) * 0.6;
-                            ctx.fillStyle = Qt.rgba(1, 1, 1, opacity);
+                            ctx.fillStyle = Qt.rgba(iconColor.r, iconColor.g, iconColor.b, opacity);
                             ctx.beginPath();
                             ctx.arc(cx, cy, r, 0, 2 * Math.PI);
                             ctx.fill();
 
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = iconColor;
                             ctx.lineWidth = 1.4;
                             ctx.beginPath();
                             ctx.arc(cx, cy, r, 0, 2 * Math.PI);
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.brightnessPopupOpen) {
-                                shell.brightnessPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.brightnessPopupScreen = barWindow.modelData;
-                                shell.brightnessPopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Volume icon ===
-                Rectangle {
+                BarButton {
                     id: volumeButton
-                    property bool hovered: false
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.volumePopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "volume"
+                    onClicked: shell.togglePopup("volume", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1374,8 +1380,8 @@ ShellRoot {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
 
-                            ctx.strokeStyle = muted ? Qt.rgba(1, 1, 1, 0.4) : "#ffffff";
-                            ctx.fillStyle = muted ? Qt.rgba(1, 1, 1, 0.4) : "#ffffff";
+                            ctx.strokeStyle = muted ? Theme.iconDim : Theme.iconPrimary;
+                            ctx.fillStyle = muted ? Theme.iconDim : Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineJoin = "round";
                             ctx.lineCap = "round";
@@ -1393,7 +1399,7 @@ ShellRoot {
 
                             if (muted) {
                                 // X mark
-                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.strokeStyle = Theme.iconDim;
                                 ctx.lineWidth = 1.6;
                                 ctx.beginPath();
                                 ctx.moveTo(9, 4.5);
@@ -1405,7 +1411,7 @@ ShellRoot {
                                 ctx.stroke();
                             } else {
                                 // Sound waves
-                                ctx.strokeStyle = "#ffffff";
+                                ctx.strokeStyle = Theme.iconPrimary;
                                 ctx.lineWidth = 1.3;
                                 if (vol > 0) {
                                     ctx.beginPath();
@@ -1425,43 +1431,19 @@ ShellRoot {
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.volumePopupOpen) {
-                                shell.volumePopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.volumePopupScreen = barWindow.modelData;
-                                shell.volumePopupOpen = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Bluetooth icon ===
-                Rectangle {
+                BarButton {
                     id: btButton
-                    property bool hovered: false
                     visible: shell.hasBluetooth
-
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.btPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "bt"
+                    onClicked: {
+                        shell.togglePopup("bt", barWindow.modelData);
+                        if (shell.activePopup === "bt") btControllerCheck.running = true;
+                    }
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1474,7 +1456,7 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = shell.bluetoothPowered ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.strokeStyle = shell.bluetoothPowered ? Theme.iconPrimary : Theme.iconDim;
                             ctx.lineWidth = 1.6;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1492,40 +1474,20 @@ ShellRoot {
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            shell.btPopupOpen = !shell.btPopupOpen;
-                            shell.btPopupScreen = barWindow.modelData;
-                            if (shell.btPopupOpen) {
-                                shell.brightnessPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                btControllerCheck.running = true;
-                            }
-                        }
-                    }
                 }
 
                 // === Right: WiFi icon ===
-                Rectangle {
+                BarButton {
                     id: wifiButton
-                    property bool hovered: false
-
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.wifiPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "wifi"
+                    onClicked: {
+                        shell.togglePopup("wifi", barWindow.modelData);
+                        if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
+                        shell.selectedNetworkName = "";
+                        shell.passwordInput = "";
+                    }
 
                     // WiFi icon
                     Canvas {
@@ -1540,7 +1502,7 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            var col = wifiOn ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            var col = wifiOn ? Theme.iconPrimary : Theme.iconDim;
                             ctx.strokeStyle = col;
                             ctx.lineWidth = 1.6;
                             ctx.lineCap = "round";
@@ -1567,7 +1529,7 @@ ShellRoot {
 
                             // Diagonal strike-through when disabled
                             if (!wifiOn) {
-                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.strokeStyle = Theme.iconDim;
                                 ctx.lineWidth = 1.8;
                                 ctx.beginPath();
                                 ctx.moveTo(1, 1);
@@ -1590,7 +1552,7 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = wifiOn ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.strokeStyle = wifiOn ? Theme.iconPrimary : Theme.iconDim;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1622,41 +1584,15 @@ ShellRoot {
                             ctx.stroke();
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            shell.wifiPopupOpen = !shell.wifiPopupOpen;
-                            shell.popupScreen = barWindow.modelData;
-                            if (shell.wifiPopupOpen) {
-                                shell.brightnessPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.notifPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                if (shell.wifiDev) shell.wifiDev.scannerEnabled = true;
-                            }
-                            shell.selectedNetworkName = "";
-                            shell.passwordInput = "";
-                        }
-                    }
                 }
 
                 // === Notification bell icon ===
-                Rectangle {
+                BarButton {
                     id: notifButton
-                    property bool hovered: false
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    implicitHeight: 22
-                    radius: 4
-                    color: hovered || shell.notifPopupOpen ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    active: shell.activePopup === "notif"
+                    onClicked: shell.togglePopup("notif", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1670,8 +1606,8 @@ ShellRoot {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
 
-                            ctx.strokeStyle = "#ffffff";
-                            ctx.fillStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1704,7 +1640,7 @@ ShellRoot {
                         width: Math.max(12, badgeText.implicitWidth + 4)
                         height: 12
                         radius: 6
-                        color: "#e04040"
+                        color: Theme.accentDanger
 
                         Text {
                             id: badgeText
@@ -1713,28 +1649,6 @@ ShellRoot {
                             color: "#ffffff"
                             font.pixelSize: 8
                             font.bold: true
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            if (shell.notifPopupOpen) {
-                                shell.notifPopupOpen = false;
-                            } else {
-                                shell.wifiPopupOpen = false;
-                                shell.btPopupOpen = false;
-                                shell.volumePopupOpen = false;
-                                shell.brightnessPopupOpen = false;
-                                shell.batteryPopupOpen = false;
-                                shell.sysMonPopupOpen = false;
-                                shell.notifPopupScreen = barWindow.modelData;
-                                shell.notifPopupOpen = true;
-                            }
                         }
                     }
                 }
@@ -1749,7 +1663,7 @@ ShellRoot {
                 width: centreRow.implicitWidth + 20
                 height: 22
                 radius: 4
-                color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                color: hovered ? Theme.buttonHover : "transparent"
 
                 Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -1763,7 +1677,7 @@ ShellRoot {
                         text: shell.showFullDate
                             ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
                             : Qt.formatDateTime(clock.date, "h:mm AP")
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -1772,7 +1686,7 @@ ShellRoot {
                         visible: shell.weatherCondition !== ""
                         width: 1
                         height: 12
-                        color: Qt.rgba(1, 1, 1, 0.4)
+                        color: Theme.iconDim
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -1784,7 +1698,11 @@ ShellRoot {
                         anchors.verticalCenter: parent.verticalCenter
 
                         property string cond: shell.weatherCondition
+                        property color iconColor: Theme.iconPrimary
                         onCondChanged: requestPaint()
+                        onIconColorChanged: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+                        Component.onCompleted: requestPaint()
 
                         function weatherType() {
                             var c = cond;
@@ -1803,8 +1721,8 @@ ShellRoot {
                             ctx.clearRect(0, 0, width, height);
                             var type = weatherType();
 
-                            ctx.strokeStyle = "#ffffff";
-                            ctx.fillStyle = "#ffffff";
+                            ctx.strokeStyle = iconColor;
+                            ctx.fillStyle = iconColor;
                             ctx.lineWidth = 1.3;
                             ctx.lineCap = "round";
 
@@ -1883,7 +1801,7 @@ ShellRoot {
                     Text {
                         visible: shell.weatherCondition !== ""
                         text: shell.weatherTemp
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -1891,7 +1809,7 @@ ShellRoot {
                     Text {
                         visible: shell.weatherEffectOverride !== ""
                         text: "(" + shell.weatherEffectOverride + ")"
-                        color: Qt.rgba(1, 1, 1, 0.5)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -1900,13 +1818,15 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     cursorShape: Qt.PointingHandCursor
                     onEntered: parent.hovered = true
                     onExited: parent.hovered = false
                     onClicked: function(mouse) {
                         if (mouse.button === Qt.RightButton)
                             shell.cycleWeatherEffect();
+                        else if (mouse.button === Qt.MiddleButton)
+                            Theme.mode = Theme.isDark ? Theme.Light : Theme.Dark;
                         else
                             shell.showFullDate = !shell.showFullDate;
                     }
@@ -1932,6 +1852,9 @@ ShellRoot {
 
     // Battery popup - one per screen
     BatteryPopup { shell: shell }
+
+    // Tray overflow menu - one per screen
+    TrayOverflowPopup { shell: shell }
 
     // System monitor popup - one per screen
     SystemMonitorPopup { shell: shell }

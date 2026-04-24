@@ -1,5 +1,6 @@
 import Quickshell
 import QtQuick
+import "."
 
 Variants {
     id: root
@@ -12,7 +13,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        visible: root.shell.batteryHovered && !root.shell.batteryPopupOpen && root.shell.batteryTimeRemaining !== "" && root.shell.batteryHoveredScreen === modelData
+        visible: root.shell.batteryHovered && root.shell.activePopup !== "battery" && root.shell.batteryTimeRemaining !== "" && root.shell.batteryHoveredScreen === modelData
 
         anchors {
             top: true
@@ -30,13 +31,13 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 6
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
 
             Text {
                 id: batteryTooltipText
                 anchors.centerIn: parent
                 text: (root.shell.batteryCharging ? "Full in " : "") + root.shell.batteryTimeRemaining + (root.shell.batteryCharging ? "" : " remaining")
-                color: "#ffffff"
+                color: Theme.text
                 font.pixelSize: 11
             }
         }

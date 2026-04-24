@@ -13,6 +13,8 @@ on:
       - modules/features/desktop-environment/hypridle.nix
       - modules/features/desktop-environment/hyprlock.nix
       - modules/features/desktop-environment/hyprpaper.nix
+      - modules/features/desktop-environment/quickshell.nix
+      - modules/features/desktop-environment/quickshell/**
       - modules/features/nixvim/atone-nvim.nix
       - modules/features/nixvim/codestats.nix
 concurrency:
@@ -33,7 +35,7 @@ jobs:
       - id: detect
         if: ${{ !env.ACT }}
         run: |
-          ALL='["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats"]'
+          ALL='["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell"]'
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
@@ -50,21 +52,22 @@ jobs:
           fi
 
           declare -A PACKAGE_PATHS=(
-            ["rofi"]="modules/features/rofi.nix"
-            ["nushell"]="modules/features/nushell.nix"
-            ["kitty"]="modules/features/kitty.nix"
-            ["sddm-sugar-candy"]="modules/features/desktop-environment/sddm-sugar-candy.nix"
-            ["hyprland"]="modules/features/desktop-environment/hyprland.nix"
-            ["hypridle"]="modules/features/desktop-environment/hypridle.nix"
-            ["hyprlock"]="modules/features/desktop-environment/hyprlock.nix"
-            ["hyprpaper"]="modules/features/desktop-environment/hyprpaper.nix"
-            ["atone-nvim"]="modules/features/nixvim/atone-nvim.nix"
-            ["codestats"]="modules/features/nixvim/codestats.nix"
+            ["rofi"]="^modules/features/rofi\.nix$"
+            ["nushell"]="^modules/features/nushell\.nix$"
+            ["kitty"]="^modules/features/kitty\.nix$"
+            ["sddm-sugar-candy"]="^modules/features/desktop-environment/sddm-sugar-candy\.nix$"
+            ["hyprland"]="^modules/features/desktop-environment/hyprland\.nix$"
+            ["hypridle"]="^modules/features/desktop-environment/hypridle\.nix$"
+            ["hyprlock"]="^modules/features/desktop-environment/hyprlock\.nix$"
+            ["hyprpaper"]="^modules/features/desktop-environment/hyprpaper\.nix$"
+            ["atone-nvim"]="^modules/features/nixvim/atone-nvim\.nix$"
+            ["codestats"]="^modules/features/nixvim/codestats\.nix$"
+            ["quickshell"]="^modules/features/desktop-environment/quickshell(\.nix$|/)"
           )
 
           PACKAGES=()
           for pkg in "${!PACKAGE_PATHS[@]}"; do
-            if echo "$CHANGED" | grep -q "^${PACKAGE_PATHS[$pkg]}$"; then
+            if echo "$CHANGED" | grep -qE "${PACKAGE_PATHS[$pkg]}"; then
               PACKAGES+=("\"$pkg\"")
             fi
           done
@@ -85,7 +88,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats"]') }}
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell"]') }}
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
