@@ -94,9 +94,11 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nix-host
-          restore-prefixes-first-match: nix-
-          save: false
+          primary-key: nix-package
+          restore-prefixes-all-match: |
+            nix-devshell
+            nix-package
+          save: true
       - run: nix develop --command nix build .#${{ matrix.package }} --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
