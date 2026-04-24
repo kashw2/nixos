@@ -1248,7 +1248,7 @@ ShellRoot {
                     }
                 }
 
-                // === System monitor icon ===
+                // === System monitor sparkline (CPU + RAM) ===
                 BarButton {
                     id: sysMonButton
                     visible: !barWindow.trayOverflow
@@ -1258,15 +1258,53 @@ ShellRoot {
                     onClicked: shell.togglePopup("sysMon", barWindow.modelData)
 
                     Canvas {
+                        id: sysMonIcon
                         anchors.centerIn: parent
                         width: 14
                         height: 14
+
+                        readonly property int maxPoints: 60
+                        readonly property real xMin: 1.5
+                        readonly property real xMax: 12.5
+                        readonly property real yMin: 1.5
+                        readonly property real yMax: 8.5
+
+                        property var cpuH: shell.cpuHistory
+                        property var ramH: shell.ramHistory
+                        onCpuHChanged: requestPaint()
+                        onRamHChanged: requestPaint()
+
+                        Component.onCompleted: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+
+                        function drawSeries(ctx, h, color, lw) {
+                            if (!h || h.length < 2) return;
+                            var usableW = xMax - xMin;
+                            var usableH = yMax - yMin;
+                            var stepX = usableW / (maxPoints - 1);
+                            var offset = maxPoints - h.length;
+                            ctx.strokeStyle = color;
+                            ctx.lineWidth = lw;
+                            ctx.lineJoin = "round";
+                            ctx.lineCap = "round";
+                            ctx.beginPath();
+                            for (var i = 0; i < h.length; i++) {
+                                var x = xMin + (offset + i) * stepX;
+                                var v = Math.max(0, Math.min(100, h[i]));
+                                var y = yMax - (usableH * v / 100);
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.stroke();
+                        }
 
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
                             ctx.strokeStyle = "#ffffff";
+                            ctx.fillStyle = "#ffffff";
                             ctx.lineWidth = 1.4;
+                            ctx.lineCap = "round";
                             ctx.lineJoin = "round";
                             ctx.beginPath();
                             ctx.roundedRect(0.5, 0.5, 13, 10, 1.5, 1.5);
@@ -1279,17 +1317,20 @@ ShellRoot {
                             ctx.moveTo(7, 10.5);
                             ctx.lineTo(7, 11.5);
                             ctx.stroke();
-                            ctx.lineWidth = 1.2;
-                            ctx.lineCap = "round";
-                            ctx.beginPath();
-                            ctx.moveTo(2, 7);
-                            ctx.lineTo(4, 7);
-                            ctx.lineTo(5.5, 3);
-                            ctx.lineTo(7, 8);
-                            ctx.lineTo(8.5, 4);
-                            ctx.lineTo(10, 7);
-                            ctx.lineTo(12, 7);
-                            ctx.stroke();
+
+                            var haveCpu = cpuH && cpuH.length >= 2;
+                            var haveRam = ramH && ramH.length >= 2;
+                            if (!haveCpu && !haveRam) {
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.4);
+                                ctx.lineWidth = 0.8;
+                                ctx.beginPath();
+                                ctx.moveTo(xMin, yMax);
+                                ctx.lineTo(xMax, yMax);
+                                ctx.stroke();
+                                return;
+                            }
+                            drawSeries(ctx, ramH, Qt.rgba(1, 1, 1, 0.7), 0.8);
+                            drawSeries(ctx, cpuH, Qt.rgba(0.4, 0.8, 0.4, 0.9), 1.0);
                         }
                     }
                 }
