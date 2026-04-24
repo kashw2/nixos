@@ -14,7 +14,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        visible: root.shell.toastVisible && root.shell.toastNotification !== null && !root.shell.notifPopupOpen
+        visible: root.shell.toastVisible && root.shell.toastNotification !== null && root.shell.activePopup !== "notif"
 
         anchors {
             top: true
@@ -125,8 +125,7 @@ Variants {
                 z: -1
                 onClicked: {
                     root.shell.toastVisible = false;
-                    root.shell.notifPopupScreen = toastWindow.modelData;
-                    root.shell.notifPopupOpen = true;
+                    root.shell.openPopup("notif", toastWindow.modelData);
                 }
             }
         }

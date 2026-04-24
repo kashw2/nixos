@@ -13,7 +13,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        visible: root.shell.batteryHovered && !root.shell.batteryPopupOpen && root.shell.batteryTimeRemaining !== "" && root.shell.batteryHoveredScreen === modelData
+        visible: root.shell.batteryHovered && root.shell.activePopup !== "battery" && root.shell.batteryTimeRemaining !== "" && root.shell.batteryHoveredScreen === modelData
 
         anchors {
             top: true

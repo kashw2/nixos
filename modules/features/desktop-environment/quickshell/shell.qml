@@ -11,8 +11,9 @@ ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    property bool wifiPopupOpen: false
-    property var popupScreen: null
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow"
+    property string activePopup: ""
+    property var activePopupScreen: null
     property string selectedNetworkName: ""
     property string passwordInput: ""
     property string eapIdentityInput: ""
@@ -42,8 +43,6 @@ ShellRoot {
 
     property bool hasBluetooth: false
     property bool bluetoothPowered: false
-    property bool btPopupOpen: false
-    property var btPopupScreen: null
     property var btPairedDevices: []
     property var btConnectedDevices: []
     property var btDiscoveredDevices: []
@@ -63,21 +62,12 @@ ShellRoot {
     property var batteryHoveredScreen: null
     property real batteryIconX: 0
     property real batteryIconWidth: 0
-    property bool batteryPopupOpen: false
-    property var batteryPopupScreen: null
-
-    property bool overflowPopupOpen: false
-    property var overflowPopupScreen: null
 
     property bool hasBrightness: false
     property int brightnessPercent: 0
-    property bool brightnessPopupOpen: false
-    property var brightnessPopupScreen: null
 
     property int volumePercent: 0
     property bool volumeMuted: false
-    property bool volumePopupOpen: false
-    property var volumePopupScreen: null
 
     property int micGainPercent: 0
     property bool micMuted: false
@@ -107,16 +97,12 @@ ShellRoot {
         weatherEffectOverride = modes[(idx + 1) % modes.length];
     }
 
-    property bool notifPopupOpen: false
-    property var notifPopupScreen: null
     property bool toastVisible: false
     property var toastNotification: null
     property var notifHistory: []
     property int notifCount: 0
 
     // System monitor
-    property bool sysMonPopupOpen: false
-    property var sysMonPopupScreen: null
     property real cpuPercent: 0
     property var cpuHistory: []
     property int cpuHistoryCount: 0
@@ -148,6 +134,13 @@ ShellRoot {
         if (bps < 1024 * 1024) return (bps / 1024).toFixed(1) + " KB/s";
         if (bps < 1024 * 1024 * 1024) return (bps / (1024 * 1024)).toFixed(1) + " MB/s";
         return (bps / (1024 * 1024 * 1024)).toFixed(2) + " GB/s";
+    }
+
+    function pushHistory(arr, value, maxLen) {
+        var copy = arr.slice();
+        copy.push(value);
+        if (copy.length > maxLen) copy = copy.slice(copy.length - maxLen);
+        return copy;
     }
 
     function addNotification(appName, summary, body, appIcon, image) {
@@ -205,8 +198,8 @@ ShellRoot {
         audioDeviceSet.running = true;
     }
 
-    onVolumePopupOpenChanged: {
-        if (volumePopupOpen) audioDevicesCheck.running = true;
+    onActivePopupChanged: {
+        if (activePopup === "volume") audioDevicesCheck.running = true;
     }
 
     function setPowerProfile(profile) {
@@ -214,44 +207,23 @@ ShellRoot {
         powerProfileSet.running = true;
     }
 
-    function openOverflowPopupFor(screen) {
-        shell.wifiPopupOpen = false;
-        shell.btPopupOpen = false;
-        shell.volumePopupOpen = false;
-        shell.brightnessPopupOpen = false;
-        shell.batteryPopupOpen = false;
-        shell.notifPopupOpen = false;
-        shell.sysMonPopupOpen = false;
-        shell.overflowPopupScreen = screen;
-        shell.overflowPopupOpen = true;
-    }
-
     function openPopup(name, screen) {
-        shell.wifiPopupOpen = (name === "wifi");
-        shell.btPopupOpen = (name === "bt");
-        shell.volumePopupOpen = (name === "volume");
-        shell.brightnessPopupOpen = (name === "brightness");
-        shell.batteryPopupOpen = (name === "battery");
-        shell.notifPopupOpen = (name === "notif");
-        shell.sysMonPopupOpen = (name === "sysMon");
-        shell.overflowPopupOpen = (name === "overflow");
-        if (name === "wifi") shell.popupScreen = screen;
-        else if (name === "bt") shell.btPopupScreen = screen;
-        else if (name === "volume") shell.volumePopupScreen = screen;
-        else if (name === "brightness") shell.brightnessPopupScreen = screen;
-        else if (name === "battery") shell.batteryPopupScreen = screen;
-        else if (name === "notif") shell.notifPopupScreen = screen;
-        else if (name === "sysMon") shell.sysMonPopupScreen = screen;
-        else if (name === "overflow") shell.overflowPopupScreen = screen;
+        shell.activePopup = name;
+        shell.activePopupScreen = screen;
     }
 
     function togglePopup(name, screen) {
-        var openProp = name + "PopupOpen";
-        if (shell[openProp]) {
-            shell[openProp] = false;
+        if (shell.activePopup === name) {
+            shell.activePopup = "";
+            shell.activePopupScreen = null;
         } else {
             openPopup(name, screen);
         }
+    }
+
+    function closePopup() {
+        shell.activePopup = "";
+        shell.activePopupScreen = null;
     }
 
     function toggleBluetooth() {
@@ -592,7 +564,7 @@ ShellRoot {
             + " | stdbuf -o0 od -An -v -tu1 -w800"
             + " | stdbuf -oL awk '{m=0;for(i=1;i<=NF;i++){v=$i-128;if(v<0)v=-v;if(v>m)m=v}print m;fflush()}'"
         ]
-        running: shell.volumePopupOpen
+        running: shell.activePopup === "volume"
         stdout: SplitParser {
             onRead: data => {
                 var v = parseInt(data.toString().trim());
@@ -654,7 +626,7 @@ ShellRoot {
                 shell.eapPasswordInput = "";
                 shell.eapError = "";
                 shell.eapConnecting = false;
-                shell.wifiPopupOpen = false;
+                shell.closePopup();
             } else {
                 shell.eapError = "Authentication failed";
                 shell.eapConnecting = false;
@@ -686,28 +658,19 @@ ShellRoot {
             brightnessCheck.running = true;
             volumeCheck.running = true;
             micCheck.running = true;
-            if (shell.volumePopupOpen) audioDevicesCheck.running = true;
+            if (shell.activePopup === "volume") audioDevicesCheck.running = true;
             btControllerCheck.running = true;
             cpuCheck.running = true;
             ramCheck.running = true;
             tempCheck.running = true;
             netCheck.running = true;
-            var ch = shell.cpuHistory.slice();
-            ch.push(shell.cpuPercent);
-            if (ch.length > 60) ch = ch.slice(ch.length - 60);
-            shell.cpuHistory = ch;
-            shell.cpuHistoryCount = ch.length;
-            var rh = shell.ramHistory.slice();
-            rh.push(shell.ramPercent);
-            if (rh.length > 60) rh = rh.slice(rh.length - 60);
-            shell.ramHistory = rh;
-            shell.ramHistoryCount = rh.length;
+            shell.cpuHistory = pushHistory(shell.cpuHistory, shell.cpuPercent, 60);
+            shell.cpuHistoryCount = shell.cpuHistory.length;
+            shell.ramHistory = pushHistory(shell.ramHistory, shell.ramPercent, 60);
+            shell.ramHistoryCount = shell.ramHistory.length;
             if (shell.hasBattery) {
-                var h = shell.batteryHistory.slice();
-                h.push(shell.batteryPercent);
-                if (h.length > 720) h = h.slice(h.length - 720);
-                shell.batteryHistory = h;
-                shell.batteryHistoryCount = h.length;
+                shell.batteryHistory = pushHistory(shell.batteryHistory, shell.batteryPercent, 720);
+                shell.batteryHistoryCount = shell.batteryHistory.length;
             }
         }
     }
@@ -813,10 +776,10 @@ ShellRoot {
     Process {
         id: btScan
         command: ["bluetoothctl", "--timeout", "30", "scan", "on"]
-        running: shell.btPopupOpen && shell.bluetoothPowered
+        running: shell.activePopup === "bt" && shell.bluetoothPowered
         onRunningChanged: shell.btScanning = running
         onExited: (code, status) => {
-            if (shell.btPopupOpen && shell.bluetoothPowered) {
+            if (shell.activePopup === "bt" && shell.bluetoothPowered) {
                 btScan.running = true;
             }
         }
@@ -857,7 +820,7 @@ ShellRoot {
     Timer {
         interval: 2500
         repeat: true
-        running: shell.btPopupOpen && shell.bluetoothPowered
+        running: shell.activePopup === "bt" && shell.bluetoothPowered
         triggeredOnStart: true
         onTriggered: {
             btDiscoveredCheck.devices = [];
@@ -1025,12 +988,8 @@ ShellRoot {
                 var txR = Math.max(0, (accTx - shell.netPrevTx) / dt);
                 shell.netRxRate = rxR;
                 shell.netTxRate = txR;
-                var rxH = shell.netRxHistory.slice();
-                var txH = shell.netTxHistory.slice();
-                rxH.push(rxR);
-                txH.push(txR);
-                if (rxH.length > 60) rxH = rxH.slice(rxH.length - 60);
-                if (txH.length > 60) txH = txH.slice(txH.length - 60);
+                var rxH = pushHistory(shell.netRxHistory, rxR, 60);
+                var txH = pushHistory(shell.netTxHistory, txR, 60);
                 shell.netRxHistory = rxH;
                 shell.netTxHistory = txH;
                 shell.netHistoryCount = rxH.length;
@@ -1140,7 +1099,7 @@ ShellRoot {
                     visible: barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 26
-                    active: shell.overflowPopupOpen
+                    active: shell.activePopup === "overflow"
                     onClicked: shell.togglePopup("overflow", barWindow.modelData)
 
                     Row {
@@ -1167,7 +1126,7 @@ ShellRoot {
                     visible: shell.hasBattery
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 34
-                    active: shell.batteryPopupOpen
+                    active: shell.activePopup === "battery"
                     onEntered: {
                         shell.batteryHovered = true;
                         shell.batteryHoveredScreen = barWindow.modelData;
@@ -1186,8 +1145,10 @@ ShellRoot {
 
                         property int percent: shell.batteryPercent
                         property bool charging: shell.batteryCharging
+                        property color toggleGreen: Theme.toggleGreen
                         onPercentChanged: requestPaint()
                         onChargingChanged: requestPaint()
+                        onToggleGreenChanged: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
@@ -1211,7 +1172,7 @@ ShellRoot {
                             var pct = percent / 100;
                             var fillColor;
                             if (charging) {
-                                fillColor = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                                fillColor = toggleGreen;
                             } else if (percent <= 10) {
                                 fillColor = Qt.rgba(0.9, 0.2, 0.2, 0.9);
                             } else if (percent <= 25) {
@@ -1219,7 +1180,7 @@ ShellRoot {
                             } else if (percent <= 50) {
                                 fillColor = Qt.rgba(0.95, 0.85, 0.2, 0.8);
                             } else {
-                                fillColor = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                                fillColor = toggleGreen;
                             }
 
                             // Inner fill
@@ -1255,7 +1216,7 @@ ShellRoot {
                     visible: !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    active: shell.sysMonPopupOpen
+                    active: shell.activePopup === "sysMon"
                     onClicked: shell.togglePopup("sysMon", barWindow.modelData)
 
                     Canvas {
@@ -1342,7 +1303,7 @@ ShellRoot {
                     visible: shell.hasBrightness && !barWindow.trayOverflow
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    active: shell.brightnessPopupOpen
+                    active: shell.activePopup === "brightness"
                     onClicked: shell.togglePopup("brightness", barWindow.modelData)
 
                     Canvas {
@@ -1351,7 +1312,11 @@ ShellRoot {
                         height: 14
 
                         property int pct: shell.brightnessPercent
+                        property color iconColor: Theme.iconPrimary
                         onPctChanged: requestPaint()
+                        onIconColorChanged: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+                        Component.onCompleted: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
@@ -1361,8 +1326,7 @@ ShellRoot {
                             var cy = 7;
                             var r = 3;
 
-                            // Sun rays
-                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.strokeStyle = iconColor;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             var rayLen = 2;
@@ -1379,15 +1343,13 @@ ShellRoot {
                                 ctx.stroke();
                             }
 
-                            // Sun circle
                             var opacity = 0.4 + (pct / 100) * 0.6;
-                            var base = Theme.iconPrimary;
-                            ctx.fillStyle = Qt.rgba(base.r, base.g, base.b, opacity);
+                            ctx.fillStyle = Qt.rgba(iconColor.r, iconColor.g, iconColor.b, opacity);
                             ctx.beginPath();
                             ctx.arc(cx, cy, r, 0, 2 * Math.PI);
                             ctx.fill();
 
-                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.strokeStyle = iconColor;
                             ctx.lineWidth = 1.4;
                             ctx.beginPath();
                             ctx.arc(cx, cy, r, 0, 2 * Math.PI);
@@ -1401,7 +1363,7 @@ ShellRoot {
                     id: volumeButton
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    active: shell.volumePopupOpen
+                    active: shell.activePopup === "volume"
                     onClicked: shell.togglePopup("volume", barWindow.modelData)
 
                     Canvas {
@@ -1477,10 +1439,10 @@ ShellRoot {
                     visible: shell.hasBluetooth
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    active: shell.btPopupOpen
+                    active: shell.activePopup === "bt"
                     onClicked: {
                         shell.togglePopup("bt", barWindow.modelData);
-                        if (shell.btPopupOpen) btControllerCheck.running = true;
+                        if (shell.activePopup === "bt") btControllerCheck.running = true;
                     }
 
                     Canvas {
@@ -1519,10 +1481,10 @@ ShellRoot {
                     id: wifiButton
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    active: shell.wifiPopupOpen
+                    active: shell.activePopup === "wifi"
                     onClicked: {
                         shell.togglePopup("wifi", barWindow.modelData);
-                        if (shell.wifiPopupOpen && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
+                        if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
                         shell.selectedNetworkName = "";
                         shell.passwordInput = "";
                     }
@@ -1629,7 +1591,7 @@ ShellRoot {
                     id: notifButton
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
-                    active: shell.notifPopupOpen
+                    active: shell.activePopup === "notif"
                     onClicked: shell.togglePopup("notif", barWindow.modelData)
 
                     Canvas {

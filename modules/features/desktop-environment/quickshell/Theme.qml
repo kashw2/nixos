@@ -36,6 +36,7 @@ QtObject {
     readonly property color workspaceHover:  isDark ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(1, 1, 1, 0.30)
 
     readonly property color accentDanger:  "#e04040"
+    readonly property color toggleGreen:   Qt.rgba(0.4, 0.8, 0.4, 0.8)
     readonly property color graphCpu:      Qt.rgba(0.4, 0.8, 0.4, 0.90)
     readonly property color graphRam:      Qt.rgba(1, 1, 1, 0.70)
 
