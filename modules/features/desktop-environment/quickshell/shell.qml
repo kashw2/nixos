@@ -225,6 +225,34 @@ ShellRoot {
         shell.overflowPopupOpen = true;
     }
 
+    function openPopup(name, screen) {
+        shell.wifiPopupOpen = (name === "wifi");
+        shell.btPopupOpen = (name === "bt");
+        shell.volumePopupOpen = (name === "volume");
+        shell.brightnessPopupOpen = (name === "brightness");
+        shell.batteryPopupOpen = (name === "battery");
+        shell.notifPopupOpen = (name === "notif");
+        shell.sysMonPopupOpen = (name === "sysMon");
+        shell.overflowPopupOpen = (name === "overflow");
+        if (name === "wifi") shell.popupScreen = screen;
+        else if (name === "bt") shell.btPopupScreen = screen;
+        else if (name === "volume") shell.volumePopupScreen = screen;
+        else if (name === "brightness") shell.brightnessPopupScreen = screen;
+        else if (name === "battery") shell.batteryPopupScreen = screen;
+        else if (name === "notif") shell.notifPopupScreen = screen;
+        else if (name === "sysMon") shell.sysMonPopupScreen = screen;
+        else if (name === "overflow") shell.overflowPopupScreen = screen;
+    }
+
+    function togglePopup(name, screen) {
+        var openProp = name + "PopupOpen";
+        if (shell[openProp]) {
+            shell[openProp] = false;
+        } else {
+            openPopup(name, screen);
+        }
+    }
+
     function toggleBluetooth() {
         btToggle.turnOn = !shell.bluetoothPowered;
         btToggle.running = true;
@@ -1112,13 +1140,7 @@ ShellRoot {
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 26
                     active: shell.overflowPopupOpen
-                    onClicked: {
-                        if (shell.overflowPopupOpen) {
-                            shell.overflowPopupOpen = false;
-                        } else {
-                            shell.openOverflowPopupFor(barWindow.modelData);
-                        }
-                    }
+                    onClicked: shell.togglePopup("overflow", barWindow.modelData)
 
                     Row {
                         anchors.centerIn: parent
@@ -1153,21 +1175,7 @@ ShellRoot {
                         shell.batteryIconWidth = batteryButton.width;
                     }
                     onExited: shell.batteryHovered = false
-                    onClicked: {
-                        if (shell.batteryPopupOpen) {
-                            shell.batteryPopupOpen = false;
-                        } else {
-                            shell.wifiPopupOpen = false;
-                            shell.btPopupOpen = false;
-                            shell.volumePopupOpen = false;
-                            shell.brightnessPopupOpen = false;
-                            shell.notifPopupOpen = false;
-                            shell.sysMonPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            shell.batteryPopupScreen = barWindow.modelData;
-                            shell.batteryPopupOpen = true;
-                        }
-                    }
+                    onClicked: shell.togglePopup("battery", barWindow.modelData)
 
                     Canvas {
                         id: batteryCanvas
@@ -1247,21 +1255,7 @@ ShellRoot {
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
                     active: shell.sysMonPopupOpen
-                    onClicked: {
-                        if (shell.sysMonPopupOpen) {
-                            shell.sysMonPopupOpen = false;
-                        } else {
-                            shell.wifiPopupOpen = false;
-                            shell.btPopupOpen = false;
-                            shell.volumePopupOpen = false;
-                            shell.brightnessPopupOpen = false;
-                            shell.batteryPopupOpen = false;
-                            shell.notifPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            shell.sysMonPopupScreen = barWindow.modelData;
-                            shell.sysMonPopupOpen = true;
-                        }
-                    }
+                    onClicked: shell.togglePopup("sysMon", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1307,21 +1301,7 @@ ShellRoot {
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
                     active: shell.brightnessPopupOpen
-                    onClicked: {
-                        if (shell.brightnessPopupOpen) {
-                            shell.brightnessPopupOpen = false;
-                        } else {
-                            shell.wifiPopupOpen = false;
-                            shell.btPopupOpen = false;
-                            shell.volumePopupOpen = false;
-                            shell.batteryPopupOpen = false;
-                            shell.notifPopupOpen = false;
-                            shell.sysMonPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            shell.brightnessPopupScreen = barWindow.modelData;
-                            shell.brightnessPopupOpen = true;
-                        }
-                    }
+                    onClicked: shell.togglePopup("brightness", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1379,21 +1359,7 @@ ShellRoot {
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
                     active: shell.volumePopupOpen
-                    onClicked: {
-                        if (shell.volumePopupOpen) {
-                            shell.volumePopupOpen = false;
-                        } else {
-                            shell.wifiPopupOpen = false;
-                            shell.btPopupOpen = false;
-                            shell.brightnessPopupOpen = false;
-                            shell.batteryPopupOpen = false;
-                            shell.notifPopupOpen = false;
-                            shell.sysMonPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            shell.volumePopupScreen = barWindow.modelData;
-                            shell.volumePopupOpen = true;
-                        }
-                    }
+                    onClicked: shell.togglePopup("volume", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
@@ -1470,17 +1436,8 @@ ShellRoot {
                     implicitWidth: 30
                     active: shell.btPopupOpen
                     onClicked: {
-                        shell.btPopupOpen = !shell.btPopupOpen;
-                        shell.btPopupScreen = barWindow.modelData;
-                        if (shell.btPopupOpen) {
-                            shell.brightnessPopupOpen = false;
-                            shell.volumePopupOpen = false;
-                            shell.batteryPopupOpen = false;
-                            shell.notifPopupOpen = false;
-                            shell.sysMonPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            btControllerCheck.running = true;
-                        }
+                        shell.togglePopup("bt", barWindow.modelData);
+                        if (shell.btPopupOpen) btControllerCheck.running = true;
                     }
 
                     Canvas {
@@ -1521,17 +1478,8 @@ ShellRoot {
                     implicitWidth: 30
                     active: shell.wifiPopupOpen
                     onClicked: {
-                        shell.wifiPopupOpen = !shell.wifiPopupOpen;
-                        shell.popupScreen = barWindow.modelData;
-                        if (shell.wifiPopupOpen) {
-                            shell.brightnessPopupOpen = false;
-                            shell.volumePopupOpen = false;
-                            shell.batteryPopupOpen = false;
-                            shell.notifPopupOpen = false;
-                            shell.sysMonPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            if (shell.wifiDev) shell.wifiDev.scannerEnabled = true;
-                        }
+                        shell.togglePopup("wifi", barWindow.modelData);
+                        if (shell.wifiPopupOpen && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
                         shell.selectedNetworkName = "";
                         shell.passwordInput = "";
                     }
@@ -1639,21 +1587,7 @@ ShellRoot {
                     Layout.alignment: Qt.AlignRight
                     implicitWidth: 30
                     active: shell.notifPopupOpen
-                    onClicked: {
-                        if (shell.notifPopupOpen) {
-                            shell.notifPopupOpen = false;
-                        } else {
-                            shell.wifiPopupOpen = false;
-                            shell.btPopupOpen = false;
-                            shell.volumePopupOpen = false;
-                            shell.brightnessPopupOpen = false;
-                            shell.batteryPopupOpen = false;
-                            shell.sysMonPopupOpen = false;
-                            shell.overflowPopupOpen = false;
-                            shell.notifPopupScreen = barWindow.modelData;
-                            shell.notifPopupOpen = true;
-                        }
-                    }
+                    onClicked: shell.togglePopup("notif", barWindow.modelData)
 
                     Canvas {
                         anchors.centerIn: parent
