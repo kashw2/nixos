@@ -171,7 +171,7 @@
                 allow_tearing=false
                 border_size=1
                 col.active_border=rgba(ff0000ff) rgba(ff8800ff) rgba(ffff00ff) rgba(00ff00ff) rgba(00ffffff) rgba(0000ffff) rgba(8800ffff) rgba(ff00ffff) 45deg
-                col.inactive_border=rgba(44444488)
+                col.inactive_border=rgba(ff0000ff) rgba(ff8800ff) rgba(ffff00ff) rgba(00ff00ff) rgba(00ffffff) rgba(0000ffff) rgba(8800ffff) rgba(ff00ffff) 45deg
                 gaps_in=5
                 gaps_out=5
                 layout=dwindle
