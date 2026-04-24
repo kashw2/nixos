@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    schedule:
+      interval: daily
+    directories:
+      - /
+    cooldown:
+      default-days: 7
+  - package-ecosystem: nix
+    schedule:
+      interval: weekly
+    directories:
+      - /
