@@ -3,6 +3,7 @@ import Quickshell.Hyprland
 import Quickshell.Networking
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -46,7 +47,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -62,7 +63,7 @@ Variants {
                     width: parent.width
                     height: 32
                     radius: 6
-                    color: wifiToggleHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                    color: wifiToggleHover.containsMouse ? Theme.buttonHover : "transparent"
 
                     Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -73,7 +74,7 @@ Variants {
 
                         Text {
                             text: "WiFi"
-                            color: "#ffffff"
+                            color: Theme.text
                             font.pixelSize: 13
                             font.bold: true
                             Layout.fillWidth: true
@@ -83,7 +84,7 @@ Variants {
                             width: 36
                             height: 20
                             radius: 10
-                            color: Networking.wifiEnabled ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+                            color: Networking.wifiEnabled ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Theme.surfaceBg
 
                             Behavior on color { ColorAnimation { duration: 200 } }
 
@@ -93,7 +94,7 @@ Variants {
                                 radius: 8
                                 y: 2
                                 x: Networking.wifiEnabled ? parent.width - width - 2 : 2
-                                color: "#ffffff"
+                                color: Theme.iconPrimary
 
                                 Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                             }
@@ -113,13 +114,13 @@ Variants {
                 Rectangle {
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // Ethernet connected section
                 Text {
                     text: "Ethernet"
-                    color: Qt.rgba(1, 1, 1, 0.6)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     font.bold: true
                     visible: root.shell.ethernetConnected
@@ -130,7 +131,7 @@ Variants {
                     width: parent.width
                     height: 36
                     radius: 6
-                    color: ethHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                    color: ethHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
                     Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -142,7 +143,7 @@ Variants {
 
                         Text {
                             text: root.shell.ethernetInterface ? root.shell.ethernetInterface : "Ethernet"
-                            color: "#ffffff"
+                            color: Theme.text
                             font.pixelSize: 13
                             font.bold: true
                             Layout.fillWidth: true
@@ -150,7 +151,7 @@ Variants {
 
                         Text {
                             text: "Connected"
-                            color: Qt.rgba(1, 1, 1, 0.7)
+                            color: Theme.textDim
                             font.pixelSize: 11
                         }
                     }
@@ -167,13 +168,13 @@ Variants {
                     visible: root.shell.ethernetConnected
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // WiFi connected section
                 Text {
                     text: "Connected"
-                    color: Qt.rgba(1, 1, 1, 0.6)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     font.bold: true
                     visible: Networking.wifiEnabled && root.shell.connectedNetwork !== null
@@ -184,7 +185,7 @@ Variants {
                     width: parent.width
                     height: 36
                     radius: 6
-                    color: currentNetHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                    color: currentNetHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
                     Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -196,7 +197,7 @@ Variants {
 
                         Text {
                             text: root.shell.connectedNetwork ? root.shell.connectedNetwork.name : ""
-                            color: "#ffffff"
+                            color: Theme.text
                             font.pixelSize: 13
                             font.bold: true
                             Layout.fillWidth: true
@@ -204,7 +205,7 @@ Variants {
 
                         Text {
                             text: root.shell.connectedNetwork ? Math.round(root.shell.connectedNetwork.signalStrength * 100) + "%" : ""
-                            color: Qt.rgba(1, 1, 1, 0.7)
+                            color: Theme.textDim
                             font.pixelSize: 11
                         }
                     }
@@ -221,13 +222,13 @@ Variants {
                     visible: Networking.wifiEnabled && root.shell.connectedNetwork !== null
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // Available networks header
                 Text {
                     text: "Available"
-                    color: Qt.rgba(1, 1, 1, 0.6)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     font.bold: true
                     visible: Networking.wifiEnabled
@@ -262,8 +263,8 @@ Variants {
                                     width: parent.width
                                     height: 36
                                     radius: 6
-                                    color: hovered ? Qt.rgba(1, 1, 1, 0.3)
-                                        : isSelected ? Qt.rgba(1, 1, 1, 0.1)
+                                    color: hovered ? Theme.surfaceBg
+                                        : isSelected ? Theme.surfaceSubtle
                                         : "transparent"
 
                                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -276,7 +277,7 @@ Variants {
 
                                         Text {
                                             text: modelData.name
-                                            color: "#ffffff"
+                                            color: Theme.text
                                             font.pixelSize: 13
                                             Layout.fillWidth: true
                                         }
@@ -289,7 +290,7 @@ Variants {
 
                                         Text {
                                             text: Math.round(modelData.signalStrength * 100) + "%"
-                                            color: Qt.rgba(1, 1, 1, 0.7)
+                                            color: Theme.textDim
                                             font.pixelSize: 11
                                         }
                                     }
@@ -326,7 +327,7 @@ Variants {
                                     width: parent.width
                                     height: visible ? 36 : 0
                                     radius: 6
-                                    color: Qt.rgba(1, 1, 1, 0.08)
+                                    color: Theme.surfaceSubtle
 
                                     Behavior on height { NumberAnimation { duration: 150 } }
 
@@ -340,7 +341,7 @@ Variants {
                                             Layout.fillWidth: true
                                             height: 24
                                             radius: 4
-                                            color: Qt.rgba(0, 0, 0, 0.3)
+                                            color: Theme.surfaceInner
 
                                             TextInput {
                                                 id: pskField
@@ -348,7 +349,7 @@ Variants {
                                                 anchors.leftMargin: 6
                                                 anchors.rightMargin: 6
                                                 verticalAlignment: TextInput.AlignVCenter
-                                                color: "#ffffff"
+                                                color: Theme.text
                                                 font.pixelSize: 12
                                                 echoMode: TextInput.Password
                                                 clip: true
@@ -368,14 +369,14 @@ Variants {
                                             width: 56
                                             height: 24
                                             radius: 4
-                                            color: connectHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                                            color: connectHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
                                             Behavior on color { ColorAnimation { duration: 150 } }
 
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: "Connect"
-                                                color: "#ffffff"
+                                                color: Theme.text
                                                 font.pixelSize: 11
                                             }
 
@@ -403,7 +404,7 @@ Variants {
                                     width: parent.width
                                     height: visible ? eapColumn.implicitHeight + 16 : 0
                                     radius: 6
-                                    color: Qt.rgba(1, 1, 1, 0.08)
+                                    color: Theme.surfaceSubtle
                                     clip: true
 
                                     Behavior on height { NumberAnimation { duration: 150 } }
@@ -421,7 +422,7 @@ Variants {
                                             width: parent.width
                                             height: 24
                                             radius: 4
-                                            color: Qt.rgba(0, 0, 0, 0.3)
+                                            color: Theme.surfaceInner
 
                                             TextInput {
                                                 id: eapIdentityField
@@ -429,7 +430,7 @@ Variants {
                                                 anchors.leftMargin: 6
                                                 anchors.rightMargin: 6
                                                 verticalAlignment: TextInput.AlignVCenter
-                                                color: "#ffffff"
+                                                color: Theme.text
                                                 font.pixelSize: 12
                                                 clip: true
                                                 onTextChanged: root.shell.eapIdentityInput = text
@@ -438,7 +439,7 @@ Variants {
                                                     anchors.fill: parent
                                                     verticalAlignment: Text.AlignVCenter
                                                     text: "Identity"
-                                                    color: Qt.rgba(1, 1, 1, 0.3)
+                                                    color: Theme.textDim
                                                     font.pixelSize: 12
                                                     visible: !eapIdentityField.text && !eapIdentityField.activeFocus
                                                 }
@@ -452,7 +453,7 @@ Variants {
                                             width: parent.width
                                             height: 24
                                             radius: 4
-                                            color: Qt.rgba(0, 0, 0, 0.3)
+                                            color: Theme.surfaceInner
 
                                             TextInput {
                                                 id: eapPasswordField
@@ -460,7 +461,7 @@ Variants {
                                                 anchors.leftMargin: 6
                                                 anchors.rightMargin: 6
                                                 verticalAlignment: TextInput.AlignVCenter
-                                                color: "#ffffff"
+                                                color: Theme.text
                                                 font.pixelSize: 12
                                                 echoMode: TextInput.Password
                                                 clip: true
@@ -470,7 +471,7 @@ Variants {
                                                     anchors.fill: parent
                                                     verticalAlignment: Text.AlignVCenter
                                                     text: "Password"
-                                                    color: Qt.rgba(1, 1, 1, 0.3)
+                                                    color: Theme.textDim
                                                     font.pixelSize: 12
                                                     visible: !eapPasswordField.text && !eapPasswordField.activeFocus
                                                 }
@@ -493,7 +494,7 @@ Variants {
                                             Text {
                                                 visible: root.shell.eapConnecting
                                                 text: "Connecting..."
-                                                color: Qt.rgba(1, 1, 1, 0.5)
+                                                color: Theme.textDim
                                                 font.pixelSize: 11
                                                 Layout.fillWidth: true
                                             }
@@ -515,7 +516,7 @@ Variants {
                                                 width: 56
                                                 height: 24
                                                 radius: 4
-                                                color: eapConnectHover.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                                                color: eapConnectHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
                                                 opacity: root.shell.eapConnecting ? 0.5 : 1.0
 
                                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -523,7 +524,7 @@ Variants {
                                                 Text {
                                                     anchors.centerIn: parent
                                                     text: "Connect"
-                                                    color: "#ffffff"
+                                                    color: Theme.text
                                                     font.pixelSize: 11
                                                 }
 
@@ -553,7 +554,7 @@ Variants {
                 Text {
                     visible: root.shell.wifiDev !== null && !Networking.wifiEnabled
                     text: "WiFi is disabled"
-                    color: Qt.rgba(1, 1, 1, 0.5)
+                    color: Theme.textDim
                     font.pixelSize: 12
                 }
 
@@ -561,7 +562,7 @@ Variants {
                 Text {
                     visible: root.shell.wifiDev === null
                     text: "No WiFi adapter found"
-                    color: Qt.rgba(1, 1, 1, 0.5)
+                    color: Theme.textDim
                     font.pixelSize: 12
                 }
             }

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Rectangle {
     id: root
@@ -14,7 +15,7 @@ Rectangle {
 
     implicitHeight: 22
     radius: 4
-    color: mouseArea.containsMouse || active ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+    color: mouseArea.containsMouse || active ? Theme.buttonHover : "transparent"
 
     Behavior on color { ColorAnimation { duration: 150 } }
 

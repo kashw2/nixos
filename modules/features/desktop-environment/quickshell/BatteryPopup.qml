@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -39,7 +40,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -53,7 +54,7 @@ Variants {
                 // Header
                 Text {
                     text: "Battery"
-                    color: "#ffffff"
+                    color: Theme.text
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -61,7 +62,7 @@ Variants {
                 // Large percentage
                 Text {
                     text: root.shell.batteryPercent + "%"
-                    color: "#ffffff"
+                    color: Theme.text
                     font.pixelSize: 28
                     font.bold: true
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -70,7 +71,7 @@ Variants {
                 // Status text
                 Text {
                     text: root.shell.batteryStatus
-                    color: Qt.rgba(1, 1, 1, 0.7)
+                    color: Theme.textDim
                     font.pixelSize: 12
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -80,7 +81,7 @@ Variants {
                     width: parent.width
                     height: 6
                     radius: 3
-                    color: Qt.rgba(1, 1, 1, 0.2)
+                    color: Theme.surfaceStrong
 
                     Rectangle {
                         width: parent.width * root.shell.batteryPercent / 100
@@ -105,14 +106,14 @@ Variants {
 
                     Text {
                         text: "Power draw"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
 
                     Text {
                         text: root.shell.batteryPowerDraw
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                     }
                 }
@@ -121,13 +122,13 @@ Variants {
                 Rectangle {
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.15)
+                    color: Theme.surfaceInner
                 }
 
                 // Power profile
                 Text {
                     text: "Power Profile"
-                    color: "#ffffff"
+                    color: Theme.text
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -136,7 +137,7 @@ Variants {
                     width: parent.width
                     height: 28
                     radius: 6
-                    color: Qt.rgba(1, 1, 1, 0.15)
+                    color: Theme.surfaceInner
 
                     Row {
                         anchors.fill: parent
@@ -154,7 +155,7 @@ Variants {
                                 width: parent.width / 3
                                 height: parent.height
                                 radius: 4
-                                color: isActive ? Qt.rgba(1, 1, 1, 0.35) : hovered ? Qt.rgba(1, 1, 1, 0.15) : "transparent"
+                                color: isActive ? Theme.surfaceActive : hovered ? Theme.surfaceInner : "transparent"
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -165,7 +166,7 @@ Variants {
                                         if (modelData === "balanced") return "Balanced";
                                         return "Performance";
                                     }
-                                    color: isActive ? "#ffffff" : Qt.rgba(1, 1, 1, 0.7)
+                                    color: isActive ? Theme.text : Theme.textDim
                                     font.pixelSize: 11
                                     font.bold: isActive
                                 }
@@ -187,7 +188,7 @@ Variants {
                 Rectangle {
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.15)
+                    color: Theme.surfaceInner
                 }
 
                 // Battery health
@@ -196,14 +197,14 @@ Variants {
 
                     Text {
                         text: "Battery Health"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
 
                     Text {
                         text: root.shell.batteryHealthPercent + "%"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                     }
                 }
@@ -213,14 +214,14 @@ Variants {
                     visible: root.shell.batteryHistoryCount >= 2
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.15)
+                    color: Theme.surfaceInner
                 }
 
                 // History header
                 Text {
                     visible: root.shell.batteryHistoryCount >= 2
                     text: "Last Hour"
-                    color: Qt.rgba(1, 1, 1, 0.7)
+                    color: Theme.textDim
                     font.pixelSize: 11
                 }
 
@@ -232,7 +233,11 @@ Variants {
                     height: 60
 
                     property var history: root.shell.batteryHistory
+                    property color gridStroke: Theme.surfaceSubtle
+                    property color lineStroke: Theme.textDim
                     onHistoryChanged: requestPaint()
+                    onGridStrokeChanged: requestPaint()
+                    onLineStrokeChanged: requestPaint()
 
                     onPaint: {
                         var ctx = getContext("2d");
@@ -245,7 +250,7 @@ Variants {
                         var offset = maxPoints - h.length;
 
                         // Grid lines at 25%, 50%, 75%
-                        ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                        ctx.strokeStyle = gridStroke;
                         ctx.lineWidth = 0.5;
                         for (var g = 1; g <= 3; g++) {
                             var gy = height - (height * g * 25 / 100);
@@ -256,7 +261,7 @@ Variants {
                         }
 
                         // Sparkline
-                        ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.7);
+                        ctx.strokeStyle = lineStroke;
                         ctx.lineWidth = 1.5;
                         ctx.lineJoin = "round";
                         ctx.beginPath();

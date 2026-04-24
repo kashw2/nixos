@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -31,7 +32,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             RowLayout {
@@ -66,7 +67,7 @@ Variants {
 
                         Text {
                             text: root.shell.toastNotification ? (root.shell.toastNotification.appName || "Notification") : ""
-                            color: Qt.rgba(1, 1, 1, 0.6)
+                            color: Theme.textDim
                             font.pixelSize: 10
                             Layout.fillWidth: true
                             elide: Text.ElideRight
@@ -76,12 +77,12 @@ Variants {
                             width: 16
                             height: 16
                             radius: 8
-                            color: toastDismissHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                            color: toastDismissHover.containsMouse ? Theme.surfaceBg : "transparent"
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "\u00d7"
-                                color: Qt.rgba(1, 1, 1, 0.7)
+                                color: Theme.textDim
                                 font.pixelSize: 12
                             }
 
@@ -97,7 +98,7 @@ Variants {
 
                     Text {
                         text: root.shell.toastNotification ? (root.shell.toastNotification.summary || "") : ""
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 12
                         font.bold: true
                         width: parent.width
@@ -109,7 +110,7 @@ Variants {
                     Text {
                         visible: root.shell.toastNotification ? ((root.shell.toastNotification.body || "") !== "") : false
                         text: root.shell.toastNotification ? (root.shell.toastNotification.body || "") : ""
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         width: parent.width
                         wrapMode: Text.WordWrap

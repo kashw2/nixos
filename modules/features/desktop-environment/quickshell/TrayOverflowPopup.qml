@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -41,7 +42,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -54,7 +55,7 @@ Variants {
 
                 Text {
                     text: "More"
-                    color: "#ffffff"
+                    color: Theme.text
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -74,7 +75,7 @@ Variants {
                         width: overflowContent.width
                         height: 32
                         radius: 6
-                        color: hovered ? Qt.rgba(1, 1, 1, 0.22) : "transparent"
+                        color: hovered ? Theme.buttonHover : "transparent"
 
                         Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -90,12 +91,14 @@ Variants {
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 property string iconId: row.modelData.id
+                                property color stroke: Theme.iconPrimary
+                                onStrokeChanged: requestPaint()
 
                                 onPaint: {
                                     var ctx = getContext("2d");
                                     ctx.clearRect(0, 0, width, height);
-                                    ctx.strokeStyle = "#ffffff";
-                                    ctx.fillStyle = "#ffffff";
+                                    ctx.strokeStyle = stroke;
+                                    ctx.fillStyle = stroke;
                                     ctx.lineWidth = 1.4;
                                     ctx.lineCap = "round";
                                     ctx.lineJoin = "round";
@@ -140,7 +143,7 @@ Variants {
 
                             Text {
                                 text: row.modelData.label
-                                color: "#ffffff"
+                                color: Theme.text
                                 font.pixelSize: 12
                                 anchors.verticalCenter: parent.verticalCenter
                             }

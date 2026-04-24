@@ -1,5 +1,6 @@
 import Quickshell
 import QtQuick
+import "."
 
 Variants {
     id: root
@@ -30,13 +31,13 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 6
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
 
             Text {
                 id: batteryTooltipText
                 anchors.centerIn: parent
                 text: (root.shell.batteryCharging ? "Full in " : "") + root.shell.batteryTimeRemaining + (root.shell.batteryCharging ? "" : " remaining")
-                color: "#ffffff"
+                color: Theme.text
                 font.pixelSize: 11
             }
         }

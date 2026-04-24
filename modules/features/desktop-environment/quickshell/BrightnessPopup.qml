@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -39,7 +40,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -52,7 +53,7 @@ Variants {
 
                 Text {
                     text: "Brightness"
-                    color: "#ffffff"
+                    color: Theme.text
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -67,10 +68,13 @@ Variants {
                         height: 12
                         Layout.alignment: Qt.AlignVCenter
 
+                        property color stroke: Theme.textDim
+                        onStrokeChanged: requestPaint()
+
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                            ctx.strokeStyle = stroke;
                             ctx.lineWidth = 1.2;
                             ctx.beginPath();
                             ctx.arc(6, 6, 2.5, 0, 2 * Math.PI);
@@ -83,14 +87,14 @@ Variants {
                         Layout.fillWidth: true
                         height: 6
                         radius: 3
-                        color: Qt.rgba(1, 1, 1, 0.2)
+                        color: Theme.surfaceStrong
                         Layout.alignment: Qt.AlignVCenter
 
                         Rectangle {
                             width: parent.width * (root.shell.brightnessPercent / 100)
                             height: parent.height
                             radius: 3
-                            color: Qt.rgba(1, 1, 1, 0.7)
+                            color: Theme.textDim
 
                             Behavior on width { NumberAnimation { duration: 100 } }
                         }
@@ -102,7 +106,7 @@ Variants {
                             width: 14
                             height: 14
                             radius: 7
-                            color: "#ffffff"
+                            color: Theme.iconPrimary
 
                             Behavior on x { NumberAnimation { duration: 100 } }
                         }
@@ -132,12 +136,17 @@ Variants {
                         height: 14
                         Layout.alignment: Qt.AlignVCenter
 
+                        property color stroke: Theme.iconPrimary
+                        property color fill: Theme.textDim
+                        onStrokeChanged: requestPaint()
+                        onFillChanged: requestPaint()
+
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
                             var cx = 7;
                             var cy = 7;
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = stroke;
                             ctx.lineWidth = 1.2;
                             ctx.lineCap = "round";
                             for (var i = 0; i < 8; i++) {
@@ -150,7 +159,7 @@ Variants {
                             ctx.beginPath();
                             ctx.arc(cx, cy, 2.5, 0, 2 * Math.PI);
                             ctx.stroke();
-                            ctx.fillStyle = Qt.rgba(1, 1, 1, 0.8);
+                            ctx.fillStyle = fill;
                             ctx.fill();
                         }
                     }
@@ -159,7 +168,7 @@ Variants {
                 // Percentage label
                 Text {
                     text: root.shell.brightnessPercent + "%"
-                    color: Qt.rgba(1, 1, 1, 0.7)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     anchors.horizontalCenter: parent.horizontalCenter
                 }

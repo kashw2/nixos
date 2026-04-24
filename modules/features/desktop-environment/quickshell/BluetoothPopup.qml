@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -39,7 +40,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -55,7 +56,7 @@ Variants {
                     width: parent.width
                     height: 32
                     radius: 6
-                    color: btToggleHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                    color: btToggleHover.containsMouse ? Theme.buttonHover : "transparent"
 
                     Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -66,7 +67,7 @@ Variants {
 
                         Text {
                             text: "Bluetooth"
-                            color: "#ffffff"
+                            color: Theme.text
                             font.pixelSize: 13
                             font.bold: true
                             Layout.fillWidth: true
@@ -76,7 +77,7 @@ Variants {
                             width: 36
                             height: 20
                             radius: 10
-                            color: root.shell.bluetoothPowered ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+                            color: root.shell.bluetoothPowered ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Theme.surfaceBg
 
                             Behavior on color { ColorAnimation { duration: 200 } }
 
@@ -86,7 +87,7 @@ Variants {
                                 radius: 8
                                 y: 2
                                 x: root.shell.bluetoothPowered ? parent.width - width - 2 : 2
-                                color: "#ffffff"
+                                color: Theme.iconPrimary
 
                                 Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                             }
@@ -106,13 +107,13 @@ Variants {
                 Rectangle {
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // Connected devices header
                 Text {
                     text: "Connected"
-                    color: Qt.rgba(1, 1, 1, 0.6)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     font.bold: true
                     visible: root.shell.bluetoothPowered && root.shell.btConnectedDevices.length > 0
@@ -131,7 +132,7 @@ Variants {
                         width: btPopupContent.width
                         height: 36
                         radius: 6
-                        color: hovered ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.3)
+                        color: hovered ? Theme.surfaceActive : Theme.surfaceBg
 
                         Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -143,7 +144,7 @@ Variants {
 
                             Text {
                                 text: modelData.name
-                                color: "#ffffff"
+                                color: Theme.text
                                 font.pixelSize: 13
                                 font.bold: true
                                 Layout.fillWidth: true
@@ -151,7 +152,7 @@ Variants {
 
                             Text {
                                 text: "Connected"
-                                color: Qt.rgba(1, 1, 1, 0.7)
+                                color: Theme.textDim
                                 font.pixelSize: 11
                             }
                         }
@@ -172,13 +173,13 @@ Variants {
                     visible: root.shell.bluetoothPowered && root.shell.btConnectedDevices.length > 0
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // Paired devices header
                 Text {
                     text: "Paired"
-                    color: Qt.rgba(1, 1, 1, 0.6)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     font.bold: true
                     visible: root.shell.bluetoothPowered && root.shell.btPairedDevices.length > 0
@@ -209,7 +210,7 @@ Variants {
                                 width: btDeviceColumn.width
                                 height: 36
                                 radius: 6
-                                color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                                color: hovered ? Theme.buttonHover : "transparent"
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -221,14 +222,14 @@ Variants {
 
                                     Text {
                                         text: modelData.name
-                                        color: "#ffffff"
+                                        color: Theme.text
                                         font.pixelSize: 13
                                         Layout.fillWidth: true
                                     }
 
                                     Text {
                                         text: "Paired"
-                                        color: Qt.rgba(1, 1, 1, 0.5)
+                                        color: Theme.textDim
                                         font.pixelSize: 11
                                     }
                                 }
@@ -251,7 +252,7 @@ Variants {
                     visible: root.shell.bluetoothPowered && root.shell.btDiscoveredDevices.length > 0
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // Available devices header
@@ -262,7 +263,7 @@ Variants {
 
                     Text {
                         text: "Available"
-                        color: Qt.rgba(1, 1, 1, 0.6)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         font.bold: true
                         Layout.fillWidth: true
@@ -270,7 +271,7 @@ Variants {
 
                     Text {
                         text: root.shell.btScanning ? "Scanning…" : ""
-                        color: Qt.rgba(1, 1, 1, 0.4)
+                        color: Theme.iconDim
                         font.pixelSize: 10
                         font.italic: true
                     }
@@ -299,7 +300,7 @@ Variants {
                                 width: btAvailableColumn.width
                                 height: 36
                                 radius: 6
-                                color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                                color: hovered ? Theme.buttonHover : "transparent"
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -311,7 +312,7 @@ Variants {
 
                                     Text {
                                         text: modelData.name
-                                        color: "#ffffff"
+                                        color: Theme.text
                                         font.pixelSize: 13
                                         elide: Text.ElideRight
                                         Layout.fillWidth: true
@@ -319,7 +320,7 @@ Variants {
 
                                     Text {
                                         text: "Pair"
-                                        color: Qt.rgba(1, 1, 1, 0.5)
+                                        color: Theme.textDim
                                         font.pixelSize: 11
                                     }
                                 }
@@ -338,7 +339,7 @@ Variants {
                         Text {
                             visible: root.shell.btDiscoveredDevices.length === 0
                             text: root.shell.btScanning ? "Searching for devices…" : "No devices found"
-                            color: Qt.rgba(1, 1, 1, 0.4)
+                            color: Theme.iconDim
                             font.pixelSize: 12
                             font.italic: true
                             leftPadding: 10
@@ -350,7 +351,7 @@ Variants {
                 Text {
                     visible: !root.shell.bluetoothPowered
                     text: "Bluetooth is disabled"
-                    color: Qt.rgba(1, 1, 1, 0.5)
+                    color: Theme.textDim
                     font.pixelSize: 12
                 }
             }

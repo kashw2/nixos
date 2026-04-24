@@ -5,6 +5,7 @@ import Quickshell.Services.Notifications
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 ShellRoot {
     id: shell
@@ -1074,7 +1075,7 @@ ShellRoot {
                 right: true
             }
             implicitHeight: 30
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.barBg
 
             RowLayout {
                 anchors.fill: parent
@@ -1104,8 +1105,8 @@ ShellRoot {
                             width: visible ? implicitWidth : 0
                             height: 22
                             radius: 4
-                            color: isActive ? Qt.rgba(1, 1, 1, 0.5)
-                                : hovered ? Qt.rgba(1, 1, 1, 0.3)
+                            color: isActive ? Theme.workspaceActive
+                                : hovered ? Theme.workspaceHover
                                 : "transparent"
 
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -1114,7 +1115,7 @@ ShellRoot {
                                 id: wsLabel
                                 anchors.centerIn: parent
                                 text: parent.label
-                                color: "#ffffff"
+                                color: Theme.text
                                 font.pixelSize: 12
                                 font.bold: parent.isActive
                             }
@@ -1153,7 +1154,7 @@ ShellRoot {
                                 width: 3
                                 height: 3
                                 radius: 1.5
-                                color: "#ffffff"
+                                color: Theme.iconPrimary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -1193,7 +1194,7 @@ ShellRoot {
                             ctx.clearRect(0, 0, width, height);
 
                             // Battery outline
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineJoin = "round";
                             ctx.beginPath();
@@ -1201,7 +1202,7 @@ ShellRoot {
                             ctx.stroke();
 
                             // Terminal nub
-                            ctx.fillStyle = "#ffffff";
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.beginPath();
                             ctx.roundedRect(21, 3, 2.5, 5, 1, 1);
                             ctx.fill();
@@ -1233,7 +1234,7 @@ ShellRoot {
 
                             // Charging bolt
                             if (charging) {
-                                ctx.fillStyle = "#ffffff";
+                                ctx.fillStyle = Theme.iconPrimary;
                                 ctx.beginPath();
                                 ctx.moveTo(12, 1);
                                 ctx.lineTo(8, 6.5);
@@ -1301,8 +1302,8 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = "#ffffff";
-                            ctx.fillStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1321,7 +1322,7 @@ ShellRoot {
                             var haveCpu = cpuH && cpuH.length >= 2;
                             var haveRam = ramH && ramH.length >= 2;
                             if (!haveCpu && !haveRam) {
-                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.4);
+                                ctx.strokeStyle = Theme.iconDim;
                                 ctx.lineWidth = 0.8;
                                 ctx.beginPath();
                                 ctx.moveTo(xMin, yMax);
@@ -1329,8 +1330,8 @@ ShellRoot {
                                 ctx.stroke();
                                 return;
                             }
-                            drawSeries(ctx, ramH, Qt.rgba(1, 1, 1, 0.7), 0.8);
-                            drawSeries(ctx, cpuH, Qt.rgba(0.4, 0.8, 0.4, 0.9), 1.0);
+                            drawSeries(ctx, ramH, Theme.graphRam, 0.8);
+                            drawSeries(ctx, cpuH, Theme.graphCpu, 1.0);
                         }
                     }
                 }
@@ -1361,7 +1362,7 @@ ShellRoot {
                             var r = 3;
 
                             // Sun rays
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             var rayLen = 2;
@@ -1380,12 +1381,13 @@ ShellRoot {
 
                             // Sun circle
                             var opacity = 0.4 + (pct / 100) * 0.6;
-                            ctx.fillStyle = Qt.rgba(1, 1, 1, opacity);
+                            var base = Theme.iconPrimary;
+                            ctx.fillStyle = Qt.rgba(base.r, base.g, base.b, opacity);
                             ctx.beginPath();
                             ctx.arc(cx, cy, r, 0, 2 * Math.PI);
                             ctx.fill();
 
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.beginPath();
                             ctx.arc(cx, cy, r, 0, 2 * Math.PI);
@@ -1416,8 +1418,8 @@ ShellRoot {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
 
-                            ctx.strokeStyle = muted ? Qt.rgba(1, 1, 1, 0.4) : "#ffffff";
-                            ctx.fillStyle = muted ? Qt.rgba(1, 1, 1, 0.4) : "#ffffff";
+                            ctx.strokeStyle = muted ? Theme.iconDim : Theme.iconPrimary;
+                            ctx.fillStyle = muted ? Theme.iconDim : Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineJoin = "round";
                             ctx.lineCap = "round";
@@ -1435,7 +1437,7 @@ ShellRoot {
 
                             if (muted) {
                                 // X mark
-                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.strokeStyle = Theme.iconDim;
                                 ctx.lineWidth = 1.6;
                                 ctx.beginPath();
                                 ctx.moveTo(9, 4.5);
@@ -1447,7 +1449,7 @@ ShellRoot {
                                 ctx.stroke();
                             } else {
                                 // Sound waves
-                                ctx.strokeStyle = "#ffffff";
+                                ctx.strokeStyle = Theme.iconPrimary;
                                 ctx.lineWidth = 1.3;
                                 if (vol > 0) {
                                     ctx.beginPath();
@@ -1492,7 +1494,7 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = shell.bluetoothPowered ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.strokeStyle = shell.bluetoothPowered ? Theme.iconPrimary : Theme.iconDim;
                             ctx.lineWidth = 1.6;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1538,7 +1540,7 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            var col = wifiOn ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            var col = wifiOn ? Theme.iconPrimary : Theme.iconDim;
                             ctx.strokeStyle = col;
                             ctx.lineWidth = 1.6;
                             ctx.lineCap = "round";
@@ -1565,7 +1567,7 @@ ShellRoot {
 
                             // Diagonal strike-through when disabled
                             if (!wifiOn) {
-                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                                ctx.strokeStyle = Theme.iconDim;
                                 ctx.lineWidth = 1.8;
                                 ctx.beginPath();
                                 ctx.moveTo(1, 1);
@@ -1588,7 +1590,7 @@ ShellRoot {
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = wifiOn ? "#ffffff" : Qt.rgba(1, 1, 1, 0.4);
+                            ctx.strokeStyle = wifiOn ? Theme.iconPrimary : Theme.iconDim;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1642,8 +1644,8 @@ ShellRoot {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
 
-                            ctx.strokeStyle = "#ffffff";
-                            ctx.fillStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.4;
                             ctx.lineCap = "round";
                             ctx.lineJoin = "round";
@@ -1676,7 +1678,7 @@ ShellRoot {
                         width: Math.max(12, badgeText.implicitWidth + 4)
                         height: 12
                         radius: 6
-                        color: "#e04040"
+                        color: Theme.accentDanger
 
                         Text {
                             id: badgeText
@@ -1699,7 +1701,7 @@ ShellRoot {
                 width: centreRow.implicitWidth + 20
                 height: 22
                 radius: 4
-                color: hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                color: hovered ? Theme.buttonHover : "transparent"
 
                 Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -1713,7 +1715,7 @@ ShellRoot {
                         text: shell.showFullDate
                             ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
                             : Qt.formatDateTime(clock.date, "h:mm AP")
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -1722,7 +1724,7 @@ ShellRoot {
                         visible: shell.weatherCondition !== ""
                         width: 1
                         height: 12
-                        color: Qt.rgba(1, 1, 1, 0.4)
+                        color: Theme.iconDim
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -1753,8 +1755,8 @@ ShellRoot {
                             ctx.clearRect(0, 0, width, height);
                             var type = weatherType();
 
-                            ctx.strokeStyle = "#ffffff";
-                            ctx.fillStyle = "#ffffff";
+                            ctx.strokeStyle = Theme.iconPrimary;
+                            ctx.fillStyle = Theme.iconPrimary;
                             ctx.lineWidth = 1.3;
                             ctx.lineCap = "round";
 
@@ -1833,7 +1835,7 @@ ShellRoot {
                     Text {
                         visible: shell.weatherCondition !== ""
                         text: shell.weatherTemp
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -1841,7 +1843,7 @@ ShellRoot {
                     Text {
                         visible: shell.weatherEffectOverride !== ""
                         text: "(" + shell.weatherEffectOverride + ")"
-                        color: Qt.rgba(1, 1, 1, 0.5)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -1850,13 +1852,15 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     cursorShape: Qt.PointingHandCursor
                     onEntered: parent.hovered = true
                     onExited: parent.hovered = false
                     onClicked: function(mouse) {
                         if (mouse.button === Qt.RightButton)
                             shell.cycleWeatherEffect();
+                        else if (mouse.button === Qt.MiddleButton)
+                            Theme.mode = Theme.isDark ? Theme.Light : Theme.Dark;
                         else
                             shell.showFullDate = !shell.showFullDate;
                     }

@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -39,7 +40,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -56,7 +57,7 @@ Variants {
 
                     Text {
                         text: "Volume"
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         font.bold: true
                         Layout.fillWidth: true
@@ -66,7 +67,7 @@ Variants {
                         width: 36
                         height: 20
                         radius: 10
-                        color: !root.shell.volumeMuted ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+                        color: !root.shell.volumeMuted ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Theme.surfaceBg
 
                         Behavior on color { ColorAnimation { duration: 200 } }
 
@@ -76,7 +77,7 @@ Variants {
                             radius: 8
                             y: 2
                             x: !root.shell.volumeMuted ? parent.width - width - 2 : 2
-                            color: "#ffffff"
+                            color: Theme.iconPrimary
 
                             Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                         }
@@ -98,11 +99,13 @@ Variants {
                         width: 12
                         height: 12
                         Layout.alignment: Qt.AlignVCenter
+                        property color iconFill: Theme.textDim
+                        onIconFillChanged: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.fillStyle = Qt.rgba(1, 1, 1, 0.6);
+                            ctx.fillStyle = iconFill;
                             ctx.beginPath();
                             ctx.moveTo(1, 4);
                             ctx.lineTo(3, 4);
@@ -120,14 +123,14 @@ Variants {
                         Layout.fillWidth: true
                         height: 6
                         radius: 3
-                        color: Qt.rgba(1, 1, 1, 0.2)
+                        color: Theme.surfaceStrong
                         Layout.alignment: Qt.AlignVCenter
 
                         Rectangle {
                             width: parent.width * Math.min(root.shell.volumePercent, 100) / 100
                             height: parent.height
                             radius: 3
-                            color: root.shell.volumeMuted ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.7)
+                            color: root.shell.volumeMuted ? Theme.surfaceBg : Theme.textDim
 
                             Behavior on width { NumberAnimation { duration: 100 } }
                         }
@@ -139,7 +142,7 @@ Variants {
                             width: 14
                             height: 14
                             radius: 7
-                            color: "#ffffff"
+                            color: Theme.iconPrimary
 
                             Behavior on x { NumberAnimation { duration: 100 } }
                         }
@@ -168,11 +171,13 @@ Variants {
                         width: 14
                         height: 14
                         Layout.alignment: Qt.AlignVCenter
+                        property color iconFill: Theme.iconPrimary
+                        onIconFillChanged: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.fillStyle = "#ffffff";
+                            ctx.fillStyle = iconFill;
                             ctx.lineWidth = 1.2;
                             ctx.lineCap = "round";
                             ctx.beginPath();
@@ -184,7 +189,7 @@ Variants {
                             ctx.lineTo(0, 9);
                             ctx.closePath();
                             ctx.fill();
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = iconFill;
                             ctx.beginPath();
                             ctx.arc(5.5, 7, 3.5, -Math.PI / 4, Math.PI / 4);
                             ctx.stroke();
@@ -198,7 +203,7 @@ Variants {
                 // Percentage label
                 Text {
                     text: root.shell.volumePercent + "%"
-                    color: Qt.rgba(1, 1, 1, 0.7)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -210,7 +215,7 @@ Variants {
 
                     Text {
                         text: "Output"
-                        color: Qt.rgba(1, 1, 1, 0.5)
+                        color: Theme.iconDim
                         font.pixelSize: 10
                     }
 
@@ -222,8 +227,8 @@ Variants {
                             width: parent.width
                             height: 22
                             radius: 4
-                            color: sinkHover.containsMouse ? Qt.rgba(1, 1, 1, 0.15)
-                                 : modelData.isDefault ? Qt.rgba(1, 1, 1, 0.08)
+                            color: sinkHover.containsMouse ? Theme.surfaceInner
+                                 : modelData.isDefault ? Theme.surfaceSubtle
                                  : "transparent"
 
                             Row {
@@ -236,13 +241,13 @@ Variants {
                                     width: 8
                                     height: 8
                                     radius: 4
-                                    color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Qt.rgba(1, 1, 1, 0.25)
+                                    color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Theme.surfaceStrong
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
 
                                 Text {
                                     text: modelData.name
-                                    color: "#ffffff"
+                                    color: Theme.text
                                     font.pixelSize: 11
                                     font.bold: modelData.isDefault
                                     elide: Text.ElideRight
@@ -268,7 +273,7 @@ Variants {
                 Rectangle {
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.15)
+                    color: Theme.surfaceInner
                 }
 
                 // Mic header with mute toggle
@@ -277,7 +282,7 @@ Variants {
 
                     Text {
                         text: "Microphone"
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         font.bold: true
                         Layout.fillWidth: true
@@ -287,7 +292,7 @@ Variants {
                         width: 36
                         height: 20
                         radius: 10
-                        color: !root.shell.micMuted ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Qt.rgba(1, 1, 1, 0.3)
+                        color: !root.shell.micMuted ? Qt.rgba(0.4, 0.8, 0.4, 0.6) : Theme.surfaceBg
 
                         Behavior on color { ColorAnimation { duration: 200 } }
 
@@ -297,7 +302,7 @@ Variants {
                             radius: 8
                             y: 2
                             x: !root.shell.micMuted ? parent.width - width - 2 : 2
-                            color: "#ffffff"
+                            color: Theme.iconPrimary
 
                             Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                         }
@@ -319,15 +324,17 @@ Variants {
                         width: 12
                         height: 12
                         Layout.alignment: Qt.AlignVCenter
+                        property color iconFill: Theme.textDim
+                        onIconFillChanged: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.fillStyle = Qt.rgba(1, 1, 1, 0.6);
+                            ctx.fillStyle = iconFill;
                             ctx.beginPath();
                             ctx.roundedRect(4, 0, 4, 7, 2, 2);
                             ctx.fill();
-                            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6);
+                            ctx.strokeStyle = iconFill;
                             ctx.lineWidth = 1.2;
                             ctx.lineCap = "round";
                             ctx.beginPath();
@@ -345,14 +352,14 @@ Variants {
                         Layout.fillWidth: true
                         height: 6
                         radius: 3
-                        color: Qt.rgba(1, 1, 1, 0.2)
+                        color: Theme.surfaceStrong
                         Layout.alignment: Qt.AlignVCenter
 
                         Rectangle {
                             width: parent.width * Math.min(root.shell.micGainPercent, 100) / 100
                             height: parent.height
                             radius: 3
-                            color: root.shell.micMuted ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.7)
+                            color: root.shell.micMuted ? Theme.surfaceBg : Theme.textDim
 
                             Behavior on width { NumberAnimation { duration: 100 } }
                         }
@@ -363,7 +370,7 @@ Variants {
                             width: 14
                             height: 14
                             radius: 7
-                            color: "#ffffff"
+                            color: Theme.iconPrimary
 
                             Behavior on x { NumberAnimation { duration: 100 } }
                         }
@@ -392,15 +399,17 @@ Variants {
                         width: 14
                         height: 14
                         Layout.alignment: Qt.AlignVCenter
+                        property color iconFill: Theme.iconPrimary
+                        onIconFillChanged: requestPaint()
 
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);
-                            ctx.fillStyle = "#ffffff";
+                            ctx.fillStyle = iconFill;
                             ctx.beginPath();
                             ctx.roundedRect(4.5, 0, 5, 7, 2.5, 2.5);
                             ctx.fill();
-                            ctx.strokeStyle = "#ffffff";
+                            ctx.strokeStyle = iconFill;
                             ctx.lineWidth = 1.3;
                             ctx.lineCap = "round";
                             ctx.beginPath();
@@ -421,7 +430,7 @@ Variants {
                 // Mic percentage label
                 Text {
                     text: root.shell.micGainPercent + "%"
-                    color: Qt.rgba(1, 1, 1, 0.7)
+                    color: Theme.textDim
                     font.pixelSize: 11
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -449,7 +458,7 @@ Variants {
                                 radius: 1
                                 anchors.verticalCenter: parent.verticalCenter
                                 color: {
-                                    if (!active) return Qt.rgba(1, 1, 1, 0.12);
+                                    if (!active) return Theme.surfaceSubtle;
                                     if (threshold > 0.8) return Qt.rgba(0.95, 0.3, 0.3, 0.9);
                                     if (threshold > 0.55) return Qt.rgba(0.95, 0.85, 0.2, 0.85);
                                     return Qt.rgba(0.4, 0.85, 0.4, 0.85);
@@ -463,7 +472,7 @@ Variants {
                 // Caption shown when muted, otherwise show "Input"
                 Text {
                     text: root.shell.micMuted ? "input muted" : "input level"
-                    color: Qt.rgba(1, 1, 1, 0.5)
+                    color: Theme.iconDim
                     font.pixelSize: 9
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -475,7 +484,7 @@ Variants {
 
                     Text {
                         text: "Input"
-                        color: Qt.rgba(1, 1, 1, 0.5)
+                        color: Theme.iconDim
                         font.pixelSize: 10
                     }
 
@@ -487,8 +496,8 @@ Variants {
                             width: parent.width
                             height: 22
                             radius: 4
-                            color: sourceHover.containsMouse ? Qt.rgba(1, 1, 1, 0.15)
-                                 : modelData.isDefault ? Qt.rgba(1, 1, 1, 0.08)
+                            color: sourceHover.containsMouse ? Theme.surfaceInner
+                                 : modelData.isDefault ? Theme.surfaceSubtle
                                  : "transparent"
 
                             Row {
@@ -501,13 +510,13 @@ Variants {
                                     width: 8
                                     height: 8
                                     radius: 4
-                                    color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Qt.rgba(1, 1, 1, 0.25)
+                                    color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Theme.surfaceStrong
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
 
                                 Text {
                                     text: modelData.name
-                                    color: "#ffffff"
+                                    color: Theme.text
                                     font.pixelSize: 11
                                     font.bold: modelData.isDefault
                                     elide: Text.ElideRight

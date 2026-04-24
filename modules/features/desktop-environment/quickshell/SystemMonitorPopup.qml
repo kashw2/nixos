@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -40,7 +41,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -53,23 +54,22 @@ Variants {
 
                 Text {
                     text: "System Monitor"
-                    color: "#ffffff"
+                    color: Theme.text
                     font.pixelSize: 13
                     font.bold: true
                 }
 
-                // CPU
                 RowLayout {
                     width: parent.width
                     Text {
                         text: "CPU"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
                     Text {
                         text: root.shell.cpuPercent + "%"
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -79,7 +79,7 @@ Variants {
                     width: parent.width
                     height: 6
                     radius: 3
-                    color: Qt.rgba(1, 1, 1, 0.2)
+                    color: Theme.surfaceStrong
 
                     Rectangle {
                         width: parent.width * root.shell.cpuPercent / 100
@@ -99,7 +99,11 @@ Variants {
                     height: 40
 
                     property var history: root.shell.cpuHistory
+                    property color gridStroke: Theme.surfaceSubtle
+                    property color lineStroke: Theme.graphCpu
                     onHistoryChanged: requestPaint()
+                    onGridStrokeChanged: requestPaint()
+                    onLineStrokeChanged: requestPaint()
 
                     onPaint: {
                         var ctx = getContext("2d");
@@ -110,7 +114,7 @@ Variants {
                         var stepX = width / (maxPoints - 1);
                         var offset = maxPoints - h.length;
 
-                        ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                        ctx.strokeStyle = gridStroke;
                         ctx.lineWidth = 0.5;
                         for (var g = 1; g <= 3; g++) {
                             var gy = height - (height * g * 25 / 100);
@@ -133,7 +137,7 @@ Variants {
                         ctx.closePath();
                         ctx.fill();
 
-                        ctx.strokeStyle = Qt.rgba(0.4, 0.8, 0.4, 0.8);
+                        ctx.strokeStyle = lineStroke;
                         ctx.lineWidth = 1.5;
                         ctx.lineJoin = "round";
                         ctx.beginPath();
@@ -147,20 +151,19 @@ Variants {
                     }
                 }
 
-                Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+                Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
 
-                // RAM
                 RowLayout {
                     width: parent.width
                     Text {
                         text: "Memory"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
                     Text {
                         text: root.shell.ramUsedGb + " / " + root.shell.ramTotalGb + " GB (" + root.shell.ramPercent + "%)"
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -170,7 +173,7 @@ Variants {
                     width: parent.width
                     height: 6
                     radius: 3
-                    color: Qt.rgba(1, 1, 1, 0.2)
+                    color: Theme.surfaceStrong
 
                     Rectangle {
                         width: parent.width * root.shell.ramPercent / 100
@@ -190,7 +193,9 @@ Variants {
                     height: 40
 
                     property var history: root.shell.ramHistory
+                    property color gridStroke: Theme.surfaceSubtle
                     onHistoryChanged: requestPaint()
+                    onGridStrokeChanged: requestPaint()
 
                     onPaint: {
                         var ctx = getContext("2d");
@@ -201,7 +206,7 @@ Variants {
                         var stepX = width / (maxPoints - 1);
                         var offset = maxPoints - h.length;
 
-                        ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                        ctx.strokeStyle = gridStroke;
                         ctx.lineWidth = 0.5;
                         for (var g = 1; g <= 3; g++) {
                             var gy = height - (height * g * 25 / 100);
@@ -238,14 +243,13 @@ Variants {
                     }
                 }
 
-                Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+                Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
 
-                // Temperature
                 RowLayout {
                     width: parent.width
                     Text {
                         text: "CPU Temperature"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
@@ -253,26 +257,25 @@ Variants {
                         text: root.shell.cpuTemp + "\u00b0C"
                         color: root.shell.cpuTemp > 85 ? Qt.rgba(0.9, 0.2, 0.2, 0.9)
                              : root.shell.cpuTemp > 70 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
-                             : "#ffffff"
+                             : Theme.text
                         font.pixelSize: 11
                         font.bold: true
                     }
                 }
 
-                Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+                Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
 
-                // Disk
                 RowLayout {
                     width: parent.width
                     Text {
                         text: "Disk (/)"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
                     Text {
                         text: root.shell.diskUsed + " / " + root.shell.diskTotal + " (" + root.shell.diskPercent + "%)"
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -282,7 +285,7 @@ Variants {
                     width: parent.width
                     height: 6
                     radius: 3
-                    color: Qt.rgba(1, 1, 1, 0.2)
+                    color: Theme.surfaceStrong
 
                     Rectangle {
                         width: parent.width * root.shell.diskPercent / 100
@@ -295,14 +298,13 @@ Variants {
                     }
                 }
 
-                Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.15) }
+                Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
 
-                // Network
                 RowLayout {
                     width: parent.width
                     Text {
                         text: "Network"
-                        color: Qt.rgba(1, 1, 1, 0.7)
+                        color: Theme.textDim
                         font.pixelSize: 11
                         Layout.fillWidth: true
                     }
@@ -336,9 +338,11 @@ Variants {
                     property var rxHistory: root.shell.netRxHistory
                     property var txHistory: root.shell.netTxHistory
                     property real peak: root.shell.netRxPeak
+                    property color gridStroke: Theme.surfaceSubtle
                     onRxHistoryChanged: requestPaint()
                     onTxHistoryChanged: requestPaint()
                     onPeakChanged: requestPaint()
+                    onGridStrokeChanged: requestPaint()
 
                     onPaint: {
                         var ctx = getContext("2d");
@@ -351,7 +355,7 @@ Variants {
                         var offset = maxPoints - rx.length;
                         var scale = peak > 0 ? peak : 1;
 
-                        ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.1);
+                        ctx.strokeStyle = gridStroke;
                         ctx.lineWidth = 0.5;
                         for (var g = 1; g <= 3; g++) {
                             var gy = height - (height * g * 25 / 100);
@@ -361,7 +365,6 @@ Variants {
                             ctx.stroke();
                         }
 
-                        // RX fill + line
                         ctx.fillStyle = Qt.rgba(0.4, 0.8, 0.4, 0.15);
                         ctx.beginPath();
                         for (var i = 0; i < rx.length; i++) {
@@ -387,7 +390,6 @@ Variants {
                         }
                         ctx.stroke();
 
-                        // TX line
                         ctx.strokeStyle = Qt.rgba(0.95, 0.6, 0.3, 0.9);
                         ctx.lineWidth = 1.5;
                         ctx.beginPath();

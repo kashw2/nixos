@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Layouts
+import "."
 
 Variants {
     id: root
@@ -39,7 +40,7 @@ Variants {
         Rectangle {
             anchors.fill: parent
             radius: 12
-            color: Qt.rgba(1, 1, 1, 0.3)
+            color: Theme.surfaceBg
             clip: true
 
             Column {
@@ -56,7 +57,7 @@ Variants {
 
                     Text {
                         text: "Notifications"
-                        color: "#ffffff"
+                        color: Theme.text
                         font.pixelSize: 13
                         font.bold: true
                         Layout.fillWidth: true
@@ -68,7 +69,7 @@ Variants {
                         width: clearText.implicitWidth + 12
                         height: 20
                         radius: 4
-                        color: clearHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.15)
+                        color: clearHover.containsMouse ? Theme.surfaceBg : Theme.surfaceInner
 
                         Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -76,7 +77,7 @@ Variants {
                             id: clearText
                             anchors.centerIn: parent
                             text: "Clear all"
-                            color: "#ffffff"
+                            color: Theme.text
                             font.pixelSize: 11
                         }
 
@@ -94,14 +95,14 @@ Variants {
                 Rectangle {
                     width: parent.width
                     height: 1
-                    color: Qt.rgba(1, 1, 1, 0.1)
+                    color: Theme.surfaceSubtle
                 }
 
                 // Empty state
                 Text {
                     visible: root.shell.notifCount === 0
                     text: "No notifications"
-                    color: Qt.rgba(1, 1, 1, 0.5)
+                    color: Theme.iconDim
                     font.pixelSize: 12
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
@@ -133,7 +134,7 @@ Variants {
                                 width: notifList.width
                                 implicitHeight: notifItemContent.implicitHeight + 16
                                 radius: 8
-                                color: hovered ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.1)
+                                color: hovered ? Theme.surfaceStrong : Theme.surfaceSubtle
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -168,7 +169,7 @@ Variants {
 
                                             Text {
                                                 text: modelData.appName + "  \u00b7  " + modelData.time
-                                                color: Qt.rgba(1, 1, 1, 0.6)
+                                                color: Theme.textDim
                                                 font.pixelSize: 10
                                                 Layout.fillWidth: true
                                                 elide: Text.ElideRight
@@ -179,12 +180,12 @@ Variants {
                                                 width: 16
                                                 height: 16
                                                 radius: 8
-                                                color: dismissHover.containsMouse ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                                                color: dismissHover.containsMouse ? Theme.surfaceBg : "transparent"
 
                                                 Text {
                                                     anchors.centerIn: parent
                                                     text: "\u00d7"
-                                                    color: Qt.rgba(1, 1, 1, 0.7)
+                                                    color: Theme.textDim
                                                     font.pixelSize: 12
                                                 }
 
@@ -200,7 +201,7 @@ Variants {
 
                                         Text {
                                             text: modelData.summary
-                                            color: "#ffffff"
+                                            color: Theme.text
                                             font.pixelSize: 12
                                             font.bold: true
                                             width: parent.width
@@ -212,7 +213,7 @@ Variants {
                                         Text {
                                             visible: modelData.body !== ""
                                             text: modelData.body
-                                            color: Qt.rgba(1, 1, 1, 0.7)
+                                            color: Theme.textDim
                                             font.pixelSize: 11
                                             width: parent.width
                                             wrapMode: Text.WordWrap
