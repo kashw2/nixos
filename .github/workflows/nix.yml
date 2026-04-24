@@ -21,51 +21,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  update:
-    name: Update ${{ matrix.input }}
-    runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: write
-      id-token: write
-      issues: write
-      pull-requests: write
-    strategy:
-      fail-fast: false
-      matrix:
-        input:
-          - nixpkgs
-          - flake-parts
-          - import-tree
-          - disko
-          - colmena
-          - wrapper-modules
-          - hyprland
-          - hyprpaper
-          - hyprlock
-          - rose-pine-hyprcursor
-          - xdg-desktop-portal-hyprland
-          - nixvim
-          - neovim-nightly
-          - home-manager
-          - mcp-servers-nix
-          - sops-nix
-          - nixcord
-          - quickshell
-          - nix
-    steps:
-      - uses: actions/checkout@v6
-      - uses: cachix/install-nix-action@v31
-      - uses: DeterminateSystems/update-flake-lock@v28
-        with:
-          inputs: ${{ matrix.input }}
-          commit-msg: 'build(nix): update ${{ matrix.input }}'
-          pr-title: Update ${{ matrix.input }}
-          branch: update-${{ matrix.input }}-flake-input
-          pr-labels: |
-            dependencies
-            nix
-          token: ${{ secrets.GH_TOKEN }} # We have to use our own token because otherwise PRs won't run actions
   flake-check:
     name: Flake Check
     runs-on: ubuntu-latest
