@@ -87,6 +87,7 @@
                 animation=workspacesIn,  1,     1.21,  almostLinear, fade
                 animation=workspacesOut, 1,     1.94,  almostLinear, fade
                 animation=zoomFactor,    1,     7,     quick
+                animation=borderangle,   1,     70,   linear,       loop
                 enabled=true
               }
 
@@ -168,7 +169,9 @@
 
               general {
                 allow_tearing=false
-                border_size=0
+                border_size=1
+                col.active_border=rgba(ff0000ff) rgba(ff8800ff) rgba(ffff00ff) rgba(00ff00ff) rgba(00ffffff) rgba(0000ffff) rgba(8800ffff) rgba(ff00ffff) 45deg
+                col.inactive_border=rgba(ff0000ff) rgba(ff8800ff) rgba(ffff00ff) rgba(00ff00ff) rgba(00ffffff) rgba(0000ffff) rgba(8800ffff) rgba(ff00ffff) 45deg
                 gaps_in=5
                 gaps_out=5
                 layout=dwindle
