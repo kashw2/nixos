@@ -20,20 +20,13 @@
             source = "${./logo.png}";
           };
           modules = [
-            "title"
-            "separator"
             "os"
-            "host"
             "kernel"
             "uptime"
             "packages"
             "shell"
-            "display"
             "de"
             "wm"
-            "wmtheme"
-            "theme"
-            "icons"
             "font"
             "cursor"
             "terminal"
@@ -44,11 +37,6 @@
             "swap"
             "disk"
             "localip"
-            "battery"
-            "poweradapter"
-            "locale"
-            "break"
-            "colors"
           ];
         };
       };
