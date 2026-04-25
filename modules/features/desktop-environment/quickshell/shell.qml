@@ -62,6 +62,8 @@ ShellRoot {
     property var batteryHoveredScreen: null
     property real batteryIconX: 0
     property real batteryIconWidth: 0
+    property int batteryLastNotifiedThreshold: 0
+    readonly property var batteryThresholds: [20, 10, 5]
 
     property bool hasBrightness: false
     property int brightnessPercent: 0
@@ -170,6 +172,45 @@ ShellRoot {
         shell.notifCount = list.length;
     }
 
+    function showBatteryNotification(threshold) {
+        var summary = "Battery low: " + threshold + "%";
+        var body = threshold <= 5
+            ? "Plug in immediately — battery critical."
+            : threshold <= 10
+                ? "Battery very low. Connect a charger soon."
+                : "Battery low. Consider plugging in.";
+        addNotification("Battery", summary, body, "battery-low", "");
+        toastNotification = {
+            appName: "Battery",
+            summary: summary,
+            body: body,
+            appIcon: "battery-low",
+            image: ""
+        };
+        toastVisible = true;
+        toastTimer.restart();
+    }
+
+    function checkBatteryNotifications() {
+        if (!hasBattery) return;
+        if (batteryCharging) {
+            batteryLastNotifiedThreshold = 0;
+            return;
+        }
+        if (batteryPercent > batteryThresholds[0]) {
+            batteryLastNotifiedThreshold = 0;
+            return;
+        }
+        for (var i = 0; i < batteryThresholds.length; i++) {
+            var t = batteryThresholds[i];
+            if (batteryPercent <= t && batteryLastNotifiedThreshold < t) {
+                batteryLastNotifiedThreshold = t;
+                showBatteryNotification(t);
+                break;
+            }
+        }
+    }
+
     function setBrightness(pct) {
         brightnessSet.target = pct;
         brightnessSet.running = true;
@@ -201,6 +242,9 @@ ShellRoot {
     onActivePopupChanged: {
         if (activePopup === "volume") audioDevicesCheck.running = true;
     }
+
+    onBatteryPercentChanged: checkBatteryNotifications()
+    onBatteryChargingChanged: checkBatteryNotifications()
 
     function setPowerProfile(profile) {
         powerProfileSet.profile = profile;
