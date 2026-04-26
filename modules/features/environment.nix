@@ -56,6 +56,12 @@
           }
         ];
 
+        # Impermanence wipes / on every boot, so mutable changes to /etc/shadow
+        # would not survive. Keanu's password is managed declaratively via
+        # sops-nix (users.users.keanu.hashedPasswordFile), so mutable users
+        # would be misleading.
+        users.mutableUsers = false;
+
         boot = {
           # All machines run the xanmod kernel
           kernelPackages = pkgs.linuxPackages_xanmod_stable;
