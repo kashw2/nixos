@@ -8,6 +8,7 @@ on:
       - modules/features/rofi.nix
       - modules/features/nushell.nix
       - modules/features/kitty.nix
+      - modules/features/fastfetch.nix
       - modules/features/desktop-environment/sddm-sugar-candy.nix
       - modules/features/desktop-environment/hyprland.nix
       - modules/features/desktop-environment/hypridle.nix
@@ -35,7 +36,7 @@ jobs:
       - id: detect
         if: ${{ !env.ACT }}
         run: |
-          ALL='["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell"]'
+          ALL='["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch"]'
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
@@ -52,6 +53,7 @@ jobs:
           fi
 
           declare -A PACKAGE_PATHS=(
+            ["fastfetch"]="^modules/features/fastfetch\.nix$"
             ["rofi"]="^modules/features/rofi\.nix$"
             ["nushell"]="^modules/features/nushell\.nix$"
             ["kitty"]="^modules/features/kitty\.nix$"
@@ -88,7 +90,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell"]') }}
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["rofi","nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch"]') }}
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
