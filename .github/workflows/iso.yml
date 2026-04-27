@@ -1,51 +1,26 @@
-name: Nix
+name: ISO
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - '*.nix'
+      - .github/workflows/iso.yml
+      - flake.nix
       - flake.lock
-      - modules/**
-      - secrets/**
-  schedule:
-    - cron: 0 0 * * 0 # runs every week
+      - modules/installer.nix
+      - modules/hosts/**
+      - modules/features/impermanence.nix
+      - modules/features/sops.nix
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  flake-check:
-    name: Flake Check
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v6
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-      - uses: cachix/install-nix-action@v31
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nix-devshell
-          restore-prefixes-first-match: nix-devshell
-          gc-max-store-size-linux: 3G
-      - run: nix develop --command nix flake check --impure
-        env:
-          NIXPKGS_ALLOW_UNFREE: 1
   detect-hosts:
     name: Detect Hosts
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     outputs:
       hosts: ${{ steps.detect.outputs.hosts }}
     steps:
       - uses: actions/checkout@v6
-        if: ${{ !env.ACT }}
         with:
           fetch-depth: 0
       - id: detect
@@ -59,7 +34,6 @@ jobs:
             exit 0
           fi
 
-          # Check branch name for known desktop-only flake input updates
           BRANCH="${{ github.head_ref }}"
           DESKTOP_INPUTS="hyprland hyprpaper hyprlock rose-pine-hyprcursor xdg-desktop-portal-hyprland quickshell"
 
@@ -70,7 +44,6 @@ jobs:
             fi
           done
 
-          # Check changed files - if all are desktop-only, skip server builds
           CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
 
           NEEDS_SERVER=false
@@ -95,11 +68,10 @@ jobs:
           else
             echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"
           fi
-  build-configuration:
-    name: Build Configuration
+  build:
+    name: Build
     needs: detect-hosts
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -118,11 +90,12 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nixos-configuration
+          primary-key: nix-iso
           restore-prefixes-all-match: |
             nix-devshell
             nixos-configuration
-          gc-max-store-size-linux: 6G
-      - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
+            nix-iso
+          gc-max-store-size-linux: 8G
+      - run: nix develop --command nix build .#installer-${{ matrix.host }} --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
