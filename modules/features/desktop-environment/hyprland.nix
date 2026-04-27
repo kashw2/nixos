@@ -93,7 +93,13 @@
 
               bind=CTRLALT, p, exec, ${lib.getExe pkgs.grim} -g "$( ${lib.getExe pkgs.slurp} )" - | ${lib.getExe' pkgs.wl-clipboard "wl-copy"}
               bind=, INSERT, exec, ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.kitty}
-              bind=SUPER, M, exec, ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.rofi} -show drun
+              bind=SUPER, M, exec, ${
+                lib.getExe (
+                  self.packages.${pkgs.stdenv.hostPlatform.system}.quickshell.wrap {
+                    inherit (config) isDesktop isLaptop;
+                  }
+                )
+              } ipc call applauncher toggle
               bind=SUPER SHIFT, R, forcerendererreload
               bind=SUPER SHIFT, Q, killactive,
               bind=SUPER, F12, exit,

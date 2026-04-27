@@ -43,9 +43,7 @@
     };
     nixcord = {
       url = "github:KaylorBen/nixcord";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";

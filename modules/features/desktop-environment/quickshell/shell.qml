@@ -1911,4 +1911,36 @@ ShellRoot {
 
     // === Weather Effects Overlay ===
     WeatherOverlay { shell: shell }
+
+    // App launcher - one per screen, surfaced via IPC from Hyprland
+    AppLauncher { shell: shell }
+
+    IpcHandler {
+        target: "applauncher"
+
+        function show(): void {
+            var screen = null;
+            var monitor = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.monitor : null;
+            if (monitor) {
+                var screens = Quickshell.screens;
+                for (var i = 0; i < screens.length; i++) {
+                    if (screens[i].name === monitor.name) {
+                        screen = screens[i];
+                        break;
+                    }
+                }
+            }
+            if (!screen && Quickshell.screens.length > 0) screen = Quickshell.screens[0];
+            shell.openPopup("applauncher", screen);
+        }
+
+        function hide(): void {
+            if (shell.activePopup === "applauncher") shell.closePopup();
+        }
+
+        function toggle(): void {
+            if (shell.activePopup === "applauncher") shell.closePopup();
+            else show();
+        }
+    }
 }

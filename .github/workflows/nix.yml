@@ -71,7 +71,6 @@ jobs:
               modules/features/desktop-environment/*) ;;
               modules/features/audio.nix) ;;
               modules/features/virtualisation.nix) ;;
-              modules/features/rofi.nix) ;;
               modules/features/kitty.nix) ;;
               modules/desktop.nix) ;;
               modules/laptop.nix) ;;
