@@ -96,11 +96,19 @@ Variants {
             anchors.topMargin: parent.height * 0.12
             width: Math.min(parent.width - 80, 600)
 
+            readonly property int itemHeight: 48
+            readonly property int itemSpacing: 2
             readonly property int collapsedHeight: 62
-            readonly property int expandedHeight: Math.min(parent.height * 0.7, 520)
+            readonly property int maxListHeight: Math.min(parent.height * 0.6, 7 * (itemHeight + itemSpacing))
             readonly property bool expanded: launcherWindow.searchText !== ""
+            readonly property int contentHeight: {
+                if (!expanded) return 0;
+                if (launcherWindow.filteredEntries.length === 0) return 28;
+                var natural = launcherWindow.filteredEntries.length * (itemHeight + itemSpacing) - itemSpacing;
+                return Math.min(maxListHeight, natural);
+            }
 
-            height: expanded ? expandedHeight : collapsedHeight
+            height: collapsedHeight + (expanded ? contentHeight + 8 : 0)
 
             Behavior on height {
                 NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -152,7 +160,7 @@ Variants {
                         Text {
                             anchors.fill: parent
                             verticalAlignment: Text.AlignVCenter
-                            text: "Search applications…"
+                            text: "Search"
                             color: Theme.textDim
                             font.pixelSize: 14
                             visible: !searchField.text && !searchField.activeFocus
