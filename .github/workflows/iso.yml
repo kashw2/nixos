@@ -69,7 +69,7 @@ jobs:
             echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"
           fi
   build:
-    name: Build ISO
+    name: Build
     needs: detect-hosts
     runs-on: ubuntu-latest
     strategy:
