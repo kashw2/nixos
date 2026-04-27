@@ -96,6 +96,14 @@ Variants {
             anchors.topMargin: parent.height * 0.12
             width: Math.min(parent.width - 80, 600)
 
+            opacity: launcherWindow.isOnThisScreen ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+            transform: Translate {
+                y: launcherWindow.isOnThisScreen ? 0 : -32
+                Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+            }
+
             readonly property int itemHeight: 48
             readonly property int itemSpacing: 2
             readonly property int collapsedHeight: 62
