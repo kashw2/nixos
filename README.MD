@@ -36,13 +36,3 @@ nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'
 # Nixos Anywehre
 
 https://nix-community.github.io/nixos-anywhere/howtos/no-os.html
-
-# Troubleshooting
-
-## `lib.fileset.gitTracked`: Expected the argument (some nix store path) to point to a local working tree
-
-### Solution
-
-- Navigate to the store path and examine to try and determine what package the path refers to.
-- Remove the package from your configuration and retry
-- Readd the program after installation
