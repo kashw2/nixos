@@ -1,0 +1,93 @@
+name: ISO
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/iso.yml
+      - flake.nix
+      - flake.lock
+      - modules/installer.nix
+      - modules/hosts/**
+      - modules/features/impermanence.nix
+      - modules/features/sops.nix
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  detect-hosts:
+    name: Detect Hosts
+    runs-on: ubuntu-latest
+    outputs:
+      hosts: ${{ steps.detect.outputs.hosts }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: detect
+        if: ${{ !env.ACT }}
+        run: |
+          ALL='["home","laptop","thinkpad","media"]'
+          DESKTOP='["home","laptop","thinkpad"]'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "push" ]; then
+            echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BRANCH="${{ github.head_ref }}"
+          DESKTOP_INPUTS="hyprland hyprpaper hyprlock rose-pine-hyprcursor xdg-desktop-portal-hyprland quickshell"
+
+          for input in $DESKTOP_INPUTS; do
+            if [ "$BRANCH" = "update-${input}-flake-input" ]; then
+              echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+
+          NEEDS_SERVER=false
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            case "$file" in
+              modules/features/desktop-environment/*) ;;
+              modules/features/audio.nix) ;;
+              modules/features/virtualisation.nix) ;;
+              modules/features/kitty.nix) ;;
+              modules/desktop.nix) ;;
+              modules/laptop.nix) ;;
+              *)
+                NEEDS_SERVER=true
+                break
+                ;;
+            esac
+          done <<< "$CHANGED"
+
+          if [ "$NEEDS_SERVER" = "true" ]; then
+            echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
+          else
+            echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"
+          fi
+  build:
+    name: Build ISO
+    needs: detect-hosts
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        host: ${{ fromJSON(needs.detect-hosts.outputs.hosts || '["home","laptop","thinkpad","media"]') }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-iso
+          restore-prefixes-all-match: |
+            nix-devshell
+            nixos-configuration
+            nix-iso
+          gc-max-store-size-linux: 8G
+      - run: nix develop --command nix build .#installer-${{ matrix.host }} --impure
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
