@@ -16,6 +16,7 @@ on:
       - modules/features/desktop-environment/hyprpaper.nix
       - modules/features/desktop-environment/quickshell.nix
       - modules/features/desktop-environment/quickshell/**
+      - modules/features/deploy.nix
       - modules/features/nixvim/atone-nvim.nix
       - modules/features/nixvim/codestats.nix
 concurrency:
@@ -36,7 +37,7 @@ jobs:
       - id: detect
         if: ${{ !env.ACT }}
         run: |
-          ALL='["nushell","kitty","act","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch"]'
+          ALL='["nushell","act","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch","deploy-host"]'
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
@@ -55,6 +56,7 @@ jobs:
           declare -A PACKAGE_PATHS=(
             ["fastfetch"]="^modules/features/fastfetch\.nix$"
             ["act"]="^modules/features/act\.nix$"
+            ["deploy-host"]="^modules/features/deploy\.nix$"
             ["nushell"]="^modules/features/nushell\.nix$"
             ["kitty"]="^modules/features/kitty\.nix$"
             ["sddm-sugar-candy"]="^modules/features/desktop-environment/sddm-sugar-candy\.nix$"
@@ -90,7 +92,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["nushell","kitty","act","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch","deploy-host"]') }}
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch","deploy-host","act"]') }}
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31.10.5
