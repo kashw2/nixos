@@ -95,7 +95,17 @@ Variants {
             anchors.top: parent.top
             anchors.topMargin: parent.height * 0.12
             width: Math.min(parent.width - 80, 600)
-            height: Math.min(parent.height * 0.7, 520)
+
+            readonly property int collapsedHeight: 62
+            readonly property int expandedHeight: Math.min(parent.height * 0.7, 520)
+            readonly property bool expanded: launcherWindow.searchText !== ""
+
+            height: expanded ? expandedHeight : collapsedHeight
+
+            Behavior on height {
+                NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+            }
+
             radius: 12
             color: Theme.surfaceBg
             clip: true
@@ -160,6 +170,16 @@ Variants {
                     onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
                     spacing: 2
                     boundsBehavior: Flickable.StopAtBounds
+                    opacity: launcherBox.expanded ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+                    add: Transition {
+                        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 160; easing.type: Easing.OutCubic }
+                        NumberAnimation { property: "y"; from: 8; duration: 160; easing.type: Easing.OutCubic }
+                    }
+                    displaced: Transition {
+                        NumberAnimation { properties: "y"; duration: 160; easing.type: Easing.OutCubic }
+                    }
 
                     delegate: Rectangle {
                         id: appItem
@@ -233,12 +253,14 @@ Variants {
                 }
 
                 Text {
-                    visible: launcherWindow.filteredEntries.length === 0
-                    text: launcherWindow.searchText === "" ? "No applications found" : "No matches"
+                    visible: launcherBox.expanded && launcherWindow.filteredEntries.length === 0
+                    text: "No matches"
                     color: Theme.textDim
                     font.pixelSize: 12
                     Layout.alignment: Qt.AlignHCenter
                     Layout.bottomMargin: 8
+                    opacity: visible ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: 180 } }
                 }
             }
         }
