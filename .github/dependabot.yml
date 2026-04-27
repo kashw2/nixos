@@ -8,6 +8,7 @@ updates:
     cooldown:
       default-days: 7
   - package-ecosystem: nix
+    open-pull-requests-limit: 20
     schedule:
       interval: weekly
     directories:
