@@ -12,6 +12,8 @@
       ];
 
       isLaptop = true;
+      isDesktop = false;
+      isServer = false;
 
       boot.loader.grub = {
         enable = true;

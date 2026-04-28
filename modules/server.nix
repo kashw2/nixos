@@ -9,6 +9,8 @@
       ];
 
       isServer = true;
+      isDesktop = false;
+      isLaptop = false;
 
       boot = {
         loader.systemd-boot.enable = true;
