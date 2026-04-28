@@ -24,14 +24,6 @@
       };
 
       security = {
-        auditd.enable = true;
-        audit = {
-          enable = true;
-          rules = [
-            "-a exit,always -F arch=b64 -S execve"
-            "-a exit,always -F arch=b32 -S execve"
-          ];
-        };
         sudo.wheelNeedsPassword = false;
         polkit.enable = true;
         rtkit.enable = true;
