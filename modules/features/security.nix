@@ -40,7 +40,7 @@
               profile = ''
                 include <tunables/global>
 
-                profile nginx ${config.services.nginx.package}/bin/nginx {
+                profile nginx ${lib.getExe config.services.nginx.package} {
                   include <abstractions/base>
                   include <abstractions/nameservice>
                   include <abstractions/openssl>
@@ -58,7 +58,7 @@
                   network inet dgram,
                   network inet6 dgram,
 
-                  ${config.services.nginx.package}/bin/nginx mr,
+                  ${lib.getExe config.services.nginx.package} mr,
 
                   /etc/nginx/** r,
                   /etc/ssl/certs/** r,
@@ -81,7 +81,7 @@
               profile = ''
                 include <tunables/global>
 
-                profile jellyfin ${config.services.jellyfin.package}/bin/jellyfin {
+                profile jellyfin ${lib.getExe config.services.jellyfin.package} {
                   include <abstractions/base>
                   include <abstractions/nameservice>
                   include <abstractions/ssl_certs>
@@ -94,7 +94,7 @@
                   network inet6 dgram,
                   network netlink raw,
 
-                  ${config.services.jellyfin.package}/bin/jellyfin mrix,
+                  ${lib.getExe config.services.jellyfin.package} mrix,
 
                   /var/lib/jellyfin/** rwk,
                   /var/cache/jellyfin/** rwk,
