@@ -46,6 +46,32 @@ Variants {
         }
         property int selectedIndex: 0
 
+        property var placeholderExamples: {
+            var names = allEntries
+                .filter(function(e) { return !e.noDisplay && e.name; })
+                .map(function(e) { return e.name; });
+            for (var i = names.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var t = names[i]; names[i] = names[j]; names[j] = t;
+            }
+            return names.slice(0, 24);
+        }
+        property int placeholderIndex: 0
+        readonly property string currentPlaceholder: placeholderExamples.length > 0
+            ? placeholderExamples[placeholderIndex % placeholderExamples.length]
+            : "Search"
+
+        Timer {
+            interval: 2200
+            running: launcherWindow.isOnThisScreen && launcherWindow.searchText === ""
+            repeat: true
+            onTriggered: {
+                if (launcherWindow.placeholderExamples.length > 0) {
+                    launcherWindow.placeholderIndex = (launcherWindow.placeholderIndex + 1) % launcherWindow.placeholderExamples.length;
+                }
+            }
+        }
+
         visible: isOnThisScreen
 
         anchors {
@@ -69,6 +95,11 @@ Variants {
                 searchText = "";
                 searchField.text = "";
                 selectedIndex = 0;
+                placeholderIndex = Math.floor(Math.random() * Math.max(1, placeholderExamples.length));
+                placeholderText.displayed = currentPlaceholder;
+                placeholderSwap.stop();
+                placeholderText.opacity = 1;
+                placeholderTranslate.y = 0;
                 searchField.forceActiveFocus();
             }
         }
@@ -151,7 +182,9 @@ Variants {
                         verticalAlignment: TextInput.AlignVCenter
                         color: Theme.text
                         font.pixelSize: 14
+                        font.weight: Font.DemiBold
                         clip: true
+                        cursorDelegate: Item {}
                         focus: launcherWindow.isOnThisScreen
                         onTextChanged: launcherWindow.searchText = text
                         Keys.onEscapePressed: root.shell.closePopup()
@@ -166,12 +199,46 @@ Variants {
                         }
 
                         Text {
+                            id: placeholderText
                             anchors.fill: parent
                             verticalAlignment: Text.AlignVCenter
-                            text: "Search"
                             color: Theme.textDim
                             font.pixelSize: 14
-                            visible: !searchField.text && !searchField.activeFocus
+                            font.weight: Font.DemiBold
+                            visible: !searchField.text
+
+                            property string displayed: ""
+                            text: displayed
+                            Component.onCompleted: displayed = launcherWindow.currentPlaceholder
+
+                            transform: Translate { id: placeholderTranslate; y: 0 }
+
+                            Connections {
+                                target: launcherWindow
+                                function onCurrentPlaceholderChanged() {
+                                    if (placeholderText.displayed !== launcherWindow.currentPlaceholder) {
+                                        placeholderSwap.restart();
+                                    }
+                                }
+                            }
+
+                            SequentialAnimation {
+                                id: placeholderSwap
+                                ParallelAnimation {
+                                    NumberAnimation { target: placeholderText; property: "opacity"; to: 0; duration: 180; easing.type: Easing.InOutCubic }
+                                    NumberAnimation { target: placeholderTranslate; property: "y"; to: -6; duration: 180; easing.type: Easing.InOutCubic }
+                                }
+                                ScriptAction {
+                                    script: {
+                                        placeholderText.displayed = launcherWindow.currentPlaceholder;
+                                        placeholderTranslate.y = 6;
+                                    }
+                                }
+                                ParallelAnimation {
+                                    NumberAnimation { target: placeholderText; property: "opacity"; to: 1; duration: 220; easing.type: Easing.OutCubic }
+                                    NumberAnimation { target: placeholderTranslate; property: "y"; to: 0; duration: 220; easing.type: Easing.OutCubic }
+                                }
+                            }
                         }
                     }
                 }
