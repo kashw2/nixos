@@ -173,6 +173,52 @@ Variants {
                     Layout.preferredHeight: 38
                     radius: 8
                     color: Theme.surfaceInner
+                    clip: true
+
+                    Canvas {
+                        id: waveCanvas
+                        anchors.fill: parent
+                        z: -1
+
+                        property real phase: 0
+
+                        Timer {
+                            interval: 32
+                            running: launcherWindow.isOnThisScreen
+                            repeat: true
+                            onTriggered: {
+                                waveCanvas.phase += 0.045;
+                                waveCanvas.requestPaint();
+                            }
+                        }
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+
+                            var midY = height / 2;
+                            var amp = height * 0.32;
+                            var freq = (2 * Math.PI / width) * 1.6;
+
+                            function drawWave(amplitude, frequencyMul, phaseShift, alpha, lineWidth) {
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, alpha);
+                                ctx.lineWidth = lineWidth;
+                                ctx.lineCap = "round";
+                                ctx.lineJoin = "round";
+                                ctx.beginPath();
+                                for (var x = 0; x <= width; x += 2) {
+                                    var y = midY + Math.sin(x * freq * frequencyMul + waveCanvas.phase * phaseShift) * amplitude;
+                                    if (x === 0) ctx.moveTo(x, y);
+                                    else ctx.lineTo(x, y);
+                                }
+                                ctx.stroke();
+                            }
+
+                            drawWave(amp, 1.0, 1.0, 0.10, 1.6);
+                            drawWave(amp * 0.7, 1.5, -1.4, 0.07, 1.2);
+                            drawWave(amp * 0.45, 0.7, 0.6, 0.05, 1.0);
+                        }
+                    }
 
                     TextInput {
                         id: searchField
