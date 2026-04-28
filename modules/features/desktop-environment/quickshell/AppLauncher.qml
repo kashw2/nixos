@@ -157,6 +157,29 @@ Variants {
             color: Theme.surfaceBg
             clip: true
 
+            // Lighter pulse sweeping left → right across the darker box background
+            Rectangle {
+                id: pulseSweep
+                width: parent.width * 0.45
+                height: parent.height
+                y: 0
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0) }
+                    GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0.06) }
+                    GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0) }
+                }
+
+                NumberAnimation on x {
+                    from: -pulseSweep.width
+                    to: launcherBox.width
+                    duration: 3200
+                    loops: Animation.Infinite
+                    running: launcherWindow.isOnThisScreen
+                    easing.type: Easing.InOutSine
+                }
+            }
+
             // Swallow clicks so the outer dismiss MouseArea doesn't fire
             MouseArea {
                 anchors.fill: parent
