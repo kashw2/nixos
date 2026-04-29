@@ -48,7 +48,7 @@
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
-              pkgs.act
+              self.packages.${pkgs.stdenv.hostPlatform.system}.act
               pkgs.gh
               pkgs.infracost
               pkgs.prettier
