@@ -91,7 +91,7 @@ jobs:
         package: ${{ fromJSON(needs.detect-changes.outputs.packages || '["nushell","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch"]') }}
     steps:
       - uses: actions/checkout@v6
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@v31.10.5
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-package
