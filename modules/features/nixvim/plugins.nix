@@ -161,7 +161,10 @@
           settings = {
             git.enable = true;
             view.width = 30;
-            filters.dotfiles = false;
+            filters = {
+              dotfiles = false;
+              git_ignored = false;
+            };
             update_focused_file.enable = true;
             renderer = {
               highlight_git = "name";
