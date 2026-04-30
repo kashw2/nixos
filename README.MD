@@ -47,7 +47,7 @@ On the deploy machine, with the key USB mounted:
 nix run .#deploy-host -- --host laptop --ip 192.168.1.6
 ```
 
-Type the root password when `ssh-copy-id` prompts (once).
+Type the root password when `ssh-copy-id` prompts you
 
 ### Flags
 
@@ -62,15 +62,3 @@ Expected USB layout (same as the `install-host` ISO installer):
 <usb-root>/sops/<host>/ssh_host_ed25519_key
 <usb-root>/sops/<host>/ssh_host_ed25519_key.pub
 ```
-
-After the target reboots, log in as `keanu` with the password from `secrets/secrets.yaml`.
-
-# Troubleshooting
-
-## `lib.fileset.gitTracked`: Expected the argument (some nix store path) to point to a local working tree
-
-### Solution
-
-- Navigate to the store path and examine to try and determine what package the path refers to.
-- Remove the package from your configuration and retry
-- Readd the program after installation
