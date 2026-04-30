@@ -20,35 +20,32 @@
 
       features.telemetry.role = "host";
 
-      # Values consumed by modules/features/impermanence.nix. The unit
-      # name is systemd-escaped: `/` → `-`, and each original `-` in the
-      # path becomes `\x2d` (double-backslashed here to survive the
-      # nix string parser).
       impermanence = {
+        enable = false;
         rootDevice = "/dev/disk/by-partlabel/disk-main-root";
         rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
       };
 
-      # Service state that would otherwise be wiped by the rollback-root
-      # initrd unit. Each entry is guarded on its service's `enable`
-      # option so disabling a service automatically drops its persistence.
-      # For services that set `DynamicUser = true` in their systemd unit,
-      # the real state lives at `/var/lib/private/<name>` — persisting
-      # there avoids fighting the symlink systemd creates at `/var/lib/<name>`.
-      # Deluge is intentionally omitted: its `dataDir` is set to
-      # `/mnt/torrents`, which lives on a separate (non-impermanent) disk.
-      environment.persistence."/persist".directories =
-        lib.optionals config.services.jellyfin.enable [ "/var/lib/jellyfin" ]
-        ++ lib.optionals config.services.prowlarr.enable [ "/var/lib/private/prowlarr" ]
-        ++ lib.optionals config.services.sonarr.enable [ "/var/lib/sonarr" ]
-        ++ lib.optionals config.services.radarr.enable [ "/var/lib/radarr" ]
-        ++ lib.optionals config.services.lidarr.enable [ "/var/lib/lidarr" ]
-        ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
-        ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
-        ++ lib.optionals config.services.uptime-kuma.enable [ "/var/lib/private/uptime-kuma" ]
-        ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
-        ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
-        ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
+      # persistence. For services that set `DynamicUser = true` in their
+      # systemd unit, the real state lives at `/var/lib/private/<name>` —
+      # persisting there avoids fighting the symlink systemd creates at
+      # `/var/lib/<name>`. Deluge is intentionally omitted: its `dataDir`
+      # is set to `/mnt/torrents`, which lives on a separate
+      # (non-impermanent) disk.
+      environment.persistence = lib.mkIf config.impermanence.enable {
+        "/persist".directories =
+          lib.optionals config.services.jellyfin.enable [ "/var/lib/jellyfin" ]
+          ++ lib.optionals config.services.prowlarr.enable [ "/var/lib/private/prowlarr" ]
+          ++ lib.optionals config.services.sonarr.enable [ "/var/lib/sonarr" ]
+          ++ lib.optionals config.services.radarr.enable [ "/var/lib/radarr" ]
+          ++ lib.optionals config.services.lidarr.enable [ "/var/lib/lidarr" ]
+          ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
+          ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
+          ++ lib.optionals config.services.uptime-kuma.enable [ "/var/lib/private/uptime-kuma" ]
+          ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
+          ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
+          ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
+      };
 
       networking = {
         hostName = "media";

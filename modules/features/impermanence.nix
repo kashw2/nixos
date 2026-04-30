@@ -16,22 +16,34 @@
       ];
 
       options.impermanence = {
+        enable = lib.mkEnableOption ''
+          btrfs subvolume rollback + /persist bind-mounts. When false,
+          this module is inert: no rollback-root initrd service, no
+          environment.persistence, no neededForBoot declarations. Hosts
+          that import this module but leave enable=false get a regular
+          stateful root.
+        '';
+
         rootDevice = lib.mkOption {
-          type = lib.types.str;
+          type = lib.types.nullOr lib.types.str;
+          default = null;
           example = "/dev/disk/by-partlabel/disk-main-root";
           description = ''
             Block device of the top-level btrfs filesystem that holds the
             `root`, `home`, and `persist` subvolumes. Mounted with
             `subvol=/` in the initrd to perform the pre-boot wipe.
+            Required when `enable = true`.
           '';
         };
 
         rootDeviceUnit = lib.mkOption {
-          type = lib.types.str;
+          type = lib.types.nullOr lib.types.str;
+          default = null;
           example = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
           description = ''
             systemd device unit name for `rootDevice`, used to order the
             rollback service after the device becomes available.
+            Required when `enable = true`.
 
             Derivation rule: drop the leading `/`, replace every path
             separator `/` with `-`, and escape any `-` that was already
@@ -49,7 +61,14 @@
         };
       };
 
-      config = {
+      config = lib.mkIf cfg.enable {
+        assertions = [
+          {
+            assertion = cfg.rootDevice != null && cfg.rootDeviceUnit != null;
+            message = "impermanence.enable requires both rootDevice and rootDeviceUnit to be set.";
+          }
+        ];
+
         # /persist holds the sops-nix age decryption key (the persisted
         # /etc/ssh/ssh_host_ed25519_key) and the hashed user passwords that
         # sops writes during early activation — must be up in stage 1.
