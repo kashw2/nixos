@@ -46,5 +46,14 @@
 
       imports = [ self.nixosModules.media ];
     };
+    homelab = {
+      deployment = {
+        targetHost = "homelab.local";
+        targetUser = "keanu";
+        tags = [ "linux" ];
+      };
+
+      imports = [ self.nixosModules.homelab ];
+    };
   };
 }
