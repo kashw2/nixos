@@ -4,6 +4,7 @@ keys:
   - &laptop age1xrq8qy3tzmhdpwckts0k3um2jv6fejlhkylg696j42k3m2xdysxsswt00h
   - &thinkpad age1g4n2s97a0sg2k8aw37hrg2j68y9da5aqetwnh7y3dhqk3kyd49jsj8fg8x
   - &media age1dasgx4zr6e4jpswg8qfphnmj8r03rxxxrt0tdla9jvrgnq5hdgks2c63xk
+  - &homelab age1pnxkx8c5f6vlfggvw6mkangl6pyl9p6h44yxtyaru0p7lq6yd4lqfsfal5
 creation_rules:
   - path_regex: secrets/secrets\.yaml$
     key_groups:
@@ -13,3 +14,4 @@ creation_rules:
           - *laptop
           - *thinkpad
           - *media
+          - *homelab
