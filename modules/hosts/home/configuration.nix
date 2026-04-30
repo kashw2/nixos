@@ -7,9 +7,16 @@
       imports = [
         self.nixosModules.homeHardwareConfiguration
         self.nixosModules.homeDiskoConfiguration
+        self.nixosModules.impermanence
         self.nixosModules.desktopTemplate
         self.nixosModules.keanu
       ];
+
+      impermanence = {
+        enable = false;
+        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
+        rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
+      };
 
       networking = {
         hostName = "home";

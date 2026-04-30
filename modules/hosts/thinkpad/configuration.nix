@@ -7,9 +7,20 @@
       imports = [
         self.nixosModules.thinkpadHardwareConfiguration
         self.nixosModules.thinkpadDiskoConfiguration
+        self.nixosModules.impermanence
         self.nixosModules.laptopTemplate
         self.nixosModules.keanu
       ];
+
+      # Values consumed by modules/features/impermanence.nix. The unit
+      # name is systemd-escaped: `/` → `-`, and each original `-` in the
+      # path becomes `\x2d` (double-backslashed here to survive the
+      # nix string parser).
+      impermanence = {
+        enable = true;
+        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
+        rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
+      };
 
       networking = {
         hostName = "thinkpad";

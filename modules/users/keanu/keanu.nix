@@ -7,6 +7,9 @@
       config,
       ...
     }:
+    let
+      usingImpermanence = config.impermanence.enable;
+    in
     {
 
       config = {
@@ -74,7 +77,42 @@
         };
 
         home-manager.users.keanu = {
-          home.stateVersion = config.system.stateVersion;
+          home = {
+            stateVersion = config.system.stateVersion;
+          }
+          // lib.optionalAttrs usingImpermanence {
+            # /home/keanu is wiped on boot
+            persistence."/persist" = {
+              directories = [
+                ".ssh"
+                ".local/state"
+                ".local/share/nix"
+                ".local/share/nvim" # neovim state (shada, swap, undo, plugin data)
+                ".local/share/zoxide" # zoxide frecency database
+                ".config/nushell" # nushell history
+                ".config/sops" # sops CLI age key
+                ".gnupg" # GPG keyring (signing/encryption keys)
+                ".docker" # docker registry auth tokens
+                ".pki" # NSS certificate DB (custom CA trust for chromium/firefox)
+                "Downloads"
+                "Documents"
+              ]
+              ++ lib.optionals (!config.isServer) [
+                ".config/discord"
+                ".config/Vencord" # Vencord plugins etc
+                ".mozilla"
+                ".config/mozilla"
+                ".config/Slack" # Slack authentication and settings
+                ".aws" # awscli credentials + config
+                ".azure" # azure-cli auth
+                ".config/gh" # gh cli auth
+                ".claude" # claude-code projects, shell snapshots, todos
+              ];
+              files = lib.optionals (!config.isServer) [
+                ".claude.json" # claude-code per-project config + auth
+              ];
+            };
+          };
           xdg.userDirs = {
             createDirectories = !config.isServer;
             documents = "${config.users.users.keanu.home}/Documents";

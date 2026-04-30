@@ -47,6 +47,9 @@
     };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
+    };
+    impermanence = {
+      url = "github:nix-community/impermanence";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     quickshell = {
