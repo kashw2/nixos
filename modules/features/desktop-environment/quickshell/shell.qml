@@ -103,6 +103,7 @@ ShellRoot {
     property var toastNotification: null
     property var notifHistory: []
     property int notifCount: 0
+    property var notifExpandedGroups: []
 
     // System monitor
     property real cpuPercent: 0
@@ -170,6 +171,17 @@ ShellRoot {
         list.splice(index, 1);
         shell.notifHistory = list;
         shell.notifCount = list.length;
+    }
+
+    function toggleNotifGroup(appName) {
+        var list = shell.notifExpandedGroups.slice();
+        var idx = list.indexOf(appName);
+        if (idx === -1) {
+            list.push(appName);
+        } else {
+            list.splice(idx, 1);
+        }
+        shell.notifExpandedGroups = list;
     }
 
     function showBatteryNotification(threshold) {
