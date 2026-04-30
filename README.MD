@@ -2,6 +2,8 @@
 
 <div align="center">
 	<img src="screenshots/desktop.png">
+	<img src="screenshots/widget.png">
+	<img src="screenshots/neovim.png">
 </div>
 <br>
 
