@@ -206,12 +206,12 @@
             max_half_open_connections = 100;
 
             # Active torrents
-            max_active_limit = 500;
-            max_active_seeding = 500;
+            max_active_limit = 1000;
+            max_active_seeding = 1000;
             max_active_downloading = 20;
 
             # Upload slots
-            max_upload_slots_global = 500;
+            max_upload_slots_global = 1000;
             max_upload_slots_per_torrent = 8;
 
             # Speeds — unlimited for seedbox
