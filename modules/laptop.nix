@@ -25,8 +25,9 @@
 
       fonts.packages = [
         pkgs.jetbrains-mono
-      ]
-      ++ (builtins.filter lib.isDerivation (builtins.attrValues pkgs.nerd-fonts));
+        pkgs.nerd-fonts.jetbrains-mono
+        pkgs.nerd-fonts.symbols-only
+      ];
 
       xdg = {
         mime = {
