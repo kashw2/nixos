@@ -19,10 +19,15 @@ colmena apply
 colmena apply --on home
 colmena apply --on laptop
 colmena apply --on thinkpad
+colmena apply --on media
+colmena apply --on homelab
 
 # Build a specific host configuration without deploying
 nix build .#nixosConfigurations.home.config.system.build.toplevel
 nix build .#nixosConfigurations.laptop.config.system.build.toplevel
+nix build .#nixosConfigurations.thinkpad.config.system.build.toplevel
+nix build .#nixosConfigurations.media.config.system.build.toplevel
+nix build .#nixosConfigurations.homelab.config.system.build.toplevel
 
 # Check flake outputs
 nix flake show
