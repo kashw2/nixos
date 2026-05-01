@@ -1,0 +1,83 @@
+name: Detect Hosts
+description: Classify a PR's changed paths and emit the matrix of hosts to build.
+outputs:
+  hosts:
+    description: JSON array of hosts to build.
+    value: ${{ steps.classify.outputs.hosts }}
+runs:
+  using: composite
+  steps:
+    - uses: dorny/paths-filter@v3
+      id: changes
+      if: github.event_name == 'pull_request'
+      with:
+        filters: |
+          desktop:
+            - 'modules/features/desktop-environment/**'
+            - 'modules/features/audio.nix'
+            - 'modules/features/virtualisation.nix'
+            - 'modules/features/kitty.nix'
+            - 'modules/desktop.nix'
+            - 'modules/laptop.nix'
+            - 'modules/hosts/home/**'
+            - 'modules/hosts/laptop/**'
+            - 'modules/hosts/thinkpad/**'
+          server:
+            - 'modules/server.nix'
+            - 'modules/features/jellyfin.nix'
+            - 'modules/features/telemetry/**'
+            - 'modules/hosts/media/**'
+            - 'modules/hosts/homelab/**'
+          shared:
+            - '**'
+            - '!modules/features/desktop-environment/**'
+            - '!modules/features/audio.nix'
+            - '!modules/features/virtualisation.nix'
+            - '!modules/features/kitty.nix'
+            - '!modules/desktop.nix'
+            - '!modules/laptop.nix'
+            - '!modules/hosts/home/**'
+            - '!modules/hosts/laptop/**'
+            - '!modules/hosts/thinkpad/**'
+            - '!modules/server.nix'
+            - '!modules/features/jellyfin.nix'
+            - '!modules/features/telemetry/**'
+            - '!modules/hosts/media/**'
+            - '!modules/hosts/homelab/**'
+    - id: classify
+      shell: bash
+      env:
+        EVENT: ${{ github.event_name }}
+        BRANCH: ${{ github.head_ref }}
+        DESKTOP_CHANGED: ${{ steps.changes.outputs.desktop }}
+        SERVER_CHANGED: ${{ steps.changes.outputs.server }}
+        SHARED_CHANGED: ${{ steps.changes.outputs.shared }}
+      run: |
+        ALL='["home","laptop","thinkpad","media","homelab"]'
+        DESKTOP='["home","laptop","thinkpad"]'
+        SERVER='["media","homelab"]'
+        DESKTOP_INPUT_BRANCHES='update-hyprland-flake-input update-hyprpaper-flake-input update-hyprlock-flake-input update-rose-pine-hyprcursor-flake-input update-xdg-desktop-portal-hyprland-flake-input update-quickshell-flake-input'
+
+        if [ "$EVENT" != "pull_request" ]; then
+          echo "hosts=$ALL" >> "$GITHUB_OUTPUT"; exit 0
+        fi
+
+        for b in $DESKTOP_INPUT_BRANCHES; do
+          if [ "$BRANCH" = "$b" ]; then
+            echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+        done
+
+        if [ "$SHARED_CHANGED" = "true" ]; then
+          echo "hosts=$ALL" >> "$GITHUB_OUTPUT"; exit 0
+        fi
+
+        if [ "$DESKTOP_CHANGED" = "true" ] && [ "$SERVER_CHANGED" = "true" ]; then
+          echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
+        elif [ "$DESKTOP_CHANGED" = "true" ]; then
+          echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"
+        elif [ "$SERVER_CHANGED" = "true" ]; then
+          echo "hosts=$SERVER" >> "$GITHUB_OUTPUT"
+        else
+          echo "hosts=$ALL" >> "$GITHUB_OUTPUT"
+        fi
