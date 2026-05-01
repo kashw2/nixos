@@ -37,6 +37,7 @@ let
     "laptop"
     "thinkpad"
     "media"
+    "homelab"
   ];
 in
 {
