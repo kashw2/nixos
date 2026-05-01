@@ -30,15 +30,14 @@
 #
 # The USB layout matches modules/installer.nix's install-host so the
 # same stick works for both ISO-based and over-the-network installs.
-{ self, inputs, ... }:
+{
+  self,
+  inputs,
+  lib,
+  ...
+}:
 let
-  hosts = [
-    "home"
-    "laptop"
-    "thinkpad"
-    "media"
-    "homelab"
-  ];
+  hosts = lib.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts));
 in
 {
   perSystem =
