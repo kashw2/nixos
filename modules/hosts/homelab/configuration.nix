@@ -19,6 +19,18 @@
 
       features.telemetry.role = "client";
 
+      # For some reason the homelab host doesn't like systemd-boot which is provided by the serverTemplate module
+      # We force it to use grub here
+      # TODO: Figure out why this is the case and remove the need for forcing a different boot loader configuration on a server
+      boot.loader.grub = {
+        enable = lib.mkForce true;
+        configurationLimit = 10;
+        efiSupport = true;
+        efiInstallAsRemovable = true;
+      };
+      boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
+      boot.loader.systemd-boot.enable = lib.mkForce false;
+
       impermanence = {
         enable = false;
         rootDevice = "/dev/disk/by-partlabel/disk-main-root";
