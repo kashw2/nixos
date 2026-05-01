@@ -1,14 +1,11 @@
-{ self, inputs, ... }:
+{
+  self,
+  inputs,
+  lib,
+  ...
+}:
 let
-  # Hosts that get a per-host installer ISO. Must match the attrs defined in
-  # flake.nixosConfigurations (see modules/hosts/*/default.nix).
-  hosts = [
-    "home"
-    "laptop"
-    "thinkpad"
-    "media"
-    "homelab"
-  ];
+  hosts = lib.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts));
 in
 {
   flake.nixosModules.installer =
