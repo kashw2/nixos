@@ -70,6 +70,8 @@
           };
         };
 
+        documentation.enable = false;
+
         environment = {
           shells = [ self.packages.${pkgs.stdenv.hostPlatform.system}.nushell ];
           localBinInPath = true;
