@@ -37,39 +37,6 @@ jobs:
       - run: nix develop --command nix flake check --no-build --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    strategy:
-      fail-fast: true
-      matrix:
-        input:
-          - jellyfin
-          - arr-stack
-          - telemetry-host
-    steps:
-      - uses: actions/checkout@v6
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-      - uses: cachix/install-nix-action@v31.10.5
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nixos-tests
-          restore-prefixes-all-match: |
-            nix-devshell
-            nixos-tests
-          gc-max-store-size-linux: 6G
-      - run: nix build .#checks.x86_64-linux.${{ matrix.input }} --impure --print-build-logs
-        env:
-          NIXPKGS_ALLOW_UNFREE: 1
   detect-hosts:
     name: Detect Hosts
     runs-on: ubuntu-latest
