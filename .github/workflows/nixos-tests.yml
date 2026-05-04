@@ -5,7 +5,7 @@ on:
     paths:
       - flake.nix
       - flake.lock
-      - modules/tests/**
+      - tests/**
       - modules/features/jellyfin.nix
       - modules/features/telemetry/**
       - .github/workflows/nixos-tests.yml
