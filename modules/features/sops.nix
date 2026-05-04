@@ -98,6 +98,7 @@
           };
           "github_kashw2_pat" = { };
           "github_tablogs_pat" = { };
+          "github_classic_pat" = { };
           "keanu_password".neededForUsers = true;
           "infracost_api_key" = {
             owner = "keanu";
@@ -113,6 +114,20 @@
           content = "access-tokens = github.com=${config.sops.placeholder.github_kashw2_pat} github.com/tablogs=${config.sops.placeholder.github_tablogs_pat}";
           group = "wheel";
           mode = "0440";
+        };
+
+        templates.".npmrc" = {
+          content = ''
+            registry=https://registry.npmjs.org/
+            @testlab360:registry=https://npm.pkg.github.com/
+            @tablogs:registry=https://npm.pkg.github.com/
+            @kashw2:registry=https://npm.pkg.github.com/
+            //npm.pkg.github.com/:_authToken=${config.sops.placeholder.github_classic_pat}
+          '';
+          owner = "keanu";
+          group = "keanu";
+          mode = "0600";
+          path = if usingImpermanence then "/persist/home/keanu/.npmrc" else "/home/keanu/.npmrc";
         };
       };
     };
