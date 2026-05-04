@@ -41,13 +41,15 @@ Because every host uses impermanence + sops-nix, `/persist` needs the sops age k
 
 ## Usage
 
-On the target: boot the NixOS minimal installer ISO and set a root password (`sudo passwd root` in the installer console). This is required because `nixos-anywhere` runs as root for disko/install; the installer's `nixos` user isn't a workable substitute.
+On the target: boot the NixOS minimal installer ISO and set a root password (`sudo passwd root` in the installer console).
 
-On the deploy machine, with the key USB mounted:
+On the deploy machine, with the USB containing age/sops keys mounted:
 
 ```bash
 nix run .#deploy-host -- --host laptop --ip 192.168.1.6
 ```
+
+replacing the host with the host you'd like to deploy and the ip with the machine ipv4
 
 Type the root password when `ssh-copy-id` prompts you
 
