@@ -58,11 +58,7 @@
               enable = true;
               checkConfig = true;
               settings =
-                mkLogRotateSetting "nginx" "/var/log/nginx/*.log"
-                // mkLogRotateSetting "auditd" "/var/log/audit/audit.log"
-                // mkLogRotateSetting "auditd" "/var/log/auth.log"
-                // mkLogRotateSetting "messages" "/var/log/messages"
-                // mkLogRotateSetting "warn" "/var/log/warn";
+                mkLogRotateSetting "messages" "/var/log/messages" // mkLogRotateSetting "warn" "/var/log/warn";
             };
           rsyslogd = {
             enable = true;
