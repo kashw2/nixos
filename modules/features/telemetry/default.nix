@@ -36,6 +36,34 @@
           ];
 
         services = {
+          logrotate =
+            let
+              # mkLogRotateSetting is a function that takes a service name (name) for which the log file is generated for
+              # and the path to it. It's purpose is to remove code duplication
+              mkLogRotateSetting =
+                name: filePath:
+                builtins.mapAttrs
+                  (value: _: {
+                    inherit name value;
+                  })
+                  {
+                    compress = true;
+                    delaycompress = true;
+                    files = filePath;
+                    frequency = "daily";
+                    rotate = 7;
+                  };
+            in
+            {
+              enable = true;
+              checkConfig = true;
+              settings =
+                mkLogRotateSetting "nginx" "/var/log/nginx/*.log"
+                // mkLogRotateSetting "auditd" "/var/log/audit/audit.log"
+                // mkLogRotateSetting "auditd" "/var/log/auth.log"
+                // mkLogRotateSetting "messages" "/var/log/messages"
+                // mkLogRotateSetting "warn" "/var/log/warn";
+            };
           rsyslogd = {
             enable = true;
             extraConfig = ''
