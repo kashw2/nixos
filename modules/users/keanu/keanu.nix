@@ -132,23 +132,6 @@
           programs = {
             home-manager.enable = true;
             mcp.enable = !config.isServer;
-            opencode = {
-              enable = !config.isServer;
-              enableMcpIntegration = true;
-              settings = {
-                provider = {
-                  lmstudio = {
-                    options.baseURL = "http://localhost:1234/v1";
-                    models = {
-                      "qwen3.5:9b" = {
-                        _launch = true;
-                        name = "qwen3.5:9b";
-                      };
-                    };
-                  };
-                };
-              };
-            };
             claude-code = {
               enable = !config.isServer;
               enableMcpIntegration = true;
