@@ -47,7 +47,6 @@
               pkgs.terraform
               pkgs.ansible
               pkgs.antigravity
-              pkgs.claude-code
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
@@ -128,6 +127,7 @@
             fetch.enable = true;
             git.enable = true;
             memory.enable = true;
+            github.enable = true;
           };
           programs = {
             home-manager.enable = true;
