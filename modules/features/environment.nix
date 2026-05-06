@@ -123,7 +123,6 @@
 
         services = {
           fwupd.enable = true;
-          gvfs.enable = true; # Nautilus requires this for certain locations (Trash etc)
         };
 
         system.stateVersion = "25.11";

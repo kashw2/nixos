@@ -49,5 +49,9 @@
         };
       };
 
+      services = {
+        gvfs.enable = true; # Nautilus requires this for certain locations (Trash etc)
+      };
+
     };
 }
