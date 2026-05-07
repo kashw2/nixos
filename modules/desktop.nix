@@ -23,6 +23,8 @@
         efiInstallAsRemovable = true;
       };
 
+      hardware.openrazer.enable = true;
+
       fonts.packages = [
         pkgs.jetbrains-mono
         pkgs.nerd-fonts.jetbrains-mono
@@ -47,6 +49,10 @@
             "x-scheme-handler/unknown" = "firefox-devedition.desktop";
           };
         };
+      };
+
+      services = {
+        gvfs.enable = true; # Nautilus requires this for certain locations (Trash etc)
       };
 
     };

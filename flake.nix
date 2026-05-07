@@ -66,9 +66,14 @@
       }
       {
         systems = [ "x86_64-linux" ];
-        imports = (inputs.import-tree [ ./modules ./tests ]).imports ++ [
-          inputs.wrapper-modules.flakeModules.default
-        ];
+        imports =
+          (inputs.import-tree [
+            ./modules
+            ./tests
+          ]).imports
+          ++ [
+            inputs.wrapper-modules.flakeModules.default
+          ];
         perSystem =
           { pkgs, ... }:
           {
