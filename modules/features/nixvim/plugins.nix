@@ -1,7 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.nixvimPlugins =
-    { config, pkgs, lib, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     {
       programs.nixvim.extraPlugins = [
         self.packages.${pkgs.stdenv.hostPlatform.system}.atone-nvim
@@ -24,6 +29,21 @@
       programs.nixvim.plugins = {
         nix.enable = true;
         nix-develop.enable = true;
+        claude-code = {
+          enable = true;
+          settings = {
+            window.position = "float";
+            window.float = {
+              width = "80%";
+              height = "85%";
+              row = "center";
+              col = "center";
+              border = "rounded";
+              relative = "editor";
+            };
+            git.use_git_root = false;
+          };
+        };
         web-devicons.enable = true;
         snacks.enable = true;
         auto-session.enable = true;
