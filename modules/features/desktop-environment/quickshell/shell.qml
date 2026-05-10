@@ -1698,181 +1698,193 @@ ShellRoot {
                 }
             }
 
-            // === Centre: Date / Time + Weather (anchored to true centre) ===
-            Rectangle {
-                id: dateArea
-                property bool hovered: false
-
+            // === Centre: Date / Time + Weather (anchored to true centre, two separate widgets) ===
+            Row {
+                id: centreRow
                 anchors.centerIn: parent
-                width: centreRow.implicitWidth + 20
-                height: 22
-                radius: 4
-                color: hovered ? Theme.buttonHover : "transparent"
+                spacing: 8
 
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Rectangle {
+                    id: dateArea
+                    property bool hovered: false
 
-                Row {
-                    id: centreRow
-                    anchors.centerIn: parent
-                    spacing: 8
+                    width: dateText.implicitWidth + 20
+                    height: 22
+                    radius: 4
+                    color: hovered ? Theme.buttonHover : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     Text {
                         id: dateText
+                        anchors.centerIn: parent
                         text: shell.showFullDate
                             ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
                             : Qt.formatDateTime(clock.date, "h:mm AP")
                         color: Theme.text
                         font.pixelSize: 13
-                        anchors.verticalCenter: parent.verticalCenter
                     }
 
-                    Rectangle {
-                        visible: shell.weatherCondition !== ""
-                        width: 1
-                        height: 12
-                        color: Theme.iconDim
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Canvas {
-                        id: weatherCanvas
-                        visible: shell.weatherCondition !== ""
-                        width: 14
-                        height: 14
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        property string cond: shell.weatherCondition
-                        property color iconColor: Theme.iconPrimary
-                        onCondChanged: requestPaint()
-                        onIconColorChanged: requestPaint()
-                        onVisibleChanged: if (visible) requestPaint()
-                        Component.onCompleted: requestPaint()
-
-                        function weatherType() {
-                            var c = cond;
-                            if (c.indexOf("thunder") !== -1) return "thunder";
-                            if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
-                            if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
-                            if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
-                            if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
-                            if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
-                            if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
-                            return "cloudy";
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: function(mouse) {
+                            if (mouse.button === Qt.MiddleButton)
+                                Theme.mode = Theme.isDark ? Theme.Light : Theme.Dark;
+                            else
+                                shell.showFullDate = !shell.showFullDate;
                         }
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-                            var type = weatherType();
-
-                            ctx.strokeStyle = iconColor;
-                            ctx.fillStyle = iconColor;
-                            ctx.lineWidth = 1.3;
-                            ctx.lineCap = "round";
-
-                            if (type === "sunny") {
-                                // Sun circle
-                                ctx.beginPath();
-                                ctx.arc(7, 7, 3, 0, 2 * Math.PI);
-                                ctx.fill();
-                                // Rays
-                                for (var i = 0; i < 8; i++) {
-                                    var a = i * Math.PI / 4;
-                                    ctx.beginPath();
-                                    ctx.moveTo(7 + Math.cos(a) * 4.5, 7 + Math.sin(a) * 4.5);
-                                    ctx.lineTo(7 + Math.cos(a) * 6.5, 7 + Math.sin(a) * 6.5);
-                                    ctx.stroke();
-                                }
-                            } else if (type === "partlycloudy") {
-                                // Small sun behind cloud
-                                ctx.beginPath();
-                                ctx.arc(10, 4, 2.5, 0, 2 * Math.PI);
-                                ctx.fill();
-                                for (var j = 0; j < 6; j++) {
-                                    var a2 = j * Math.PI / 3 - Math.PI / 6;
-                                    ctx.beginPath();
-                                    ctx.moveTo(10 + Math.cos(a2) * 3.5, 4 + Math.sin(a2) * 3.5);
-                                    ctx.lineTo(10 + Math.cos(a2) * 5, 4 + Math.sin(a2) * 5);
-                                    ctx.stroke();
-                                }
-                                // Cloud
-                                ctx.beginPath();
-                                ctx.arc(4, 9, 3, Math.PI, 1.5 * Math.PI);
-                                ctx.arc(7, 6.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
-                                ctx.arc(10.5, 9, 2.5, 1.5 * Math.PI, 0);
-                                ctx.lineTo(13, 11);
-                                ctx.lineTo(1, 11);
-                                ctx.closePath();
-                                ctx.fill();
-                            } else {
-                                // Cloud base for cloudy/rain/snow/thunder/fog
-                                ctx.beginPath();
-                                ctx.arc(4, 8, 3, Math.PI, 1.5 * Math.PI);
-                                ctx.arc(7, 5.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
-                                ctx.arc(10.5, 8, 2.5, 1.5 * Math.PI, 0);
-                                ctx.lineTo(13, 10);
-                                ctx.lineTo(1, 10);
-                                ctx.closePath();
-                                ctx.fill();
-
-                                if (type === "rain" || type === "thunder") {
-                                    ctx.lineWidth = 1.2;
-                                    ctx.beginPath(); ctx.moveTo(4, 11.5); ctx.lineTo(3, 13.5); ctx.stroke();
-                                    ctx.beginPath(); ctx.moveTo(7, 11.5); ctx.lineTo(6, 13.5); ctx.stroke();
-                                    ctx.beginPath(); ctx.moveTo(10, 11.5); ctx.lineTo(9, 13.5); ctx.stroke();
-                                }
-                                if (type === "thunder") {
-                                    ctx.lineWidth = 1.4;
-                                    ctx.beginPath();
-                                    ctx.moveTo(8, 10); ctx.lineTo(6.5, 12); ctx.lineTo(8, 12); ctx.lineTo(6.5, 14);
-                                    ctx.stroke();
-                                }
-                                if (type === "snow") {
-                                    ctx.font = "8px sans-serif";
-                                    ctx.fillText("*", 3, 13.5);
-                                    ctx.fillText("*", 7, 13.5);
-                                    ctx.fillText("*", 11, 13.5);
-                                }
-                                if (type === "fog") {
-                                    ctx.lineWidth = 1;
-                                    ctx.beginPath(); ctx.moveTo(2, 11.5); ctx.lineTo(12, 11.5); ctx.stroke();
-                                    ctx.beginPath(); ctx.moveTo(3, 13); ctx.lineTo(11, 13); ctx.stroke();
-                                }
-                            }
-                        }
-                    }
-
-                    Text {
-                        visible: shell.weatherCondition !== ""
-                        text: shell.weatherTemp
-                        color: Theme.text
-                        font.pixelSize: 13
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Text {
-                        visible: shell.weatherEffectOverride !== ""
-                        text: "(" + shell.weatherEffectOverride + ")"
-                        color: Theme.textDim
-                        font.pixelSize: 11
-                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    cursorShape: Qt.PointingHandCursor
-                    onEntered: parent.hovered = true
-                    onExited: parent.hovered = false
-                    onClicked: function(mouse) {
-                        if (mouse.button === Qt.RightButton)
-                            shell.cycleWeatherEffect();
-                        else if (mouse.button === Qt.MiddleButton)
-                            Theme.mode = Theme.isDark ? Theme.Light : Theme.Dark;
-                        else
-                            shell.showFullDate = !shell.showFullDate;
+                Rectangle {
+                    id: weatherArea
+                    property bool hovered: false
+
+                    visible: shell.weatherCondition !== ""
+                    width: weatherRow.implicitWidth + 16
+                    height: 22
+                    radius: 4
+                    color: hovered ? Theme.buttonHover : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Row {
+                        id: weatherRow
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        Canvas {
+                            id: weatherCanvas
+                            width: 14
+                            height: 14
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            property string cond: shell.weatherCondition
+                            property color iconColor: Theme.iconPrimary
+                            onCondChanged: requestPaint()
+                            onIconColorChanged: requestPaint()
+                            onVisibleChanged: if (visible) requestPaint()
+                            Component.onCompleted: requestPaint()
+
+                            function weatherType() {
+                                var c = cond;
+                                if (c.indexOf("thunder") !== -1) return "thunder";
+                                if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
+                                if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
+                                if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
+                                if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
+                                if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
+                                if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
+                                return "cloudy";
+                            }
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.clearRect(0, 0, width, height);
+                                var type = weatherType();
+
+                                ctx.strokeStyle = iconColor;
+                                ctx.fillStyle = iconColor;
+                                ctx.lineWidth = 1.3;
+                                ctx.lineCap = "round";
+
+                                if (type === "sunny") {
+                                    ctx.beginPath();
+                                    ctx.arc(7, 7, 3, 0, 2 * Math.PI);
+                                    ctx.fill();
+                                    for (var i = 0; i < 8; i++) {
+                                        var a = i * Math.PI / 4;
+                                        ctx.beginPath();
+                                        ctx.moveTo(7 + Math.cos(a) * 4.5, 7 + Math.sin(a) * 4.5);
+                                        ctx.lineTo(7 + Math.cos(a) * 6.5, 7 + Math.sin(a) * 6.5);
+                                        ctx.stroke();
+                                    }
+                                } else if (type === "partlycloudy") {
+                                    ctx.beginPath();
+                                    ctx.arc(10, 4, 2.5, 0, 2 * Math.PI);
+                                    ctx.fill();
+                                    for (var j = 0; j < 6; j++) {
+                                        var a2 = j * Math.PI / 3 - Math.PI / 6;
+                                        ctx.beginPath();
+                                        ctx.moveTo(10 + Math.cos(a2) * 3.5, 4 + Math.sin(a2) * 3.5);
+                                        ctx.lineTo(10 + Math.cos(a2) * 5, 4 + Math.sin(a2) * 5);
+                                        ctx.stroke();
+                                    }
+                                    ctx.beginPath();
+                                    ctx.arc(4, 9, 3, Math.PI, 1.5 * Math.PI);
+                                    ctx.arc(7, 6.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
+                                    ctx.arc(10.5, 9, 2.5, 1.5 * Math.PI, 0);
+                                    ctx.lineTo(13, 11);
+                                    ctx.lineTo(1, 11);
+                                    ctx.closePath();
+                                    ctx.fill();
+                                } else {
+                                    ctx.beginPath();
+                                    ctx.arc(4, 8, 3, Math.PI, 1.5 * Math.PI);
+                                    ctx.arc(7, 5.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
+                                    ctx.arc(10.5, 8, 2.5, 1.5 * Math.PI, 0);
+                                    ctx.lineTo(13, 10);
+                                    ctx.lineTo(1, 10);
+                                    ctx.closePath();
+                                    ctx.fill();
+
+                                    if (type === "rain" || type === "thunder") {
+                                        ctx.lineWidth = 1.2;
+                                        ctx.beginPath(); ctx.moveTo(4, 11.5); ctx.lineTo(3, 13.5); ctx.stroke();
+                                        ctx.beginPath(); ctx.moveTo(7, 11.5); ctx.lineTo(6, 13.5); ctx.stroke();
+                                        ctx.beginPath(); ctx.moveTo(10, 11.5); ctx.lineTo(9, 13.5); ctx.stroke();
+                                    }
+                                    if (type === "thunder") {
+                                        ctx.lineWidth = 1.4;
+                                        ctx.beginPath();
+                                        ctx.moveTo(8, 10); ctx.lineTo(6.5, 12); ctx.lineTo(8, 12); ctx.lineTo(6.5, 14);
+                                        ctx.stroke();
+                                    }
+                                    if (type === "snow") {
+                                        ctx.font = "8px sans-serif";
+                                        ctx.fillText("*", 3, 13.5);
+                                        ctx.fillText("*", 7, 13.5);
+                                        ctx.fillText("*", 11, 13.5);
+                                    }
+                                    if (type === "fog") {
+                                        ctx.lineWidth = 1;
+                                        ctx.beginPath(); ctx.moveTo(2, 11.5); ctx.lineTo(12, 11.5); ctx.stroke();
+                                        ctx.beginPath(); ctx.moveTo(3, 13); ctx.lineTo(11, 13); ctx.stroke();
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: shell.weatherTemp
+                            color: Theme.text
+                            font.pixelSize: 13
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            visible: shell.weatherEffectOverride !== ""
+                            text: "(" + shell.weatherEffectOverride + ")"
+                            color: Theme.textDim
+                            font.pixelSize: 11
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: shell.cycleWeatherEffect()
                     }
                 }
             }
