@@ -129,7 +129,15 @@
             fetch.enable = true;
             git.enable = true;
             memory.enable = true;
-            github.enable = true;
+            github = {
+              enable = true;
+              type = "stdio";
+              passwordCommand.GITHUB_PERSONAL_ACCESS_TOKEN = [
+                "gh"
+                "auth"
+                "token"
+              ];
+            };
           };
           programs = {
             home-manager.enable = true;
