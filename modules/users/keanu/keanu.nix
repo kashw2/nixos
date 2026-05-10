@@ -55,6 +55,8 @@
               pkgs.infracost
               pkgs.prettier
               pkgs.nodejs_24
+              pkgs.go
+              pkgs.gcc # Required by some go projects
               pkgs.bruno
               pkgs.vlc
               pkgs.d2
