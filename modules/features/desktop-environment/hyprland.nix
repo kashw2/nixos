@@ -166,7 +166,6 @@
 
               dwindle {
                 preserve_split=true
-                pseudotile=true
               }
 
               env=XCURSOR_SIZE,24
