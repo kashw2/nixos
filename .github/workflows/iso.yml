@@ -43,6 +43,10 @@ jobs:
           docker-images: true
           swap-storage: true
       - uses: cachix/install-nix-action@v31.10.6
+        with:
+          extra_nix_config: |
+            extra-substituters = https://nix-community.cachix.org
+            extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-iso
