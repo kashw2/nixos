@@ -14,7 +14,7 @@
 
       programs.nixvim = {
         enable = true;
-        package = pkgs.neovim-unwrapped;
+        package = inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.neovim;
         viAlias = true;
         vimAlias = true;
         globalOpts = {
