@@ -41,8 +41,12 @@
                 "monitor=eDP-1,1920x1080@60,0x0,1"
               else if config.isDesktop then
                 ''
-                  monitor=HDMI-A-1,1920x1080@60,1920x0,1
                   monitor=DP-3,1920x1080@60,0x0,1
+                  monitor=HDMI-A-1,1920x1080@60,1920x0,1
+                  workspace=1,monitor:HDMI-A-1,default:true
+                  workspace=2,monitor:DP-3,default:true
+                  workspace=3,monitor:HDMI-A-1,default:true
+                  workspace=4,monitor:DP-3,default:true
                 ''
               else
                 ''
@@ -57,6 +61,11 @@
               exec-once=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper}
               exec-once=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle}
               exec-once=${lib.getExe' pkgs.wl-clipboard "wl-paste"} --watch ${lib.getExe pkgs.cliphist} store
+              exec-once=${
+                lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.kitty
+              } --class kitty-nixosvi --directory ~/nixos vi
+              exec-once=${lib.getExe pkgs.slack}
+              exec-once=${lib.getExe pkgs.firefox-devedition}
               exec-once=${
                 lib.getExe (
                   self.packages.${pkgs.stdenv.hostPlatform.system}.quickshell.wrap {
@@ -206,6 +215,11 @@
               }
 
               layerrule = blur on, ignore_alpha 0.2, match:namespace quickshell
+
+              windowrule=workspace 1 silent, match:class ^(firefox-devedition)$
+              windowrule=workspace 4 silent, match:class ^(kitty-nixosvi)$
+              windowrule=workspace 3 silent, match:class ^(Slack)$
+              windowrule=workspace 3 silent, match:class ^(discord)$
 
               ${monitorConfiguration}
             '')
