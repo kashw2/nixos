@@ -38,7 +38,7 @@ jobs:
           primary-key: nix-devshell
           restore-prefixes-first-match: nix-devshell
           gc-max-store-size-linux: 3G
-      - run: nix develop --command nix flake check --no-build --impure
+      - run: nix develop --command nix flake check --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
   detect-hosts:
