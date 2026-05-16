@@ -95,6 +95,7 @@
                 ".gnupg" # GPG keyring (signing/encryption keys)
                 ".docker" # docker registry auth tokens
                 ".pki" # NSS certificate DB (custom CA trust for chromium/firefox)
+                "nixos"
                 "Downloads"
                 "Documents"
               ]
