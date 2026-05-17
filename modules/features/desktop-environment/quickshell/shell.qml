@@ -11,7 +11,7 @@ ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow"
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather"
     property string activePopup: ""
     property var activePopupScreen: null
     property string selectedNetworkName: ""
@@ -97,6 +97,19 @@ ShellRoot {
         var modes = ["", "rain", "snow", "thunder"];
         var idx = modes.indexOf(weatherEffectOverride);
         weatherEffectOverride = modes[(idx + 1) % modes.length];
+    }
+
+    // Each entry: { date, weatherCode, tempMax, tempMin, precipChance }
+    property var weatherForecast: []
+    property string weatherLocationName: ""
+
+    // Shared animation clock for weather icons.
+    property real weatherAnimTime: 0
+    Timer {
+        interval: 50
+        running: true
+        repeat: true
+        onTriggered: shell.weatherAnimTime += 0.05
     }
 
     property bool toastVisible: false
@@ -908,6 +921,65 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: weatherCheck.running = true
+    }
+
+    // 7-day forecast via Open-Meteo. Location resolved from IP via ipinfo.io.
+    Process {
+        id: weatherForecastCheck
+        command: ["sh", "-c", "info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\""]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.toString();
+                var sep = line.indexOf("|");
+                if (sep < 0) return;
+                var city = line.substring(0, sep);
+                var json = line.substring(sep + 1).trim();
+                if (json === "") return;
+                try {
+                    var parsed = JSON.parse(json);
+                    if (!parsed.daily) return;
+                    var d = parsed.daily;
+
+                    // Aggregate hourly humidity into a daily mean keyed by date.
+                    var humByDate = {};
+                    var h = parsed.hourly;
+                    if (h && h.time && h.relative_humidity_2m) {
+                        for (var hi = 0; hi < h.time.length; hi++) {
+                            var dk = h.time[hi].substring(0, 10);
+                            if (!humByDate[dk]) humByDate[dk] = { sum: 0, n: 0 };
+                            humByDate[dk].sum += h.relative_humidity_2m[hi];
+                            humByDate[dk].n += 1;
+                        }
+                    }
+
+                    var days = [];
+                    for (var i = 0; i < d.time.length; i++) {
+                        var bucket = humByDate[d.time[i]];
+                        var humAvg = bucket && bucket.n > 0 ? Math.round(bucket.sum / bucket.n) : null;
+                        days.push({
+                            date: d.time[i],
+                            weatherCode: d.weather_code[i],
+                            tempMax: Math.round(d.temperature_2m_max[i]),
+                            tempMin: Math.round(d.temperature_2m_min[i]),
+                            precipChance: d.precipitation_probability_max[i] != null ? d.precipitation_probability_max[i] : 0,
+                            windSpeed: d.wind_speed_10m_max && d.wind_speed_10m_max[i] != null ? Math.round(d.wind_speed_10m_max[i]) : null,
+                            windDir: d.wind_direction_10m_dominant && d.wind_direction_10m_dominant[i] != null ? d.wind_direction_10m_dominant[i] : null,
+                            humidity: humAvg
+                        });
+                    }
+                    shell.weatherLocationName = city;
+                    shell.weatherForecast = days;
+                } catch(e) {}
+            }
+        }
+    }
+
+    Timer {
+        interval: 3600000
+        running: true
+        repeat: true
+        onTriggered: weatherForecastCheck.running = true
     }
 
     Process {
@@ -1750,7 +1822,8 @@ ShellRoot {
                     width: weatherRow.implicitWidth + 16
                     height: 22
                     radius: 4
-                    color: hovered ? Theme.buttonHover : "transparent"
+                    color: shell.activePopup === "weather" ? Theme.surfaceActive
+                         : hovered ? Theme.buttonHover : "transparent"
                     anchors.verticalCenter: parent.verticalCenter
 
                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -1760,21 +1833,13 @@ ShellRoot {
                         anchors.centerIn: parent
                         spacing: 6
 
-                        Canvas {
+                        WeatherIcon {
                             id: weatherCanvas
-                            width: 14
-                            height: 14
                             anchors.verticalCenter: parent.verticalCenter
-
-                            property string cond: shell.weatherCondition
-                            property color iconColor: Theme.iconPrimary
-                            onCondChanged: requestPaint()
-                            onIconColorChanged: requestPaint()
-                            onVisibleChanged: if (visible) requestPaint()
-                            Component.onCompleted: requestPaint()
-
-                            function weatherType() {
-                                var c = cond;
+                            iconSize: 14
+                            iconType: {
+                                var c = shell.weatherCondition;
+                                if (!c) return "cloudy";
                                 if (c.indexOf("thunder") !== -1) return "thunder";
                                 if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
                                 if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
@@ -1784,82 +1849,7 @@ ShellRoot {
                                 if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
                                 return "cloudy";
                             }
-
-                            onPaint: {
-                                var ctx = getContext("2d");
-                                ctx.clearRect(0, 0, width, height);
-                                var type = weatherType();
-
-                                ctx.strokeStyle = iconColor;
-                                ctx.fillStyle = iconColor;
-                                ctx.lineWidth = 1.3;
-                                ctx.lineCap = "round";
-
-                                if (type === "sunny") {
-                                    ctx.beginPath();
-                                    ctx.arc(7, 7, 3, 0, 2 * Math.PI);
-                                    ctx.fill();
-                                    for (var i = 0; i < 8; i++) {
-                                        var a = i * Math.PI / 4;
-                                        ctx.beginPath();
-                                        ctx.moveTo(7 + Math.cos(a) * 4.5, 7 + Math.sin(a) * 4.5);
-                                        ctx.lineTo(7 + Math.cos(a) * 6.5, 7 + Math.sin(a) * 6.5);
-                                        ctx.stroke();
-                                    }
-                                } else if (type === "partlycloudy") {
-                                    ctx.beginPath();
-                                    ctx.arc(10, 4, 2.5, 0, 2 * Math.PI);
-                                    ctx.fill();
-                                    for (var j = 0; j < 6; j++) {
-                                        var a2 = j * Math.PI / 3 - Math.PI / 6;
-                                        ctx.beginPath();
-                                        ctx.moveTo(10 + Math.cos(a2) * 3.5, 4 + Math.sin(a2) * 3.5);
-                                        ctx.lineTo(10 + Math.cos(a2) * 5, 4 + Math.sin(a2) * 5);
-                                        ctx.stroke();
-                                    }
-                                    ctx.beginPath();
-                                    ctx.arc(4, 9, 3, Math.PI, 1.5 * Math.PI);
-                                    ctx.arc(7, 6.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
-                                    ctx.arc(10.5, 9, 2.5, 1.5 * Math.PI, 0);
-                                    ctx.lineTo(13, 11);
-                                    ctx.lineTo(1, 11);
-                                    ctx.closePath();
-                                    ctx.fill();
-                                } else {
-                                    ctx.beginPath();
-                                    ctx.arc(4, 8, 3, Math.PI, 1.5 * Math.PI);
-                                    ctx.arc(7, 5.5, 3, 1.2 * Math.PI, 1.9 * Math.PI);
-                                    ctx.arc(10.5, 8, 2.5, 1.5 * Math.PI, 0);
-                                    ctx.lineTo(13, 10);
-                                    ctx.lineTo(1, 10);
-                                    ctx.closePath();
-                                    ctx.fill();
-
-                                    if (type === "rain" || type === "thunder") {
-                                        ctx.lineWidth = 1.2;
-                                        ctx.beginPath(); ctx.moveTo(4, 11.5); ctx.lineTo(3, 13.5); ctx.stroke();
-                                        ctx.beginPath(); ctx.moveTo(7, 11.5); ctx.lineTo(6, 13.5); ctx.stroke();
-                                        ctx.beginPath(); ctx.moveTo(10, 11.5); ctx.lineTo(9, 13.5); ctx.stroke();
-                                    }
-                                    if (type === "thunder") {
-                                        ctx.lineWidth = 1.4;
-                                        ctx.beginPath();
-                                        ctx.moveTo(8, 10); ctx.lineTo(6.5, 12); ctx.lineTo(8, 12); ctx.lineTo(6.5, 14);
-                                        ctx.stroke();
-                                    }
-                                    if (type === "snow") {
-                                        ctx.font = "8px sans-serif";
-                                        ctx.fillText("*", 3, 13.5);
-                                        ctx.fillText("*", 7, 13.5);
-                                        ctx.fillText("*", 11, 13.5);
-                                    }
-                                    if (type === "fog") {
-                                        ctx.lineWidth = 1;
-                                        ctx.beginPath(); ctx.moveTo(2, 11.5); ctx.lineTo(12, 11.5); ctx.stroke();
-                                        ctx.beginPath(); ctx.moveTo(3, 13); ctx.lineTo(11, 13); ctx.stroke();
-                                    }
-                                }
-                            }
+                            animTime: shell.weatherAnimTime
                         }
 
                         Text {
@@ -1881,10 +1871,17 @@ ShellRoot {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         cursorShape: Qt.PointingHandCursor
                         onEntered: parent.hovered = true
                         onExited: parent.hovered = false
-                        onClicked: shell.cycleWeatherEffect()
+                        onClicked: function(mouse) {
+                            if (mouse.button === Qt.RightButton) {
+                                shell.cycleWeatherEffect();
+                            } else {
+                                shell.togglePopup("weather", barWindow.modelData);
+                            }
+                        }
                     }
                 }
             }
@@ -1917,6 +1914,9 @@ ShellRoot {
 
     // Notification center popup - one per screen
     NotificationCenter { shell: shell }
+
+    // Weather forecast popup - one per screen
+    WeatherPopup { shell: shell }
 
     // Toast notification popup - one per screen
     ToastNotification { shell: shell }

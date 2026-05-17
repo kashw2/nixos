@@ -12,5 +12,7 @@ ToastNotification 1.0 ToastNotification.qml
 ToggleSwitch 1.0 ToggleSwitch.qml
 TrayOverflowPopup 1.0 TrayOverflowPopup.qml
 VolumePopup 1.0 VolumePopup.qml
+WeatherIcon 1.0 WeatherIcon.qml
 WeatherOverlay 1.0 WeatherOverlay.qml
+WeatherPopup 1.0 WeatherPopup.qml
 WifiPopup 1.0 WifiPopup.qml

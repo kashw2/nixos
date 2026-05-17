@@ -15,6 +15,7 @@ PanelWindow {
     property int padding: 12
     property int spacing: 8
     property real maxImplicitHeight: -1
+    property color backgroundColor: Theme.surfaceBg
 
     default property alias contentData: contentColumn.data
     readonly property bool isActive: root.shell.activePopup === popupName
@@ -52,7 +53,7 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         radius: 12
-        color: Theme.surfaceBg
+        color: root.backgroundColor
         clip: true
 
         Column {
