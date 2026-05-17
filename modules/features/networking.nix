@@ -29,7 +29,24 @@
           "100.79.68.16" = [ "laptop.tailscale" ];
           "100.114.180.17" = [ "thinkpad.tailscale" ];
           "100.91.81.100" = [ "macmini.tailscale" ];
-          "100.116.38.8" = [ "media.tailscale" ];
+          "100.116.38.8" = [
+            "media.tailscale"
+            "mimir.media.tailscale"
+            "radarr.media.tailscale"
+            "sonarr.media.tailscale"
+            "grafana.media.tailscale"
+            "bazarr.media.tailscale"
+            "jellyfin.media.tailscale"
+            "prowlarr.media.tailscale"
+            "deluge.media.tailscale"
+            "alloy.media.tailscale"
+            "flood.media.tailscale"
+            "loki.media.tailscale"
+            "tempo.media.tailscale"
+            "uptime.media.tailscale"
+            "flaresolverr.media.tailscale"
+            "lidarr.media.tailscale"
+          ];
           "192.168.1.5" = [ "home.local" ];
           "192.168.1.6" = [ "laptop.local" ];
           "192.168.1.7" = [ "homelab.local" ];

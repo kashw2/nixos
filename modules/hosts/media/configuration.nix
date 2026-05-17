@@ -164,6 +164,7 @@
             mkVirtualHost = name: port: {
               "${name}" = {
                 serverName = "${name}.${config.networking.hostName}.local";
+                serverAliases = [ "${name}.${config.networking.hostName}.tailscale" ];
                 locations = {
                   "/" = {
                     proxyPass = "http://127.0.0.1:${toString port}/";
