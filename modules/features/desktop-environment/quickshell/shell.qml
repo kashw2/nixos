@@ -1271,76 +1271,10 @@ ShellRoot {
                     onExited: shell.batteryHovered = false
                     onClicked: shell.togglePopup("battery", barWindow.modelData)
 
-                    Canvas {
-                        id: batteryCanvas
+                    BatteryIcon {
                         anchors.centerIn: parent
-                        width: 24
-                        height: 12
-
-                        property int percent: shell.batteryPercent
-                        property bool charging: shell.batteryCharging
-                        property color toggleGreen: Theme.toggleGreen
-                        onPercentChanged: requestPaint()
-                        onChargingChanged: requestPaint()
-                        onToggleGreenChanged: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-
-                            // Battery outline
-                            ctx.strokeStyle = Theme.iconPrimary;
-                            ctx.lineWidth = 1.4;
-                            ctx.lineJoin = "round";
-                            ctx.beginPath();
-                            ctx.roundedRect(0.5, 0.5, 20, 11, 2, 2);
-                            ctx.stroke();
-
-                            // Terminal nub
-                            ctx.fillStyle = Theme.iconPrimary;
-                            ctx.beginPath();
-                            ctx.roundedRect(21, 3, 2.5, 5, 1, 1);
-                            ctx.fill();
-
-                            // Fill colour based on level
-                            var pct = percent / 100;
-                            var fillColor;
-                            if (charging) {
-                                fillColor = toggleGreen;
-                            } else if (percent <= 10) {
-                                fillColor = Qt.rgba(0.9, 0.2, 0.2, 0.9);
-                            } else if (percent <= 25) {
-                                fillColor = Qt.rgba(0.95, 0.5, 0.15, 0.85);
-                            } else if (percent <= 50) {
-                                fillColor = Qt.rgba(0.95, 0.85, 0.2, 0.8);
-                            } else {
-                                fillColor = toggleGreen;
-                            }
-
-                            // Inner fill
-                            var maxFillWidth = 17;
-                            var fillWidth = maxFillWidth * pct;
-                            if (fillWidth > 0.5) {
-                                ctx.fillStyle = fillColor;
-                                ctx.beginPath();
-                                ctx.roundedRect(2, 2.5, fillWidth, 7, 1, 1);
-                                ctx.fill();
-                            }
-
-                            // Charging bolt
-                            if (charging) {
-                                ctx.fillStyle = Theme.iconPrimary;
-                                ctx.beginPath();
-                                ctx.moveTo(12, 1);
-                                ctx.lineTo(8, 6.5);
-                                ctx.lineTo(11, 6.5);
-                                ctx.lineTo(9, 11);
-                                ctx.lineTo(13, 5.5);
-                                ctx.lineTo(10, 5.5);
-                                ctx.closePath();
-                                ctx.fill();
-                            }
-                        }
+                        percent: shell.batteryPercent
+                        charging: shell.batteryCharging
                     }
                 }
 
@@ -1353,81 +1287,10 @@ ShellRoot {
                     active: shell.activePopup === "sysMon"
                     onClicked: shell.togglePopup("sysMon", barWindow.modelData)
 
-                    Canvas {
-                        id: sysMonIcon
+                    SysMonIcon {
                         anchors.centerIn: parent
-                        width: 14
-                        height: 14
-
-                        readonly property int maxPoints: 60
-                        readonly property real xMin: 1.5
-                        readonly property real xMax: 12.5
-                        readonly property real yMin: 1.5
-                        readonly property real yMax: 8.5
-
-                        property var cpuH: shell.cpuHistory
-                        property var ramH: shell.ramHistory
-                        onCpuHChanged: requestPaint()
-                        onRamHChanged: requestPaint()
-
-                        Component.onCompleted: requestPaint()
-                        onVisibleChanged: if (visible) requestPaint()
-
-                        function drawSeries(ctx, h, color, lw) {
-                            if (!h || h.length < 2) return;
-                            var usableW = xMax - xMin;
-                            var usableH = yMax - yMin;
-                            var stepX = usableW / (maxPoints - 1);
-                            var offset = maxPoints - h.length;
-                            ctx.strokeStyle = color;
-                            ctx.lineWidth = lw;
-                            ctx.lineJoin = "round";
-                            ctx.lineCap = "round";
-                            ctx.beginPath();
-                            for (var i = 0; i < h.length; i++) {
-                                var x = xMin + (offset + i) * stepX;
-                                var v = Math.max(0, Math.min(100, h[i]));
-                                var y = yMax - (usableH * v / 100);
-                                if (i === 0) ctx.moveTo(x, y);
-                                else ctx.lineTo(x, y);
-                            }
-                            ctx.stroke();
-                        }
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = Theme.iconPrimary;
-                            ctx.fillStyle = Theme.iconPrimary;
-                            ctx.lineWidth = 1.4;
-                            ctx.lineCap = "round";
-                            ctx.lineJoin = "round";
-                            ctx.beginPath();
-                            ctx.roundedRect(0.5, 0.5, 13, 10, 1.5, 1.5);
-                            ctx.stroke();
-                            ctx.beginPath();
-                            ctx.moveTo(5, 11.5);
-                            ctx.lineTo(9, 11.5);
-                            ctx.stroke();
-                            ctx.beginPath();
-                            ctx.moveTo(7, 10.5);
-                            ctx.lineTo(7, 11.5);
-                            ctx.stroke();
-
-                            var haveCpu = cpuH && cpuH.length >= 2;
-                            var haveRam = ramH && ramH.length >= 2;
-                            if (!haveCpu && !haveRam) {
-                                ctx.strokeStyle = Theme.iconDim;
-                                ctx.lineWidth = 0.8;
-                                ctx.beginPath();
-                                ctx.moveTo(xMin, yMax);
-                                ctx.lineTo(xMax, yMax);
-                                ctx.stroke();
-                                return;
-                            }
-                            drawSeries(ctx, ramH, Theme.graphRam, 0.8);
-                            drawSeries(ctx, cpuH, Theme.graphCpu, 1.0);
-                        }
+                        cpuHistory: shell.cpuHistory
+                        ramHistory: shell.ramHistory
                     }
                 }
 
@@ -1440,55 +1303,9 @@ ShellRoot {
                     active: shell.activePopup === "brightness"
                     onClicked: shell.togglePopup("brightness", barWindow.modelData)
 
-                    Canvas {
+                    BrightnessIcon {
                         anchors.centerIn: parent
-                        width: 14
-                        height: 14
-
-                        property int pct: shell.brightnessPercent
-                        property color iconColor: Theme.iconPrimary
-                        onPctChanged: requestPaint()
-                        onIconColorChanged: requestPaint()
-                        onVisibleChanged: if (visible) requestPaint()
-                        Component.onCompleted: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-
-                            var cx = 7;
-                            var cy = 7;
-                            var r = 3;
-
-                            ctx.strokeStyle = iconColor;
-                            ctx.lineWidth = 1.4;
-                            ctx.lineCap = "round";
-                            var rayLen = 2;
-                            var rayDist = 5;
-                            for (var i = 0; i < 8; i++) {
-                                var angle = i * Math.PI / 4;
-                                var x1 = cx + Math.cos(angle) * rayDist;
-                                var y1 = cy + Math.sin(angle) * rayDist;
-                                var x2 = cx + Math.cos(angle) * (rayDist + rayLen);
-                                var y2 = cy + Math.sin(angle) * (rayDist + rayLen);
-                                ctx.beginPath();
-                                ctx.moveTo(x1, y1);
-                                ctx.lineTo(x2, y2);
-                                ctx.stroke();
-                            }
-
-                            var opacity = 0.4 + (pct / 100) * 0.6;
-                            ctx.fillStyle = Qt.rgba(iconColor.r, iconColor.g, iconColor.b, opacity);
-                            ctx.beginPath();
-                            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-                            ctx.fill();
-
-                            ctx.strokeStyle = iconColor;
-                            ctx.lineWidth = 1.4;
-                            ctx.beginPath();
-                            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-                            ctx.stroke();
-                        }
+                        percent: shell.brightnessPercent
                     }
                 }
 
@@ -1500,70 +1317,10 @@ ShellRoot {
                     active: shell.activePopup === "volume"
                     onClicked: shell.togglePopup("volume", barWindow.modelData)
 
-                    Canvas {
+                    VolumeIcon {
                         anchors.centerIn: parent
-                        width: 14
-                        height: 14
-
-                        property int vol: shell.volumePercent
-                        property bool muted: shell.volumeMuted
-                        onVolChanged: requestPaint()
-                        onMutedChanged: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-
-                            ctx.strokeStyle = muted ? Theme.iconDim : Theme.iconPrimary;
-                            ctx.fillStyle = muted ? Theme.iconDim : Theme.iconPrimary;
-                            ctx.lineWidth = 1.4;
-                            ctx.lineJoin = "round";
-                            ctx.lineCap = "round";
-
-                            // Speaker body
-                            ctx.beginPath();
-                            ctx.moveTo(1, 5);
-                            ctx.lineTo(3.5, 5);
-                            ctx.lineTo(6.5, 2);
-                            ctx.lineTo(6.5, 12);
-                            ctx.lineTo(3.5, 9);
-                            ctx.lineTo(1, 9);
-                            ctx.closePath();
-                            ctx.fill();
-
-                            if (muted) {
-                                // X mark
-                                ctx.strokeStyle = Theme.iconDim;
-                                ctx.lineWidth = 1.6;
-                                ctx.beginPath();
-                                ctx.moveTo(9, 4.5);
-                                ctx.lineTo(13, 9.5);
-                                ctx.stroke();
-                                ctx.beginPath();
-                                ctx.moveTo(13, 4.5);
-                                ctx.lineTo(9, 9.5);
-                                ctx.stroke();
-                            } else {
-                                // Sound waves
-                                ctx.strokeStyle = Theme.iconPrimary;
-                                ctx.lineWidth = 1.3;
-                                if (vol > 0) {
-                                    ctx.beginPath();
-                                    ctx.arc(7, 7, 3, -Math.PI / 4, Math.PI / 4);
-                                    ctx.stroke();
-                                }
-                                if (vol > 33) {
-                                    ctx.beginPath();
-                                    ctx.arc(7, 7, 5, -Math.PI / 4, Math.PI / 4);
-                                    ctx.stroke();
-                                }
-                                if (vol > 66) {
-                                    ctx.beginPath();
-                                    ctx.arc(7, 7, 7, -Math.PI / 4, Math.PI / 4);
-                                    ctx.stroke();
-                                }
-                            }
-                        }
+                        volume: shell.volumePercent
+                        muted: shell.volumeMuted
                     }
                 }
 
@@ -1579,34 +1336,9 @@ ShellRoot {
                         if (shell.activePopup === "bt") btControllerCheck.running = true;
                     }
 
-                    Canvas {
+                    BluetoothIcon {
                         anchors.centerIn: parent
-                        width: 12
-                        height: 16
-
-                        property bool powered: shell.bluetoothPowered
-                        onPoweredChanged: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = shell.bluetoothPowered ? Theme.iconPrimary : Theme.iconDim;
-                            ctx.lineWidth = 1.6;
-                            ctx.lineCap = "round";
-                            ctx.lineJoin = "round";
-
-                            var cx = width / 2;
-
-                            // Bluetooth rune shape
-                            ctx.beginPath();
-                            ctx.moveTo(2, 4);
-                            ctx.lineTo(9, 11);
-                            ctx.lineTo(cx, 15);
-                            ctx.lineTo(cx, 1);
-                            ctx.lineTo(9, 5);
-                            ctx.lineTo(2, 12);
-                            ctx.stroke();
-                        }
+                        powered: shell.bluetoothPowered
                     }
                 }
 
@@ -1623,100 +1355,16 @@ ShellRoot {
                         shell.passwordInput = "";
                     }
 
-                    // WiFi icon
-                    Canvas {
+                    WifiIcon {
                         anchors.centerIn: parent
-                        width: 18
-                        height: 14
                         visible: !shell.ethernetConnected
-
-                        property bool wifiOn: Networking.wifiEnabled
-                        onWifiOnChanged: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-                            var col = wifiOn ? Theme.iconPrimary : Theme.iconDim;
-                            ctx.strokeStyle = col;
-                            ctx.lineWidth = 1.6;
-                            ctx.lineCap = "round";
-
-                            var cx = width / 2;
-                            var by = height;
-
-                            ctx.beginPath();
-                            ctx.arc(cx, by, 13, -Math.PI * 0.75, -Math.PI * 0.25);
-                            ctx.stroke();
-
-                            ctx.beginPath();
-                            ctx.arc(cx, by, 9, -Math.PI * 0.75, -Math.PI * 0.25);
-                            ctx.stroke();
-
-                            ctx.beginPath();
-                            ctx.arc(cx, by, 5, -Math.PI * 0.75, -Math.PI * 0.25);
-                            ctx.stroke();
-
-                            ctx.fillStyle = col;
-                            ctx.beginPath();
-                            ctx.arc(cx, by - 1, 1.8, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            // Diagonal strike-through when disabled
-                            if (!wifiOn) {
-                                ctx.strokeStyle = Theme.iconDim;
-                                ctx.lineWidth = 1.8;
-                                ctx.beginPath();
-                                ctx.moveTo(1, 1);
-                                ctx.lineTo(width - 1, height - 1);
-                                ctx.stroke();
-                            }
-                        }
+                        enabled: Networking.wifiEnabled
                     }
 
-                    // Ethernet icon
-                    Canvas {
+                    EthernetIcon {
                         anchors.centerIn: parent
-                        width: 14
-                        height: 14
                         visible: shell.ethernetConnected
-
-                        property bool wifiOn: Networking.wifiEnabled
-                        onWifiOnChanged: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-                            ctx.strokeStyle = wifiOn ? Theme.iconPrimary : Theme.iconDim;
-                            ctx.lineWidth = 1.4;
-                            ctx.lineCap = "round";
-                            ctx.lineJoin = "round";
-
-                            var cx = width / 2;
-
-                            // Vertical line
-                            ctx.beginPath();
-                            ctx.moveTo(cx, 1);
-                            ctx.lineTo(cx, 13);
-                            ctx.stroke();
-
-                            // Top horizontal
-                            ctx.beginPath();
-                            ctx.moveTo(3, 4);
-                            ctx.lineTo(width - 3, 4);
-                            ctx.stroke();
-
-                            // Left branch down
-                            ctx.beginPath();
-                            ctx.moveTo(3, 4);
-                            ctx.lineTo(3, 7);
-                            ctx.stroke();
-
-                            // Right branch down
-                            ctx.beginPath();
-                            ctx.moveTo(width - 3, 4);
-                            ctx.lineTo(width - 3, 7);
-                            ctx.stroke();
-                        }
+                        active: Networking.wifiEnabled
                     }
                 }
 
@@ -1728,42 +1376,9 @@ ShellRoot {
                     active: shell.activePopup === "notif"
                     onClicked: shell.togglePopup("notif", barWindow.modelData)
 
-                    Canvas {
+                    BellIcon {
                         anchors.centerIn: parent
-                        width: 14
-                        height: 16
-
-                        property int count: shell.notifCount
-                        onCountChanged: requestPaint()
-
-                        onPaint: {
-                            var ctx = getContext("2d");
-                            ctx.clearRect(0, 0, width, height);
-
-                            ctx.strokeStyle = Theme.iconPrimary;
-                            ctx.fillStyle = Theme.iconPrimary;
-                            ctx.lineWidth = 1.4;
-                            ctx.lineCap = "round";
-                            ctx.lineJoin = "round";
-
-                            // Bell body
-                            ctx.beginPath();
-                            ctx.moveTo(2, 10);
-                            ctx.quadraticCurveTo(2, 5, 4, 3);
-                            ctx.quadraticCurveTo(5.5, 0.5, 7, 0.5);
-                            ctx.quadraticCurveTo(8.5, 0.5, 10, 3);
-                            ctx.quadraticCurveTo(12, 5, 12, 10);
-                            ctx.lineTo(13, 11.5);
-                            ctx.lineTo(1, 11.5);
-                            ctx.closePath();
-                            ctx.stroke();
-                            ctx.fill();
-
-                            // Clapper
-                            ctx.beginPath();
-                            ctx.arc(7, 14, 1.5, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
+                        count: shell.notifCount
                     }
 
                     // Unread badge
