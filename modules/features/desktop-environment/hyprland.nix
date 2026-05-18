@@ -59,6 +59,7 @@
                 hl.exec_cmd("${lib.getExe' pkgs.dbus "dbus-update-activation-environment"} --systemd DISPLAY HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE && systemctl --user stop hyprland-session.target && systemctl --user start hyprland-session.target")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper}")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle}")
+                hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprshade} auto")
                 hl.exec_cmd("${lib.getExe' pkgs.wl-clipboard "wl-paste"} --watch ${lib.getExe pkgs.cliphist} store")
                 hl.exec_cmd("${
                   lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.kitty
@@ -122,6 +123,9 @@
               hl.bind("SUPER + S",       hl.dsp.window.float({ action = "toggle" }))
               hl.bind("SUPER + F",       hl.dsp.window.fullscreen())
               hl.bind("SUPER + P",       hl.dsp.window.pseudo())
+              hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("${
+                lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprshade
+              } toggle blue-light-filter"))
               hl.bind("SUPER + left",    hl.dsp.focus({ direction = "left" }))
               hl.bind("SUPER + right",   hl.dsp.focus({ direction = "right" }))
               hl.bind("SUPER + up",      hl.dsp.focus({ direction = "up" }))
@@ -144,6 +148,11 @@
                 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("${lib.getExe pkgs.brightnessctl} -e4 -n2 set 5%+"), { locked = true, repeating = true })
                 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("${lib.getExe pkgs.brightnessctl} -e4 -n2 set 5%-"), { locked = true, repeating = true })
               ''}
+
+              hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("${lib.getExe pkgs.playerctl} play-pause"), { locked = true })
+              hl.bind("XF86AudioNext", hl.dsp.exec_cmd("${lib.getExe pkgs.playerctl} next"),       { locked = true })
+              hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("${lib.getExe pkgs.playerctl} previous"),   { locked = true })
+              hl.bind("XF86AudioStop", hl.dsp.exec_cmd("${lib.getExe pkgs.playerctl} stop"),       { locked = true })
 
               hl.bind("SUPER + mouse:272", hl.dsp.window.drag(),   { mouse = true })
               hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
