@@ -58,51 +58,14 @@ Variants {
             }
         }
 
-        // Slider track
-        Rectangle {
+        Slider {
             Layout.fillWidth: true
-            height: 6
-            radius: 3
-            color: Theme.surfaceStrong
             Layout.alignment: Qt.AlignVCenter
-
-            Rectangle {
-                width: parent.width * Math.min(root.shell.volumePercent, 100) / 100
-                height: parent.height
-                radius: 3
-                color: root.shell.volumeMuted ? Theme.surfaceBg : Theme.textDim
-
-                Behavior on width { NumberAnimation { duration: 100 } }
-            }
-
-            // Slider handle
-            Rectangle {
-                x: parent.width * Math.min(root.shell.volumePercent, 100) / 100 - 7
-                y: -4
-                width: 14
-                height: 14
-                radius: 7
-                color: Theme.iconPrimary
-
-                Behavior on x { NumberAnimation { duration: 100 } }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                anchors.topMargin: -8
-                anchors.bottomMargin: -8
-                cursorShape: Qt.PointingHandCursor
-
-                function updateVolume(mouse) {
-                    var pct = Math.max(0, Math.min(100, Math.round(mouse.x / width * 100)));
-                    root.shell.volumePercent = pct;
-                    root.shell.setVolume(pct);
-                }
-
-                onPressed: mouse => updateVolume(mouse)
-                onPositionChanged: mouse => {
-                    if (pressed) updateVolume(mouse);
-                }
+            value: Math.min(root.shell.volumePercent, 100)
+            dimmed: root.shell.volumeMuted
+            onMoved: v => {
+                root.shell.volumePercent = v;
+                root.shell.setVolume(v);
             }
         }
 
@@ -162,59 +125,13 @@ Variants {
         Repeater {
             model: root.shell.audioSinks
 
-            Rectangle {
-                required property var modelData
-                width: parent.width
-                height: 22
-                radius: 4
-                color: sinkHover.containsMouse ? Theme.surfaceInner
-                     : modelData.isDefault ? Theme.surfaceSubtle
-                     : "transparent"
-
-                Row {
-                    anchors.fill: parent
-                    anchors.leftMargin: 6
-                    anchors.rightMargin: 6
-                    spacing: 6
-
-                    Rectangle {
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Theme.surfaceStrong
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Text {
-                        text: modelData.name
-                        color: Theme.text
-                        font.pixelSize: 11
-                        font.bold: modelData.isDefault
-                        elide: Text.ElideRight
-                        width: parent.width - 20
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-
-                MouseArea {
-                    id: sinkHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (!modelData.isDefault) root.shell.setDefaultAudioDevice(modelData.id);
-                    }
-                }
+            AudioDeviceItem {
+                onActivated: id => root.shell.setDefaultAudioDevice(id)
             }
         }
     }
 
-    // Separator
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Theme.surfaceInner
-    }
+    SectionSeparator {}
 
     // Mic header with mute toggle
     RowLayout {
@@ -266,50 +183,14 @@ Variants {
             }
         }
 
-        // Mic slider track
-        Rectangle {
+        Slider {
             Layout.fillWidth: true
-            height: 6
-            radius: 3
-            color: Theme.surfaceStrong
             Layout.alignment: Qt.AlignVCenter
-
-            Rectangle {
-                width: parent.width * Math.min(root.shell.micGainPercent, 100) / 100
-                height: parent.height
-                radius: 3
-                color: root.shell.micMuted ? Theme.surfaceBg : Theme.textDim
-
-                Behavior on width { NumberAnimation { duration: 100 } }
-            }
-
-            Rectangle {
-                x: parent.width * Math.min(root.shell.micGainPercent, 100) / 100 - 7
-                y: -4
-                width: 14
-                height: 14
-                radius: 7
-                color: Theme.iconPrimary
-
-                Behavior on x { NumberAnimation { duration: 100 } }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                anchors.topMargin: -8
-                anchors.bottomMargin: -8
-                cursorShape: Qt.PointingHandCursor
-
-                function updateGain(mouse) {
-                    var pct = Math.max(0, Math.min(100, Math.round(mouse.x / width * 100)));
-                    root.shell.micGainPercent = pct;
-                    root.shell.setMicGain(pct);
-                }
-
-                onPressed: mouse => updateGain(mouse)
-                onPositionChanged: mouse => {
-                    if (pressed) updateGain(mouse);
-                }
+            value: Math.min(root.shell.micGainPercent, 100)
+            dimmed: root.shell.micMuted
+            onMoved: v => {
+                root.shell.micGainPercent = v;
+                root.shell.setMicGain(v);
             }
         }
 
@@ -410,49 +291,8 @@ Variants {
         Repeater {
             model: root.shell.audioSources
 
-            Rectangle {
-                required property var modelData
-                width: parent.width
-                height: 22
-                radius: 4
-                color: sourceHover.containsMouse ? Theme.surfaceInner
-                     : modelData.isDefault ? Theme.surfaceSubtle
-                     : "transparent"
-
-                Row {
-                    anchors.fill: parent
-                    anchors.leftMargin: 6
-                    anchors.rightMargin: 6
-                    spacing: 6
-
-                    Rectangle {
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: modelData.isDefault ? Qt.rgba(0.4, 0.85, 0.4, 0.9) : Theme.surfaceStrong
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Text {
-                        text: modelData.name
-                        color: Theme.text
-                        font.pixelSize: 11
-                        font.bold: modelData.isDefault
-                        elide: Text.ElideRight
-                        width: parent.width - 20
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-
-                MouseArea {
-                    id: sourceHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (!modelData.isDefault) root.shell.setDefaultAudioDevice(modelData.id);
-                    }
-                }
+            AudioDeviceItem {
+                onActivated: id => root.shell.setDefaultAudioDevice(id)
             }
         }
     }

@@ -54,12 +54,7 @@ Variants {
         }
     }
 
-    // Separator
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Theme.surfaceSubtle
-    }
+    SectionSeparator { color: Theme.surfaceSubtle }
 
     // Empty state
     Text {
