@@ -111,7 +111,7 @@ Variants {
         }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
+    SectionSeparator {}
 
     RowLayout {
         width: parent.width
@@ -203,7 +203,7 @@ Variants {
         }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
+    SectionSeparator {}
 
     RowLayout {
         width: parent.width
@@ -223,7 +223,7 @@ Variants {
         }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
+    SectionSeparator {}
 
     RowLayout {
         width: parent.width
@@ -258,7 +258,7 @@ Variants {
         }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Theme.surfaceInner }
+    SectionSeparator {}
 
     RowLayout {
         width: parent.width

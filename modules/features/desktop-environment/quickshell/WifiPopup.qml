@@ -22,49 +22,13 @@ Variants {
             root.shell.eapConnecting = false;
         }
 
-    // WiFi toggle
-    Rectangle {
-        width: parent.width
-        height: 32
-        radius: 6
-        color: wifiToggleHover.containsMouse ? Theme.buttonHover : "transparent"
-
-        Behavior on color { ColorAnimation { duration: 150 } }
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-
-            Text {
-                text: "WiFi"
-                color: Theme.text
-                font.pixelSize: 13
-                font.bold: true
-                Layout.fillWidth: true
-            }
-
-            ToggleSwitch {
-                active: Networking.wifiEnabled
-                onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
-            }
-        }
-
-        MouseArea {
-            id: wifiToggleHover
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
-        }
+    HeaderWithToggle {
+        title: "WiFi"
+        active: Networking.wifiEnabled
+        onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
     }
 
-    // Separator
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Theme.surfaceSubtle
-    }
+    SectionSeparator { color: Theme.surfaceSubtle }
 
     // Ethernet connected section
     Text {
@@ -112,11 +76,8 @@ Variants {
         }
     }
 
-    // Separator
-    Rectangle {
+    SectionSeparator {
         visible: root.shell.ethernetConnected
-        width: parent.width
-        height: 1
         color: Theme.surfaceSubtle
     }
 
@@ -166,11 +127,8 @@ Variants {
         }
     }
 
-    // Separator
-    Rectangle {
+    SectionSeparator {
         visible: Networking.wifiEnabled && root.shell.connectedNetwork !== null
-        width: parent.width
-        height: 1
         color: Theme.surfaceSubtle
     }
 

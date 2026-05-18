@@ -79,12 +79,7 @@ Variants {
         }
     }
 
-    // Separator
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Theme.surfaceInner
-    }
+    SectionSeparator {}
 
     // Power profile
     Text {
@@ -145,12 +140,7 @@ Variants {
         }
     }
 
-    // Separator
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Theme.surfaceInner
-    }
+    SectionSeparator {}
 
     // Battery health
     RowLayout {
@@ -170,12 +160,8 @@ Variants {
         }
     }
 
-    // Separator
-    Rectangle {
+    SectionSeparator {
         visible: root.shell.batteryHistoryCount >= 2
-        width: parent.width
-        height: 1
-        color: Theme.surfaceInner
     }
 
     // History header

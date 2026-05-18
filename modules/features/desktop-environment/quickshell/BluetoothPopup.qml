@@ -12,49 +12,13 @@ Variants {
         shell: root.shell
         popupName: "bt"
 
-    // Bluetooth toggle
-    Rectangle {
-        width: parent.width
-        height: 32
-        radius: 6
-        color: btToggleHover.containsMouse ? Theme.buttonHover : "transparent"
-
-        Behavior on color { ColorAnimation { duration: 150 } }
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-
-            Text {
-                text: "Bluetooth"
-                color: Theme.text
-                font.pixelSize: 13
-                font.bold: true
-                Layout.fillWidth: true
-            }
-
-            ToggleSwitch {
-                active: root.shell.bluetoothPowered
-                onClicked: root.shell.toggleBluetooth()
-            }
-        }
-
-        MouseArea {
-            id: btToggleHover
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.shell.toggleBluetooth()
-        }
+    HeaderWithToggle {
+        title: "Bluetooth"
+        active: root.shell.bluetoothPowered
+        onToggled: root.shell.toggleBluetooth()
     }
 
-    // Separator
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Theme.surfaceSubtle
-    }
+    SectionSeparator { color: Theme.surfaceSubtle }
 
     // Connected devices header
     Text {
@@ -114,11 +78,8 @@ Variants {
         }
     }
 
-    // Separator between connected and paired
-    Rectangle {
+    SectionSeparator {
         visible: root.shell.bluetoothPowered && root.shell.btConnectedDevices.length > 0
-        width: parent.width
-        height: 1
         color: Theme.surfaceSubtle
     }
 
@@ -193,11 +154,8 @@ Variants {
         }
     }
 
-    // Separator between paired and available
-    Rectangle {
+    SectionSeparator {
         visible: root.shell.bluetoothPowered && root.shell.btDiscoveredDevices.length > 0
-        width: parent.width
-        height: 1
         color: Theme.surfaceSubtle
     }
 

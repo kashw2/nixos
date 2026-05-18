@@ -1,14 +1,17 @@
 singleton Theme 1.0 Theme.qml
 AppLauncher 1.0 AppLauncher.qml
+AudioDeviceItem 1.0 AudioDeviceItem.qml
 BarButton 1.0 BarButton.qml
 BasePopup 1.0 BasePopup.qml
 BatteryPopup 1.0 BatteryPopup.qml
 BatteryTooltip 1.0 BatteryTooltip.qml
 BluetoothPopup 1.0 BluetoothPopup.qml
 BrightnessPopup 1.0 BrightnessPopup.qml
+HeaderWithToggle 1.0 HeaderWithToggle.qml
 MediaPlayerIcon 1.0 MediaPlayerIcon.qml
 MediaPlayerPopup 1.0 MediaPlayerPopup.qml
 NotificationCenter 1.0 NotificationCenter.qml
+SectionSeparator 1.0 SectionSeparator.qml
 SystemMonitorPopup 1.0 SystemMonitorPopup.qml
 ToastNotification 1.0 ToastNotification.qml
 ToggleSwitch 1.0 ToggleSwitch.qml

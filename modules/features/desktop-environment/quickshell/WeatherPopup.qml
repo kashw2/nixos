@@ -191,12 +191,7 @@ Variants {
             }
         }
 
-        // Separator
-        Rectangle {
-            width: parent.width
-            height: 1
-            color: Theme.surfaceInner
-        }
+        SectionSeparator {}
 
         // Loading placeholder
         Text {
