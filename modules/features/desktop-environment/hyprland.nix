@@ -71,6 +71,7 @@
                     }
                   )
                 }")
+                hl.exec_cmd("${lib.getExe pkgs.firefox-devedition}")
               end)
 
               hl.env("XCURSOR_SIZE",    "24")
@@ -234,7 +235,7 @@
                 ignore_alpha = 0.2,
               })
 
-              hl.window_rule({ name = "firefox-ws1",       match = { class = "^(firefox)$" },       workspace = "1 silent" })
+              hl.window_rule({ name = "firefox-ws1",       match = { class = "^(firefox-devedition)$" },       workspace = "1 silent" })
               hl.window_rule({ name = "kitty-nixosvi-ws4", match = { class = "^(kitty-nixosvi)$" }, workspace = "4 silent" })
               hl.window_rule({ name = "slack-ws3",         match = { class = "^(Slack)$" },         workspace = "3 silent" })
               hl.window_rule({ name = "discord-ws3",       match = { class = "^(discord)$" },       workspace = "3 silent" })
