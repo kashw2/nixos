@@ -108,12 +108,26 @@
             owner = "keanu";
             group = "keanu";
           };
+          "git_email_address" = {
+            owner = "keanu";
+            group = "keanu";
+          };
         };
 
         templates."nix-access-tokens" = {
           content = "access-tokens = github.com=${config.sops.placeholder.github_kashw2_pat} github.com/tablogs=${config.sops.placeholder.github_tablogs_pat}";
           group = "wheel";
           mode = "0440";
+        };
+
+        templates."git_email_address" = {
+          content = ''
+            [user]
+              email = ${config.sops.placeholder.git_email_address}
+          '';
+          owner = "keanu";
+          group = "keanu";
+          mode = "0400";
         };
 
         templates.".npmrc" = {

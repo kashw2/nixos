@@ -150,9 +150,11 @@
             git = {
               enable = true;
               lfs.enable = true;
+              includes = [
+                { path = config.sops.templates."git_email_address".path; }
+              ];
               settings = {
                 user.name = "kashw2";
-                user.email = "supra4keanu@hotmail.com";
                 user.author.name = "Keanu Ashwell";
                 init.defaultBranch = "main";
                 core.autocrlf = "input";
