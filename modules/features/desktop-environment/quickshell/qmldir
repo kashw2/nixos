@@ -6,6 +6,8 @@ BatteryPopup 1.0 BatteryPopup.qml
 BatteryTooltip 1.0 BatteryTooltip.qml
 BluetoothPopup 1.0 BluetoothPopup.qml
 BrightnessPopup 1.0 BrightnessPopup.qml
+MediaPlayerIcon 1.0 MediaPlayerIcon.qml
+MediaPlayerPopup 1.0 MediaPlayerPopup.qml
 NotificationCenter 1.0 NotificationCenter.qml
 SystemMonitorPopup 1.0 SystemMonitorPopup.qml
 ToastNotification 1.0 ToastNotification.qml

@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Networking
 import Quickshell.Services.Notifications
+import Quickshell.Services.Mpris
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
@@ -11,7 +12,7 @@ ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather"
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather", "media"
     property string activePopup: ""
     property var activePopupScreen: null
     property string selectedNetworkName: ""
@@ -110,6 +111,23 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: shell.weatherAnimTime += 0.05
+    }
+
+    // MPRIS: set by clicking a source chip in MediaPlayerPopup; cleared when that player goes away.
+    property string preferredMprisPlayerDbusName: ""
+
+    readonly property var mprisPlayer: {
+        var players = Mpris.players ? Mpris.players.values : [];
+        if (players.length === 0) return null;
+        if (preferredMprisPlayerDbusName !== "") {
+            for (var i = 0; i < players.length; i++) {
+                if (players[i].dbusName === preferredMprisPlayerDbusName) return players[i];
+            }
+        }
+        for (var j = 0; j < players.length; j++) {
+            if (players[j].isPlaying) return players[j];
+        }
+        return players[0];
     }
 
     property bool toastVisible: false
@@ -1770,11 +1788,61 @@ ShellRoot {
                 }
             }
 
-            // === Centre: Date / Time + Weather (anchored to true centre, two separate widgets) ===
+            // === Centre: Media + Date / Time + Weather (anchored to true centre, separate widgets) ===
             Row {
                 id: centreRow
                 anchors.centerIn: parent
                 spacing: 8
+
+                Rectangle {
+                    id: mediaArea
+                    property bool hovered: false
+
+                    visible: shell.mprisPlayer !== null
+                    width: mediaRow.implicitWidth + 16
+                    height: 22
+                    radius: 4
+                    color: shell.activePopup === "media" ? Theme.surfaceActive
+                         : hovered ? Theme.buttonHover : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Row {
+                        id: mediaRow
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        MediaPlayerIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            iconSize: 14
+                            iconType: !shell.mprisPlayer ? "stopped"
+                                : shell.mprisPlayer.isPlaying ? "playing" : "paused"
+                            animTime: shell.weatherAnimTime
+                        }
+
+                        Text {
+                            id: mediaTitle
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
+                                ? shell.mprisPlayer.trackTitle : ""
+                            color: Theme.text
+                            font.pixelSize: 13
+                            elide: Text.ElideRight
+                            width: Math.min(implicitWidth, 160)
+                            visible: text !== ""
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: shell.togglePopup("media", barWindow.modelData)
+                    }
+                }
 
                 Rectangle {
                     id: dateArea
@@ -1917,6 +1985,9 @@ ShellRoot {
 
     // Weather forecast popup - one per screen
     WeatherPopup { shell: shell }
+
+    // Media player popup - one per screen
+    MediaPlayerPopup { shell: shell }
 
     // Toast notification popup - one per screen
     ToastNotification { shell: shell }

@@ -30,6 +30,7 @@
           pkgs.upower
           pkgs.power-profiles-daemon
           pkgs.pipewire
+          pkgs.playerctl
         ]
         ++ lib.optionals (config.isLaptop) [
           pkgs.brightnessctl
