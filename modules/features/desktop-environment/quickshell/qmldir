@@ -1,5 +1,6 @@
 singleton Theme 1.0 Theme.qml
 AppLauncher 1.0 AppLauncher.qml
+AudioController 1.0 AudioController.qml
 AudioDeviceItem 1.0 AudioDeviceItem.qml
 BarButton 1.0 BarButton.qml
 BasePopup 1.0 BasePopup.qml
@@ -7,6 +8,7 @@ BatteryIcon 1.0 BatteryIcon.qml
 BatteryPopup 1.0 BatteryPopup.qml
 BatteryTooltip 1.0 BatteryTooltip.qml
 BellIcon 1.0 BellIcon.qml
+BluetoothController 1.0 BluetoothController.qml
 BluetoothIcon 1.0 BluetoothIcon.qml
 BluetoothPopup 1.0 BluetoothPopup.qml
 BrightnessIcon 1.0 BrightnessIcon.qml

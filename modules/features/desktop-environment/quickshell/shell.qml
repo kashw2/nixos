@@ -247,31 +247,14 @@ ShellRoot {
         brightnessSet.running = true;
     }
 
-    function setVolume(pct) {
-        volumeSet.target = pct;
-        volumeSet.running = true;
-    }
-
-    function toggleVolumeMute() {
-        volumeToggleMute.running = true;
-    }
-
-    function setMicGain(pct) {
-        micGainSet.target = pct;
-        micGainSet.running = true;
-    }
-
-    function toggleMicMute() {
-        micToggleMute.running = true;
-    }
-
-    function setDefaultAudioDevice(id) {
-        audioDeviceSet.target = id;
-        audioDeviceSet.running = true;
-    }
+    function setVolume(pct) { audioCtrl.setVolume(pct); }
+    function toggleVolumeMute() { audioCtrl.toggleVolumeMute(); }
+    function setMicGain(pct) { audioCtrl.setMicGain(pct); }
+    function toggleMicMute() { audioCtrl.toggleMicMute(); }
+    function setDefaultAudioDevice(id) { audioCtrl.setDefaultDevice(id); }
 
     onActivePopupChanged: {
-        if (activePopup === "volume") audioDevicesCheck.running = true;
+        if (activePopup === "volume") audioCtrl.refreshDevices();
     }
 
     onBatteryPercentChanged: checkBatteryNotifications()
@@ -301,29 +284,11 @@ ShellRoot {
         shell.activePopupScreen = null;
     }
 
-    function toggleBluetooth() {
-        btToggle.turnOn = !shell.bluetoothPowered;
-        btToggle.running = true;
-    }
-
-    function connectBluetoothDevice(mac) {
-        btConnect.mac = mac;
-        btConnect.running = true;
-    }
-
-    function disconnectBluetoothDevice(mac) {
-        btDisconnect.mac = mac;
-        btDisconnect.running = true;
-    }
-
-    function pairBluetoothDevice(mac) {
-        btPair.mac = mac;
-        btPair.running = true;
-    }
-
-    function refreshBluetooth() {
-        btControllerCheck.running = true;
-    }
+    function toggleBluetooth() { btCtrl.toggle(); }
+    function connectBluetoothDevice(mac) { btCtrl.connectDevice(mac); }
+    function disconnectBluetoothDevice(mac) { btCtrl.disconnectDevice(mac); }
+    function pairBluetoothDevice(mac) { btCtrl.pairDevice(mac); }
+    function refreshBluetooth() { btCtrl.refresh(); }
 
     function startEapConnection(ssid, identity, password) {
         eapConnectionAdd.ssid = ssid;
@@ -506,156 +471,9 @@ ShellRoot {
         }
     }
 
-    Process {
-        id: volumeCheck
-        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.toString().trim();
-                // Format: "Volume: 0.50" or "Volume: 0.50 [MUTED]"
-                shell.volumeMuted = line.indexOf("[MUTED]") !== -1;
-                var match = line.match(/Volume:\s+([\d.]+)/);
-                if (match) {
-                    shell.volumePercent = Math.round(parseFloat(match[1]) * 100);
-                }
-            }
-        }
-    }
-
-    Process {
-        id: volumeSet
-        property int target: 0
-        command: ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", target + "%"]
-        onRunningChanged: {
-            if (!running) volumeCheck.running = true;
-        }
-    }
-
-    Process {
-        id: volumeToggleMute
-        command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
-        onRunningChanged: {
-            if (!running) volumeCheck.running = true;
-        }
-    }
-
-    Process {
-        id: micCheck
-        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.toString().trim();
-                shell.micMuted = line.indexOf("[MUTED]") !== -1;
-                var match = line.match(/Volume:\s+([\d.]+)/);
-                if (match) {
-                    shell.micGainPercent = Math.round(parseFloat(match[1]) * 100);
-                }
-            }
-        }
-    }
-
-    Process {
-        id: micGainSet
-        property int target: 0
-        command: ["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", target + "%"]
-        onRunningChanged: {
-            if (!running) micCheck.running = true;
-        }
-    }
-
-    Process {
-        id: micToggleMute
-        command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
-        onRunningChanged: {
-            if (!running) micCheck.running = true;
-        }
-    }
-
-    // Parses `wpctl status` to extract audio sinks/sources and which is default.
-    // Output lines from the awk script are `kind|isDefault|id|name`.
-    Process {
-        id: audioDevicesCheck
-        command: ["sh", "-c",
-            "wpctl status 2>/dev/null | awk '"
-            + "/^Audio/{a=1;next} "
-            + "/^Video/{a=0} "
-            + "a&&/:$/{m=\"\"} "
-            + "a&&/Sinks:$/{m=\"sink\";next} "
-            + "a&&/Sources:$/{m=\"source\";next} "
-            + "m&&match($0,/[0-9]+\\./){"
-            + "d=($0~/\\*/)?\"1\":\"0\";"
-            + "line=substr($0,RSTART);"
-            + "id=substr(line,1,RLENGTH-1);"
-            + "rest=substr(line,RLENGTH+1);"
-            + "sub(/^[ \\t]+/,\"\",rest);"
-            + "sub(/[ \\t]+\\[.*$/,\"\",rest);"
-            + "print m\"|\"d\"|\"id\"|\"rest"
-            + "}'"
-        ]
-        running: true
-        property var pendingSinks: []
-        property var pendingSources: []
-        stdout: SplitParser {
-            onRead: data => {
-                var parts = data.toString().trim().split("|");
-                if (parts.length < 4) return;
-                var id = parseInt(parts[2]);
-                if (isNaN(id)) return;
-                var entry = { id: id, name: parts[3], isDefault: parts[1] === "1" };
-                if (parts[0] === "sink") audioDevicesCheck.pendingSinks.push(entry);
-                else if (parts[0] === "source") audioDevicesCheck.pendingSources.push(entry);
-            }
-        }
-        onExited: {
-            shell.audioSinks = pendingSinks;
-            shell.audioSources = pendingSources;
-            pendingSinks = [];
-            pendingSources = [];
-        }
-    }
-
-    Process {
-        id: audioDeviceSet
-        property int target: 0
-        command: ["wpctl", "set-default", target.toString()]
-        onRunningChanged: {
-            if (!running) {
-                audioDevicesCheck.running = true;
-                volumeCheck.running = true;
-                micCheck.running = true;
-            }
-        }
-    }
-
-    // Streams ~10 peak-amplitude samples per second from the default input
-    // source. u8 mono @ 8 kHz keeps CPU and bandwidth trivial; the awk loop
-    // emits the largest per-chunk distance from the 128 silence midpoint.
-    Process {
-        id: micMeter
-        command: ["sh", "-c",
-            "exec pw-cat -r --raw --rate=8000 --channels=1 --format=u8 - 2>/dev/null"
-            + " | stdbuf -o0 od -An -v -tu1 -w800"
-            + " | stdbuf -oL awk '{m=0;for(i=1;i<=NF;i++){v=$i-128;if(v<0)v=-v;if(v>m)m=v}print m;fflush()}'"
-        ]
-        running: shell.activePopup === "volume"
-        stdout: SplitParser {
-            onRead: data => {
-                var v = parseInt(data.toString().trim());
-                if (isNaN(v)) return;
-                var newLevel = Math.min(1, v / 128);
-                // Fast attack, gentle decay so the meter feels analog.
-                if (newLevel > shell.micLevel) {
-                    shell.micLevel = newLevel;
-                } else {
-                    shell.micLevel = shell.micLevel * 0.7 + newLevel * 0.3;
-                }
-            }
-        }
-        onRunningChanged: {
-            if (!running) shell.micLevel = 0;
-        }
+    AudioController {
+        id: audioCtrl
+        shell: shell
     }
 
     Process {
@@ -731,10 +549,9 @@ ShellRoot {
             powerProfileCheck.running = true;
             batteryHealthCheck.running = true;
             brightnessCheck.running = true;
-            volumeCheck.running = true;
-            micCheck.running = true;
-            if (shell.activePopup === "volume") audioDevicesCheck.running = true;
-            btControllerCheck.running = true;
+            audioCtrl.refresh();
+            if (shell.activePopup === "volume") audioCtrl.refreshDevices();
+            btCtrl.refresh();
             cpuCheck.running = true;
             ramCheck.running = true;
             tempCheck.running = true;
@@ -750,172 +567,9 @@ ShellRoot {
         }
     }
 
-    Process {
-        id: btControllerCheck
-        command: ["bluetoothctl", "show"]
-        running: true
-        property string output: ""
-        stdout: SplitParser {
-            onRead: data => {
-                btControllerCheck.output += data.toString() + "\n";
-            }
-        }
-        onExited: (code, status) => {
-            if (code === 0 && btControllerCheck.output.length > 0) {
-                shell.hasBluetooth = true;
-                shell.bluetoothPowered = btControllerCheck.output.indexOf("Powered: yes") !== -1;
-            } else {
-                shell.hasBluetooth = false;
-            }
-            btControllerCheck.output = "";
-            if (shell.hasBluetooth) {
-                btDeviceCheck.running = true;
-            }
-        }
-    }
-
-    Process {
-        id: btDeviceCheck
-        command: ["bluetoothctl", "devices", "Paired"]
-        property var devices: []
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.toString().trim();
-                if (line.startsWith("Device ")) {
-                    var parts = line.substring(7);
-                    var mac = parts.substring(0, 17);
-                    var name = parts.substring(18);
-                    btDeviceCheck.devices.push({ mac: mac, name: name });
-                }
-            }
-        }
-        onExited: (code, status) => {
-            shell.btPairedDevices = btDeviceCheck.devices;
-            btDeviceCheck.devices = [];
-            btConnectedCheck.connectedMacs = [];
-            btConnectedCheck.running = true;
-        }
-    }
-
-    Process {
-        id: btConnectedCheck
-        command: ["bluetoothctl", "devices", "Connected"]
-        property var connectedMacs: []
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.toString().trim();
-                if (line.startsWith("Device ")) {
-                    var mac = line.substring(7, 24);
-                    btConnectedCheck.connectedMacs.push(mac);
-                }
-            }
-        }
-        onExited: (code, status) => {
-            shell.btConnectedDevices = btConnectedCheck.connectedMacs;
-            btConnectedCheck.connectedMacs = [];
-        }
-    }
-
-    Process {
-        id: btToggle
-        property bool turnOn: true
-        command: ["bluetoothctl", "power", turnOn ? "on" : "off"]
-        onExited: btControllerCheck.running = true
-    }
-
-    Process {
-        id: btConnect
-        property string mac: ""
-        command: ["bluetoothctl", "connect", mac]
-        onExited: {
-            btDeviceCheck.devices = [];
-            btDeviceCheck.running = true;
-        }
-    }
-
-    Process {
-        id: btDisconnect
-        property string mac: ""
-        command: ["bluetoothctl", "disconnect", mac]
-        onExited: {
-            btDeviceCheck.devices = [];
-            btDeviceCheck.running = true;
-        }
-    }
-
-    // Scan while the bluetooth popup is open.
-    // `bluetoothctl scan on` without --timeout does NOT actually start discovery
-    // in non-interactive mode (it only sets the discovery filter). --timeout uses
-    // a different code path that calls StartDiscovery. We restart it in onExited
-    // while the popup is still open to keep scanning going.
-    Process {
-        id: btScan
-        command: ["bluetoothctl", "--timeout", "30", "scan", "on"]
-        running: shell.activePopup === "bt" && shell.bluetoothPowered
-        onRunningChanged: shell.btScanning = running
-        onExited: (code, status) => {
-            if (shell.activePopup === "bt" && shell.bluetoothPowered) {
-                btScan.running = true;
-            }
-        }
-    }
-
-    Process {
-        id: btDiscoveredCheck
-        command: ["bluetoothctl", "devices"]
-        property var devices: []
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.toString().trim();
-                if (line.startsWith("Device ")) {
-                    var parts = line.substring(7);
-                    var mac = parts.substring(0, 17);
-                    var name = parts.substring(18);
-                    btDiscoveredCheck.devices.push({ mac: mac, name: name });
-                }
-            }
-        }
-        onExited: (code, status) => {
-            var pairedMacs = shell.btPairedDevices.map(function(d) { return d.mac; });
-            // Exclude devices that look like raw MAC addresses (unnamed devices are reported
-            // with `-` as the separator, e.g. name "4A-D0-CF-29-58-81" for MAC 4A:D0:CF:29:58:81),
-            // and filter out already-paired devices.
-            shell.btDiscoveredDevices = btDiscoveredCheck.devices.filter(function(d) {
-                if (pairedMacs.indexOf(d.mac) !== -1) return false;
-                if (!d.name) return false;
-                if (d.name === d.mac) return false;
-                if (d.name === d.mac.replace(/:/g, "-")) return false;
-                return true;
-            });
-            btDiscoveredCheck.devices = [];
-        }
-    }
-
-    // Poll for newly discovered devices while the popup is open.
-    Timer {
-        interval: 2500
-        repeat: true
-        running: shell.activePopup === "bt" && shell.bluetoothPowered
-        triggeredOnStart: true
-        onTriggered: {
-            btDiscoveredCheck.devices = [];
-            btDiscoveredCheck.running = true;
-        }
-    }
-
-    Process {
-        id: btPair
-        property string mac: ""
-        command: ["bluetoothctl", "pair", mac]
-        onExited: (code, status) => {
-            // Refresh paired list and auto-connect on successful pair.
-            btDeviceCheck.devices = [];
-            btDeviceCheck.running = true;
-            if (code === 0) {
-                btConnect.mac = btPair.mac;
-                btConnect.running = true;
-            }
-        }
+    BluetoothController {
+        id: btCtrl
+        shell: shell
     }
 
     Process {
