@@ -12,6 +12,7 @@ MediaPlayerIcon 1.0 MediaPlayerIcon.qml
 MediaPlayerPopup 1.0 MediaPlayerPopup.qml
 NotificationCenter 1.0 NotificationCenter.qml
 SectionSeparator 1.0 SectionSeparator.qml
+Slider 1.0 Slider.qml
 SystemMonitorPopup 1.0 SystemMonitorPopup.qml
 ToastNotification 1.0 ToastNotification.qml
 ToggleSwitch 1.0 ToggleSwitch.qml

@@ -44,51 +44,14 @@ Variants {
             }
         }
 
-        // Slider track
-        Rectangle {
+        Slider {
             Layout.fillWidth: true
-            height: 6
-            radius: 3
-            color: Theme.surfaceStrong
             Layout.alignment: Qt.AlignVCenter
-
-            Rectangle {
-                width: parent.width * (root.shell.brightnessPercent / 100)
-                height: parent.height
-                radius: 3
-                color: Theme.textDim
-
-                Behavior on width { NumberAnimation { duration: 100 } }
-            }
-
-            // Slider handle
-            Rectangle {
-                x: parent.width * (root.shell.brightnessPercent / 100) - 7
-                y: -4
-                width: 14
-                height: 14
-                radius: 7
-                color: Theme.iconPrimary
-
-                Behavior on x { NumberAnimation { duration: 100 } }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                anchors.topMargin: -8
-                anchors.bottomMargin: -8
-                cursorShape: Qt.PointingHandCursor
-
-                function updateBrightness(mouse) {
-                    var pct = Math.max(1, Math.min(100, Math.round(mouse.x / width * 100)));
-                    root.shell.brightnessPercent = pct;
-                    root.shell.setBrightness(pct);
-                }
-
-                onPressed: mouse => updateBrightness(mouse)
-                onPositionChanged: mouse => {
-                    if (pressed) updateBrightness(mouse);
-                }
+            minValue: 1
+            value: root.shell.brightnessPercent
+            onMoved: v => {
+                root.shell.brightnessPercent = v;
+                root.shell.setBrightness(v);
             }
         }
 
