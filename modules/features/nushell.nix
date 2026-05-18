@@ -75,6 +75,7 @@
           # TODO: Update this to use `config.nix.packages`
           alias "nb" = ${lib.getExe pkgs.nix} build --impure
           alias "nd" = ${lib.getExe pkgs.nix} develop --impure
+          alias "nr" = ${lib.getExe pkgs.nix} run --impure
           alias "nfu" = ${lib.getExe pkgs.nix} flake update
           alias "ns" = ${lib.getExe' pkgs.nix "nix-shell"} -p
           alias "nsp" = ${lib.getExe' pkgs.nix "nix-shell"} --pure
