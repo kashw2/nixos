@@ -61,6 +61,7 @@
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle}")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprshade} auto")
                 hl.exec_cmd("${lib.getExe' pkgs.wl-clipboard "wl-paste"} --watch ${lib.getExe pkgs.cliphist} store")
+                hl.exec_cmd("${lib.getExe pkgs.slack}")
                 hl.exec_cmd("${
                   lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.kitty
                 } --class kitty-nixosvi --directory ~/nixos vi")
