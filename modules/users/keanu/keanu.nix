@@ -58,6 +58,7 @@
               pkgs.go
               pkgs.gcc # Required by some go projects
               pkgs.bruno
+              pkgs.obsidian
               pkgs.vlc
               pkgs.d2
               pkgs.nixos-anywhere
