@@ -63,6 +63,7 @@ ShellRoot {
     property var batteryHoveredScreen: null
     property real batteryIconX: 0
     property real batteryIconWidth: 0
+    property real mediaIconX: 0
     property int batteryLastNotifiedThreshold: 0
     readonly property var batteryThresholds: [20, 10, 5]
 
@@ -879,6 +880,62 @@ ShellRoot {
                     }
                 }
 
+                // === MPRIS media widget (left-aligned) ===
+                Rectangle {
+                    id: mediaArea
+                    property bool hovered: false
+
+                    visible: shell.mprisPlayer !== null
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                    Layout.leftMargin: 8
+                    implicitWidth: mediaRow.implicitWidth + 16
+                    implicitHeight: 22
+                    radius: 4
+                    color: shell.activePopup === "media" ? Theme.surfaceActive
+                         : hovered ? Theme.buttonHover : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Row {
+                        id: mediaRow
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        MediaPlayerIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            iconSize: 14
+                            iconType: !shell.mprisPlayer ? "stopped"
+                                : shell.mprisPlayer.isPlaying ? "playing" : "paused"
+                            animTime: shell.weatherAnimTime
+                        }
+
+                        Text {
+                            id: mediaTitle
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
+                                ? shell.mprisPlayer.trackTitle : ""
+                            color: Theme.text
+                            font.pixelSize: 13
+                            elide: Text.ElideRight
+                            width: Math.min(implicitWidth, Math.max(0, (barWindow.width / 2) - 220))
+                            visible: text !== ""
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.hovered = true
+                        onExited: parent.hovered = false
+                        onClicked: {
+                            var pos = mediaArea.mapToItem(null, 0, 0);
+                            shell.mediaIconX = pos.x;
+                            shell.togglePopup("media", barWindow.modelData);
+                        }
+                    }
+                }
+
                 Item { Layout.fillWidth: true }
 
                 // === Tray overflow chevron ===
@@ -1057,61 +1114,11 @@ ShellRoot {
                 }
             }
 
-            // === Centre: Media + Date / Time + Weather (anchored to true centre, separate widgets) ===
+            // === Centre: Date / Time + Weather (anchored to true centre, separate widgets) ===
             Row {
                 id: centreRow
                 anchors.centerIn: parent
                 spacing: 8
-
-                Rectangle {
-                    id: mediaArea
-                    property bool hovered: false
-
-                    visible: shell.mprisPlayer !== null
-                    width: mediaRow.implicitWidth + 16
-                    height: 22
-                    radius: 4
-                    color: shell.activePopup === "media" ? Theme.surfaceActive
-                         : hovered ? Theme.buttonHover : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        id: mediaRow
-                        anchors.centerIn: parent
-                        spacing: 6
-
-                        MediaPlayerIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            iconSize: 14
-                            iconType: !shell.mprisPlayer ? "stopped"
-                                : shell.mprisPlayer.isPlaying ? "playing" : "paused"
-                            animTime: shell.weatherAnimTime
-                        }
-
-                        Text {
-                            id: mediaTitle
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
-                                ? shell.mprisPlayer.trackTitle : ""
-                            color: Theme.text
-                            font.pixelSize: 13
-                            elide: Text.ElideRight
-                            width: Math.min(implicitWidth, 160)
-                            visible: text !== ""
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: shell.togglePopup("media", barWindow.modelData)
-                    }
-                }
 
                 Rectangle {
                     id: dateArea

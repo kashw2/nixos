@@ -25,7 +25,8 @@ Variants {
         anchors.right: false
         anchors.left: true
         margins.right: 0
-        margins.left: popup.screen ? Math.max(8, (popup.screen.width - popup.popupWidth) / 2) : 8
+        margins.left: Math.max(8, Math.min(root.shell.mediaIconX,
+            (popup.screen ? popup.screen.width : 0) - popup.popupWidth - 8))
 
         readonly property var player: root.shell.mprisPlayer
         readonly property bool hasPlayer: player !== null
