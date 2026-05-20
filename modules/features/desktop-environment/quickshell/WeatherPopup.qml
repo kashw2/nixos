@@ -78,6 +78,9 @@ Variants {
 
         backgroundColor: root.backdropFor(root.conditionToIconType(root.shell.weatherCondition))
 
+        property bool editingCity: false
+        onCleared: editingCity = false
+
         property real animTime: 0
         Timer {
             interval: 50
@@ -96,7 +99,7 @@ Variants {
         // Header
         Item {
             width: parent.width
-            height: 18
+            height: 20
 
             Text {
                 anchors.left: parent.left
@@ -107,14 +110,168 @@ Variants {
                 font.bold: true
             }
 
-            Text {
+            Rectangle {
+                id: locationButton
+                property bool hovered: false
+
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                visible: root.shell.weatherLocationName !== ""
-                text: root.shell.weatherLocationName
-                color: Theme.textDim
-                font.pixelSize: 11
-                elide: Text.ElideRight
+                height: 20
+                width: locationRow.implicitWidth + 12
+                radius: 4
+                color: popup.editingCity ? Theme.surfaceActive
+                    : hovered ? Theme.buttonHover : "transparent"
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+
+                Row {
+                    id: locationRow
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: root.shell.weatherLocationName !== ""
+                            ? root.shell.weatherLocationName
+                            : "Set city"
+                        color: Theme.textDim
+                        font.pixelSize: 11
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: root.shell.weatherCustomCity !== "" ? "★" : "✎"
+                        color: Theme.iconDim
+                        font.pixelSize: 10
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onEntered: parent.hovered = true
+                    onExited: parent.hovered = false
+                    onClicked: {
+                        popup.editingCity = !popup.editingCity;
+                        if (popup.editingCity) {
+                            cityInput.text = root.shell.weatherCustomCity;
+                            cityInput.forceActiveFocus();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Inline city editor
+        Rectangle {
+            visible: popup.editingCity
+            width: parent.width
+            height: 32
+            radius: 6
+            color: Theme.surfaceInner
+
+            Row {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 6
+
+                TextInput {
+                    id: cityInput
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - applyBtn.width - resetBtn.width
+                        - parent.spacing * (resetBtn.visible ? 2 : 1)
+                    height: parent.height
+                    verticalAlignment: TextInput.AlignVCenter
+                    color: Theme.text
+                    font.pixelSize: 12
+                    clip: true
+
+                    Text {
+                        anchors.fill: parent
+                        verticalAlignment: Text.AlignVCenter
+                        text: "Enter a city, e.g. London"
+                        color: Theme.textDim
+                        font.pixelSize: 12
+                        visible: !cityInput.text && !cityInput.activeFocus
+                    }
+
+                    Keys.onEscapePressed: popup.editingCity = false
+                    Keys.onReturnPressed: {
+                        var t = cityInput.text.trim();
+                        if (t.length > 0) {
+                            root.shell.setWeatherCity(t);
+                            popup.editingCity = false;
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: resetBtn
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.shell.weatherCustomCity !== ""
+                    width: visible ? 48 : 0
+                    height: 22
+                    radius: 4
+                    color: resetHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Auto"
+                        color: Theme.text
+                        font.pixelSize: 11
+                    }
+
+                    MouseArea {
+                        id: resetHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.shell.setWeatherCity("");
+                            cityInput.text = "";
+                            popup.editingCity = false;
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: applyBtn
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 56
+                    height: 22
+                    radius: 4
+                    opacity: cityInput.text.trim().length > 0 ? 1.0 : 0.5
+                    color: applyHover.containsMouse && opacity === 1.0
+                        ? Theme.surfaceActive : Theme.surfaceBg
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Apply"
+                        color: Theme.text
+                        font.pixelSize: 11
+                    }
+
+                    MouseArea {
+                        id: applyHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            var t = cityInput.text.trim();
+                            if (t.length > 0) {
+                                root.shell.setWeatherCity(t);
+                                popup.editingCity = false;
+                            }
+                        }
+                    }
+                }
             }
         }
 
