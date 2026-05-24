@@ -21,6 +21,7 @@
             "usbhid"
             "sd_mod"
             "sdhci_pci"
+            "mmc_block"
             "nvme"
           ];
           kernelModules = [ ];
