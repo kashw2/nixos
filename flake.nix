@@ -86,17 +86,5 @@
           ++ [
             inputs.wrapper-modules.flakeModules.default
           ];
-        perSystem =
-          { pkgs, ... }:
-          {
-            devShells.default = pkgs.mkShell {
-
-              packages = [
-                inputs.colmena.packages.${pkgs.system}.colmena
-                pkgs.nix
-                pkgs.git
-              ];
-            };
-          };
       };
 }
