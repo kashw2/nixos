@@ -1,7 +1,7 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.laptop =
-    { pkgs, lib, ... }:
+    { config, pkgs, lib, ... }:
     {
 
       imports = [
@@ -83,6 +83,7 @@
 
       hardware = {
         nvidia = {
+          package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
           open = false;
           powerManagement.enable = false;
           powerManagement.finegrained = false;
