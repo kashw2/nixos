@@ -21,6 +21,11 @@
         };
       };
 
+      # Point security.wrappers.Hyprland at the compositor binary, not the start-hyprland watchdog.
+      security.wrappers.Hyprland.source = lib.mkForce (
+        lib.getExe' config.programs.hyprland.package "Hyprland"
+      );
+
       programs.hyprlock = {
         enable = true;
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
