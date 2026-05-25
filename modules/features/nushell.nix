@@ -13,7 +13,7 @@
         package = pkgs.nushell;
         # Required because we only call them inline in this package's config
         # For the purposes of running a command, not for actually making them available to the PATH
-        extraPackages = [
+        runtimePkgs = [
           pkgs.zoxide
           pkgs.starship
           pkgs.carapace
