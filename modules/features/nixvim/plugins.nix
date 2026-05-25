@@ -217,7 +217,17 @@
               json = [ "prettier" ];
               yaml = [ "yq" ];
               sh = [ "shfmt" ];
+              prisma = [ "prismaFmt" ];
               _ = [ "trim_whitespace" ];
+            };
+            formatters.prismaFmt = {
+              command = lib.getExe pkgs.prisma;
+              args = [
+                "format"
+                "--schema"
+                "$FILENAME"
+              ];
+              stdin = false;
             };
           };
         };
