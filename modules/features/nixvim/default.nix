@@ -26,6 +26,7 @@
           wrap = false;
           number = true;
           relativenumber = true;
+          shortmess = "filnxtToOFTS";
         };
         diagnostic.settings = {
           virtual_lines = false;
