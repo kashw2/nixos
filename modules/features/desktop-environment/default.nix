@@ -19,6 +19,14 @@
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprland.wrap {
           inherit (config) isLaptop isDesktop;
         };
+        portalPackage =
+          inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+      };
+
+      xdg.portal = {
+        enable = true;
+        extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+        wlr.enable = true;
       };
 
       # Point security.wrappers.Hyprland at the compositor binary, not the start-hyprland watchdog.
