@@ -11,7 +11,10 @@
       imports = [ wlib.modules.default ];
       config = {
         package = pkgs.kitty;
-        flags."--config" = pkgs.writeText "kitty.conf" ''
+        # Config lives in its own store directory (writeTextDir) rather than a
+        # bare /nix/store file, so kitty's live-reload watcher watches a
+        # single-file dir instead of all of /nix/store
+        flags."--config" = "${pkgs.writeTextDir "kitty.conf" ''
           font_family JetBrainsMono
           font_size 12
           hide_window_decorations yes
@@ -23,7 +26,7 @@
           cursor_shape beam
           cursor_trail 1
           cursor_trail_decay 0.1 0.6
-        '';
+        ''}/kitty.conf";
       };
     };
 }
