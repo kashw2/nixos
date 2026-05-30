@@ -67,6 +67,22 @@
           key = "gb";
           mode = [ "n" ];
         }
+        {
+          action.__raw = ''
+            function()
+              local existing = vim.b.lsp_floating_preview
+              if existing and vim.api.nvim_win_is_valid(existing) then
+                vim.api.nvim_win_close(existing, true)
+                vim.b.lsp_floating_preview = nil
+                return
+              end
+              vim.lsp.buf.hover()
+            end
+          '';
+          key = "K";
+          mode = [ "n" ];
+          options.silent = true;
+        }
         # Tabs
         {
           action = ":tabclose";
