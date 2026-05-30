@@ -11,6 +11,7 @@
       programs.nixvim.extraPlugins = [
         self.packages.${pkgs.stdenv.hostPlatform.system}.atone-nvim
         self.packages.${pkgs.stdenv.hostPlatform.system}.codestats
+        self.packages.${pkgs.stdenv.hostPlatform.system}.bruno-nvim
       ];
 
       programs.nixvim.extraConfigLua = ''
@@ -237,7 +238,9 @@
             highlight.enable = true;
             indent.enable = true;
           };
-          grammarPackages = pkgs.vimPlugins.nvim-treesitter.allGrammars;
+          grammarPackages = pkgs.vimPlugins.nvim-treesitter.allGrammars ++ [
+            self.packages.${pkgs.stdenv.hostPlatform.system}.tree-sitter-bruno
+          ];
         };
         toggleterm = {
           enable = true;
