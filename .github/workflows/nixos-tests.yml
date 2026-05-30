@@ -43,7 +43,7 @@ jobs:
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nixos-tests
-          restore-prefixes-all-match: |
+          restore-prefixes-all-matches: |
             nix-devshell
             nixos-tests
           gc-max-store-size-linux: 6G

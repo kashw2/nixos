@@ -50,7 +50,7 @@ jobs:
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-iso
-          restore-prefixes-all-match: |
+          restore-prefixes-all-matches: |
             nix-devshell
             nixos-configuration
             nix-iso
