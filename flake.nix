@@ -72,6 +72,7 @@
       url = "github:aaddrick/claude-desktop-debian";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixfmt.url = "github:nixos/nixfmt";
   };
 
   outputs =
