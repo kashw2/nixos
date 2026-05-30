@@ -58,6 +58,7 @@
               pkgs.go
               pkgs.gcc # Required by some go projects
               pkgs.bruno
+              pkgs.bruno-cli
               pkgs.obsidian
               inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.claude-desktop-fhs
               pkgs.vlc
