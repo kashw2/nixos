@@ -1243,11 +1243,11 @@
         "systems": "systems_4"
       },
       "locked": {
-        "lastModified": 1780010638,
-        "narHash": "sha256-rSJj5LvZtvXCR+6JPxIdGblekp6oNT/RMKOQfnQZTTg=",
+        "lastModified": 1780273711,
+        "narHash": "sha256-FRqEYVeQ9zUYuurh/183fm13KFWVNTo3atSpn6H5EbA=",
         "owner": "nixos",
         "repo": "nixfmt",
-        "rev": "990b62d73e3be92798cc6cc282eb7643453b2e14",
+        "rev": "3245f221e4d9ab7e12ebe31fd193cb7a8c4b14f9",
         "type": "github"
       },
       "original": {
