@@ -99,6 +99,8 @@
           "github_kashw2_pat" = { };
           "github_tablogs_pat" = { };
           "github_classic_pat" = { };
+          "aws_access_key_id" = { };
+          "aws_access_key_secret" = { };
           "keanu_password".neededForUsers = true;
           "infracost_api_key" = {
             owner = "keanu";
@@ -130,7 +132,23 @@
           mode = "0400";
         };
 
-        templates.".npmrc" = {
+        templates."credentials" = lib.mkIf (!config.isServer) {
+          content = ''
+            [default]
+            aws_access_key_id = ${config.sops.placeholder.aws_access_key_id}
+            aws_secret_access_key = ${config.sops.placeholder.aws_access_key_secret}
+          '';
+          owner = "keanu";
+          group = "keanu";
+          mode = "0600";
+          path =
+            if usingImpermanence then
+              "/persist/home/keanu/.aws/credentials"
+            else
+              "/home/keanu/.aws/credentials";
+        };
+
+        templates.".npmrc" = lib.mkIf (!config.isServer) {
           content = ''
             registry=https://registry.npmjs.org/
             @testlab360:registry=https://npm.pkg.github.com/
