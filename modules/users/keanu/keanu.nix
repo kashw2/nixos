@@ -127,21 +127,37 @@
             videos = "${config.users.users.keanu.home}/Videos";
             music = "${config.users.users.keanu.home}/Music";
           };
-          mcp-servers.programs = {
-            nixos.enable = true;
-            "sequential-thinking".enable = true;
-            terraform.enable = true;
-            fetch.enable = true;
-            git.enable = true;
-            memory.enable = true;
-            github = {
-              enable = true;
-              type = "stdio";
-              passwordCommand.GITHUB_PERSONAL_ACCESS_TOKEN = [
-                "gh"
-                "auth"
-                "token"
-              ];
+          mcp-servers = {
+            programs = {
+              nixos.enable = true;
+              "sequential-thinking".enable = true;
+              terraform.enable = true;
+              fetch.enable = true;
+              git.enable = true;
+              memory.enable = true;
+              github = {
+                enable = true;
+                type = "stdio";
+                passwordCommand.GITHUB_PERSONAL_ACCESS_TOKEN = [
+                  "gh"
+                  "auth"
+                  "token"
+                ];
+              };
+            };
+            settings.servers = {
+              shortcut = {
+                command = toString (
+                  pkgs.writeShellScript "mcp-server-shortcut-wrapper" ''
+                    export SHORTCUT_API_TOKEN="$(cat ${config.sops.secrets.shortcut_api_token.path})"
+                    exec ${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.shortcut-mcp-server} "$@"
+                  ''
+                );
+                env = {
+                  SHORTCUT_READONLY = false;
+                  SHORTCUT_TOOLS = "stories,epics";
+                };
+              };
             };
           };
           programs = {
