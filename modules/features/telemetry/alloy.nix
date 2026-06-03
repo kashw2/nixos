@@ -7,13 +7,20 @@
       lib,
       ...
     }:
+    let
+      # LAN address per host under modules/hosts/. Keep in sync when adding hosts.
+      hostAddresses = {
+        home = "192.168.1.5";
+        laptop = "192.168.1.6";
+        homelab = "192.168.1.7";
+        thinkpad = "192.168.1.9";
+        media = "192.168.1.12";
+      };
+      scrapeTargets = lib.concatMapStringsSep "\n            " (
+        addr: ''{"__address__" = "${addr}:${toString config.services.prometheus.exporters.node.port}"},''
+      ) (lib.attrValues hostAddresses);
+    in
     {
-
-      networking.firewall.allowedTCPPorts =
-        [ ]
-        ++ lib.optionals config.services.alloy.enable [
-          12345
-        ];
 
       services.alloy = {
         enable = config.features.telemetry.role == "host";
@@ -48,7 +55,7 @@
               output {
                 ${lib.optionalString config.services.mimir.enable ''
                   metrics = [
-                    otelcol.exporter.prometheus.default.input,
+                    otelcol.exporter.otlphttp.mimir.input,
                   ]
                 ''}
                 ${lib.optionalString config.services.loki.enable ''
@@ -63,12 +70,14 @@
             }
             otelcol.exporter.otlphttp "tempo" {
               client {
-                endpoint = "http://192.168.1.7:5318"
+                endpoint = "http://127.0.0.1:5318"
               }
             }
             ${lib.optionalString config.services.mimir.enable ''
-              otelcol.exporter.prometheus "default" {
-                forward_to = [prometheus.remote_write.writer.receiver]
+              otelcol.exporter.otlphttp "mimir" {
+                client {
+                  endpoint = "http://127.0.0.1:${toString config.services.mimir.configuration.server.http_listen_port}/otlp"
+                }
               }
             ''}
             ${lib.optionalString config.services.loki.enable ''
@@ -78,30 +87,28 @@
             ''}
           ''
           + lib.optionalString config.services.mimir.enable ''
+            otelcol.receiver.prometheus "default" {
+              output {
+                metrics = [otelcol.processor.batch.batch.input]
+              }
+            }
             prometheus.scrape "alloy" {
               targets = [{
                 job         = "alloy",
                 __address__ = "127.0.0.1:12345",
               }]
               forward_to = [
-                prometheus.remote_write.writer.receiver,
+                otelcol.receiver.prometheus.default.receiver,
               ]
             }
             prometheus.scrape "nixosConfiguration" {
               scrape_interval = "5s"
               scrape_timeout  = "5s"
               targets = [
-                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.5:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.6:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.7:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.8:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.9:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.10:${toString config.services.prometheus.exporters.node.port}"},
-                {"__address__" = "192.168.1.11:${toString config.services.prometheus.exporters.node.port}"},
+                ${scrapeTargets}
               ]
               forward_to = [
-                prometheus.remote_write.writer.receiver,
+                otelcol.receiver.prometheus.default.receiver,
               ]
             }
             prometheus.scrape "openwrt" {
@@ -112,19 +119,14 @@
                 {"__address__" = "${config.networking.defaultGateway.address}:9100"},
               ]
               forward_to = [
-                prometheus.remote_write.writer.receiver,
+                otelcol.receiver.prometheus.default.receiver,
               ]
-            }
-            prometheus.remote_write "writer" {
-              endpoint {
-                url = "http://127.0.0.1:${toString config.services.mimir.configuration.server.http_listen_port}/api/v1/push"
-              }
             }
           ''
           + lib.optionalString config.services.loki.enable ''
             loki.write "writer" {
               endpoint {
-                url = "http://192.168.1.7:${toString config.services.loki.configuration.server.http_listen_port}/loki/api/v1/push"
+                url = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}/loki/api/v1/push"
               }
             }
              ${lib.optionalString config.services.nginx.enable ''
