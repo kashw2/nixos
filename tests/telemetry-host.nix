@@ -53,6 +53,7 @@
             machine.wait_for_unit("alloy.service")
             machine.wait_for_open_port(3000)
             machine.wait_for_open_port(3100)
+            machine.wait_for_open_port(3200)
             machine.wait_for_open_port(9009)
             machine.wait_for_open_port(12345)
             machine.wait_until_succeeds("curl --fail --silent http://127.0.0.1:3000/api/health", timeout=60)
