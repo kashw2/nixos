@@ -25,7 +25,7 @@ jobs:
           - arr-stack
           - telemetry-host
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: true
