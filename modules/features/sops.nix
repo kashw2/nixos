@@ -114,6 +114,10 @@
             owner = "keanu";
             group = "keanu";
           };
+          "shortcut_api_token" = {
+            owner = "keanu";
+            group = "keanu";
+          };
         };
 
         templates."nix-access-tokens" = {
