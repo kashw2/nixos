@@ -81,6 +81,18 @@ jobs:
           extra_nix_config: |
             extra-substituters = https://nix-community.cachix.org
             extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+      - uses: tailscale/github-action@v4
+        continue-on-error: true
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+      - uses: ryanccn/attic-action@v0
+        continue-on-error: true
+        with:
+          endpoint: http://100.79.68.16:8080
+          cache: nixos
+          token: ${{ secrets.ATTIC_TOKEN }}
       - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-package
