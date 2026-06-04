@@ -60,7 +60,6 @@
               pkgs.bruno
               pkgs.bruno-cli
               pkgs.obsidian
-              inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.claude-desktop-fhs
               pkgs.vlc
               pkgs.d2
               pkgs.nixos-anywhere
@@ -112,7 +111,6 @@
                 ".azure" # azure-cli auth
                 ".config/gh" # gh cli auth
                 ".claude" # claude-code projects, shell snapshots, todos
-                ".config/Claude" # claude-desktop settings + MCP config
               ];
               files = lib.optionals (!config.isServer) [
                 ".claude.json" # claude-code per-project config + auth
