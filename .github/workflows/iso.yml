@@ -4,10 +4,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/iso.yml
-      - flake.nix
-      - flake.lock
       - modules/installer.nix
-      - modules/hosts/**
       - modules/features/impermanence.nix
       - modules/features/sops.nix
 concurrency:
