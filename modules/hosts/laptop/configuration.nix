@@ -10,6 +10,7 @@
         self.nixosModules.laptopTemplate
         self.nixosModules.impermanence
         self.nixosModules.keanu
+        self.nixosModules.attic
       ];
 
       # Values consumed by modules/features/impermanence.nix. The unit
