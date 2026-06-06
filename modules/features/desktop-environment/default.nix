@@ -23,6 +23,12 @@
           inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       };
 
+      # Point security.wrappers.Hyprland at the compositor binary, not the start-hyprland watchdog.
+      # Otherwise the setuid Hyprland wrapper execs start-hyprland, which execs a fork bomb.
+      security.wrappers.Hyprland.source = lib.mkForce (
+        lib.getExe' config.programs.hyprland.package "Hyprland"
+      );
+
       xdg.portal = {
         enable = true;
         extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
