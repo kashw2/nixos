@@ -166,11 +166,24 @@
                   inactive_opacity = 1.0,
                   rounding         = 0,
                   rounding_power   = 0,
+                  shadow = {
+                    enabled      = true,
+                    range        = 15,
+                    render_power = 3,
+                    color        = "rgba(1a1a1aee)",
+                  },
                   blur = {
-                    enabled  = true,
-                    passes   = 4,
-                    size     = 6,
-                    vibrancy = 0.1696,
+                    enabled           = true,
+                    passes            = 4,
+                    size              = 6,
+                    vibrancy          = 0.1696,
+                    new_optimizations = true,
+                    popups            = true,
+                    noise             = 0.02,
+                    contrast          = 1.1,
+                  },
+                  motion_blur = {
+                    enabled = true,
                   },
                 },
               })
