@@ -49,6 +49,8 @@
           ];
           auto-optimise-store = true;
           connect-timeout = 5;
+          download-attempts = 3;
+          fallback = true;
           trusted-users = [
             "keanu"
             "kashw2"
