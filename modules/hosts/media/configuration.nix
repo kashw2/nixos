@@ -16,6 +16,7 @@
         self.nixosModules.serverTemplate
         self.nixosModules.jellyfin
         self.nixosModules.keanu
+        self.nixosModules.attic
       ];
 
       features.telemetry.role = "host";
