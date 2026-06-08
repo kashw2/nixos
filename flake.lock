@@ -1300,11 +1300,11 @@
         "systems": "systems_4"
       },
       "locked": {
-        "lastModified": 1780273711,
-        "narHash": "sha256-FRqEYVeQ9zUYuurh/183fm13KFWVNTo3atSpn6H5EbA=",
+        "lastModified": 1780640437,
+        "narHash": "sha256-PBN6otBv2fkF+sCNaPVayPNnOeqb6wBJ+X1ihweVQIA=",
         "owner": "nixos",
         "repo": "nixfmt",
-        "rev": "3245f221e4d9ab7e12ebe31fd193cb7a8c4b14f9",
+        "rev": "1d1bf077b9a6e675e7558db04b4c553e21858253",
         "type": "github"
       },
       "original": {
