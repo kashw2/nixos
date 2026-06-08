@@ -93,6 +93,9 @@
           };
           "tailscale" = { };
           "attic_server_token" = lib.mkIf (config.networking.hostName == "media") { };
+          # Client push token (JWT) for `attic watch-store`. Available on all
+          # hosts so each builder can push its closures to the media cache.
+          "attic_push_token" = { };
           "grafana_secret_key" = lib.mkIf (config.services.grafana.enable) {
             owner = "grafana";
             group = "grafana";
@@ -121,6 +124,22 @@
           content = "access-tokens = github.com=${config.sops.placeholder.github_kashw2_pat} github.com/tablogs=${config.sops.placeholder.github_tablogs_pat}";
           group = "wheel";
           mode = "0440";
+        };
+
+        # Attic client config consumed by the `attic-watch-store` service in
+        # modules/features/nix. Rendered to /run so the token never lands in
+        # the world-readable nix store. The service points XDG_CONFIG_HOME at
+        # /run, so attic reads /run/attic/config.toml.
+        templates."attic-config" = {
+          content = ''
+            default-server = "media"
+
+            [servers.media]
+            endpoint = "http://100.116.38.8:8080/"
+            token = "${config.sops.placeholder.attic_push_token}"
+          '';
+          path = "/run/attic/config.toml";
+          mode = "0400";
         };
 
         templates."git_email_address" = {
