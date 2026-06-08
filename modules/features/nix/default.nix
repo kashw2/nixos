@@ -59,28 +59,5 @@
         };
       };
 
-      # Continuously push newly-built store paths to the media attic cache.
-      # watch-store uses inotify on /nix/store, so anything a `nixos-rebuild`
-      # or `colmena apply/build` realises locally is uploaded automatically.
-      # Best-effort: if the cache is unreachable the service just retries and
-      # never blocks a build.
-      systemd.services.attic-watch-store = {
-        description = "Push new Nix store paths to the media attic cache";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network-online.target" ];
-        wants = [ "network-online.target" ];
-        path = [ config.nix.package ];
-        serviceConfig = {
-          ExecStart = "${
-            inputs.attic.packages.${pkgs.stdenv.hostPlatform.system}.attic-client
-          }/bin/attic watch-store nixos";
-          # sops renders the client config (with the push token) to
-          # /run/attic/config.toml; XDG_CONFIG_HOME=/run makes attic find it.
-          Environment = [ "XDG_CONFIG_HOME=/run" ];
-          Restart = "always";
-          RestartSec = "10s";
-        };
-      };
-
     };
 }
