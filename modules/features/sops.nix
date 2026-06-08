@@ -92,7 +92,7 @@
                 "/home/keanu/.ssh/id_ed25519.pub";
           };
           "tailscale" = { };
-          "attic_server_token" = lib.mkIf (config.networking.hostName == "laptop") { };
+          "attic_server_token" = lib.mkIf (config.networking.hostName == "media") { };
           "grafana_secret_key" = lib.mkIf (config.services.grafana.enable) {
             owner = "grafana";
             group = "grafana";

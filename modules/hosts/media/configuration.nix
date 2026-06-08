@@ -16,12 +16,13 @@
         self.nixosModules.serverTemplate
         self.nixosModules.jellyfin
         self.nixosModules.keanu
+        self.nixosModules.attic
       ];
 
       features.telemetry.role = "host";
 
       impermanence = {
-        enable = false;
+        enable = true;
         rootDevice = "/dev/disk/by-partlabel/disk-main-root";
         rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
       };

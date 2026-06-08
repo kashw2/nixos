@@ -90,7 +90,7 @@ jobs:
       - uses: ryanccn/attic-action@v0
         continue-on-error: true
         with:
-          endpoint: http://100.79.68.16:8080
+          endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
       - uses: nix-community/cache-nix-action@v7
