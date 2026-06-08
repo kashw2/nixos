@@ -25,6 +25,10 @@
             avg-size = 65536;
             max-size = 262144;
           };
+          garbage-collection = {
+            interval = "1 day";
+            default-retention-period = "1 month";
+          };
         };
       };
 
