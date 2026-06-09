@@ -93,13 +93,6 @@ jobs:
           endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nix-package
-          restore-prefixes-all-matches: |
-            nix-devshell
-            nix-package
-          save: true
       - run: nix develop --command nix build .#${{ matrix.package }} --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
