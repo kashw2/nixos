@@ -52,13 +52,6 @@ jobs:
           endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nixos-tests
-          restore-prefixes-all-matches: |
-            nix-devshell
-            nixos-tests
-          gc-max-store-size-linux: 6G
       - run: nix build .#checks.x86_64-linux.${{ matrix.input }} --impure --print-build-logs
         env:
           NIXPKGS_ALLOW_UNFREE: 1

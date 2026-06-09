@@ -45,11 +45,6 @@ jobs:
           endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nix-devshell
-          restore-prefixes-first-match: nix-devshell
-          gc-max-store-size-linux: 3G
       - run: nix develop --command nix flake check --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
@@ -100,13 +95,6 @@ jobs:
           endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nixos-configuration
-          restore-prefixes-all-matches: |
-            nix-devshell
-            nixos-configuration
-          gc-max-store-size-linux: 6G
       - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
