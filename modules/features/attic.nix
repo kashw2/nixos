@@ -31,7 +31,10 @@
               ExecStart = "${
                 lib.getExe' inputs.attic.packages.${pkgs.stdenv.hostPlatform.system}.attic-client "attic"
               } watch-store nixos";
-              Environment = [ "XDG_CONFIG_HOME=/run" ];
+              Environment = [
+                "XDG_CONFIG_HOME=/run"
+                "NIX_REMOTE=daemon"
+              ];
               Restart = "always";
               RestartSec = "10s";
             };
@@ -56,7 +59,7 @@
               };
               garbage-collection = {
                 interval = "1 day";
-                default-retention-period = "1 month";
+                default-retention-period = "2 weeks";
               };
             };
           };
@@ -99,8 +102,10 @@
                 --pull 'nixos' --push 'nixos' --create-cache 'nixos' \
                 --configure-cache 'nixos' --configure-cache-retention 'nixos')"
               attic login local http://localhost:8080 "$token"
-              attic cache info nixos >/dev/null 2>&1 || attic cache create nixos
-              attic cache configure nixos --public
+              if ! attic cache info nixos >/dev/null 2>&1; then
+                attic cache create nixos
+                attic cache configure nixos --public
+              fi
             '';
           };
         })
