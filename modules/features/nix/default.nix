@@ -45,7 +45,7 @@
           trusted-public-keys = [
             "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
             "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-            "nixos:Lqpfa0jP2r+0Il9VOzVqA5c8RT/uao/Vd4ncVW/qiUU="
+            "nixos:OfYc0+Gd91P4GChe7uQz/4+rAQfMFiegVVnSwNFPPbQ="
           ];
           auto-optimise-store = true;
           connect-timeout = 5;
