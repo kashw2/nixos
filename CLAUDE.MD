@@ -84,3 +84,8 @@ Uses sops-nix with age encryption.
 - Home-manager is integrated at the system level (not standalone)
 - Nushell is the default shell (not bash/zsh)
 - All hosts deploy via Colmena over SSH to `<hostname>.local`
+
+## Rules
+
+@.claude/rules/commit-standards.md
+@.claude/rules/pr-standards.md
