@@ -15,7 +15,7 @@
         # bare /nix/store file, so kitty's live-reload watcher watches a
         # single-file dir instead of all of /nix/store
         flags."--config" = "${pkgs.writeTextDir "kitty.conf" ''
-          font_family JetBrainsMono
+          font_family JetBrains Mono
           font_size 12
           hide_window_decorations yes
           tab_bar_style powerline

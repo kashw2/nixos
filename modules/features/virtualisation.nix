@@ -10,7 +10,9 @@
     {
       virtualisation = {
         docker.enable = true;
+        docker.autoPrune.enable = true;
         podman.enable = true;
+        podman.autoPrune.enable = true;
         spiceUSBRedirection.enable = true;
       };
 

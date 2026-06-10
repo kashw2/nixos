@@ -17,7 +17,7 @@
 
       boot.loader.grub = {
         enable = true;
-        configurationLimit = 10;
+        configurationLimit = 5;
         useOSProber = true;
         efiSupport = true;
         efiInstallAsRemovable = true;
@@ -27,7 +27,6 @@
 
       fonts.packages = [
         pkgs.jetbrains-mono
-        pkgs.nerd-fonts.jetbrains-mono
         pkgs.nerd-fonts.symbols-only
       ];
 
