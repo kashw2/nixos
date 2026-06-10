@@ -124,6 +124,7 @@
 
         services = {
           fwupd.enable = true;
+          journald.extraConfig = "SystemMaxUse=500M";
         };
 
         system.stateVersion = "25.11";
