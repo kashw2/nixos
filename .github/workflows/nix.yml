@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: true
@@ -55,7 +55,7 @@ jobs:
     outputs:
       hosts: ${{ steps.detect.outputs.hosts }}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: ./.github/actions/detect-hosts
         id: detect
   build-configuration:
@@ -68,7 +68,7 @@ jobs:
       matrix:
         host: ${{ fromJSON(needs.detect-hosts.outputs.hosts) }}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: true
