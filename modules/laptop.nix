@@ -25,7 +25,6 @@
 
       fonts.packages = [
         pkgs.jetbrains-mono
-        pkgs.nerd-fonts.jetbrains-mono
         pkgs.nerd-fonts.symbols-only
       ];
 

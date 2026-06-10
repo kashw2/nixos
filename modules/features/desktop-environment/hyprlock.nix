@@ -47,7 +47,7 @@
           label {
             monitor=
             color=rgba(255, 255, 255, 1.0)
-            font_family=JetBrains Mono Nerd Font 10
+            font_family=JetBrains Mono 10
             font_size=64
             halign=center
             position=0, 16
@@ -58,7 +58,7 @@
           label {
             monitor=
             color=rgba(255, 255, 255, 1.0)
-            font_family=JetBrains Mono Nerd Font 10
+            font_family=JetBrains Mono 10
             font_size=20
             halign=center
             position=0, -50
@@ -69,7 +69,7 @@
           label {
             monitor=
             color=rgba(255, 255, 255, 1.0)
-            font_family=JetBrains Mono Nerd Font 10
+            font_family=JetBrains Mono 10
             font_size=16
             halign=center
             position=0, 30
