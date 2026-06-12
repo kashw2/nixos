@@ -1513,11 +1513,11 @@
         "systems": "systems_5"
       },
       "locked": {
-        "lastModified": 1780884186,
-        "narHash": "sha256-ueTLp7DofvIZ0BXEWwi8AjP1cCsuEfO445dk6DtmfKc=",
+        "lastModified": 1781287460,
+        "narHash": "sha256-9hXtN4my7eBqHRVQ/t6FQZ4YqZ1KG6SsKSG4Hdtr+i0=",
         "owner": "nix-community",
         "repo": "nixvim",
-        "rev": "82f2ec369eb597554a71ec82f33922d01b7dba8f",
+        "rev": "f2029d9a26266eb67f46b0c79bd0a3713839a57a",
         "type": "github"
       },
       "original": {
