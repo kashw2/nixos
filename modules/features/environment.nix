@@ -93,7 +93,6 @@
             formatted;
 
           systemPackages = [
-            pkgs.nano
             pkgs.openssl
             pkgs.killall
             pkgs.lsof
@@ -101,10 +100,12 @@
             pkgs.watch
             pkgs.tree
             pkgs.curl
-            pkgs.cliphist
-            pkgs.unzip
-            pkgs.git
             self.packages.${pkgs.stdenv.hostPlatform.system}.fastfetch
+          ]
+          ++ lib.optionals (!config.isServer) [
+            pkgs.cliphist
+            pkgs.git
+            pkgs.unzip
           ];
         };
 
