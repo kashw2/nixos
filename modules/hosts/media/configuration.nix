@@ -56,7 +56,6 @@
           ++ lib.optionals config.services.lidarr.enable [ "/var/lib/lidarr" ]
           ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
           ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
-          ++ lib.optionals config.services.uptime-kuma.enable [ "/var/lib/private/uptime-kuma" ]
           ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
           ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
           ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
@@ -81,7 +80,6 @@
           config.services.flood.port
           config.services.deluge.web.port
           config.services.deluge.config.daemon_port
-          (lib.toInt config.services.uptime-kuma.settings.PORT)
           5201 # iperf3
         ];
         interfaces = {
@@ -213,8 +211,7 @@
               // mkVirtualHost "mimir" config.services.mimir.configuration.server.http_listen_port
               // mkVirtualHost "grafana" config.services.grafana.settings.server.http_port
               // mkVirtualHost "loki" config.services.loki.configuration.server.http_listen_port
-              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port
-              // mkVirtualHost "uptime" config.services.uptime-kuma.settings.PORT;
+              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port;
           };
 
         prowlarr.enable = true;
@@ -223,7 +220,6 @@
         lidarr.enable = true;
         bazarr.enable = true;
         flaresolverr.enable = true;
-        uptime-kuma.enable = true;
 
         flood = {
           enable = true;
