@@ -225,17 +225,21 @@
               json = [ "prettier" ];
               yaml = [ "yq" ];
               sh = [ "shfmt" ];
-              prisma = [ "prismaFmt" ];
               _ = [ "trim_whitespace" ];
+            }
+            // lib.optionalAttrs (!config.isServer) {
+              prisma = [ "prismaFmt" ];
             };
-            formatters.prismaFmt = {
-              command = lib.getExe pkgs.prisma;
-              args = [
-                "format"
-                "--schema"
-                "$FILENAME"
-              ];
-              stdin = false;
+            formatters = lib.optionalAttrs (!config.isServer) {
+              prismaFmt = {
+                command = lib.getExe pkgs.prisma;
+                args = [
+                  "format"
+                  "--schema"
+                  "$FILENAME"
+                ];
+                stdin = false;
+              };
             };
           };
         };
