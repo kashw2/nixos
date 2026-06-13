@@ -53,10 +53,9 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs-attic.url = "github:nixos/nixpkgs/nixos-26.05";
     attic = {
       url = "github:zhaofengli/attic";
-      # TODO: Pin to nixpkgs
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nixcord = {
       url = "github:KaylorBen/nixcord";
