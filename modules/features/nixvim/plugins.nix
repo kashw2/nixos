@@ -31,7 +31,7 @@
         nix.enable = true;
         nix-develop.enable = true;
         claude-code = {
-          enable = true;
+          enable = !config.isServer;
           settings = {
             window.position = "float";
             window.float = {
