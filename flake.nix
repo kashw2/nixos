@@ -6,6 +6,8 @@
     nix = {
       url = "github:nixos/nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-23-11.follows = "nixpkgs";
+      inputs.nixpkgs-regression.follows = "nixpkgs";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
@@ -56,10 +58,12 @@
     attic = {
       url = "github:zhaofengli/attic";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs";
     };
     nixcord = {
       url = "github:KaylorBen/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-nixcord.follows = "nixpkgs";
     };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
