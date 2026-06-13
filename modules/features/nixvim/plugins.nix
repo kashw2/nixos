@@ -33,6 +33,11 @@
         claude-code = {
           enable = !config.isServer;
           settings = {
+            command =
+              let
+                hmClaude = config.home-manager.users.keanu.programs.claude-code;
+              in
+              if hmClaude.enable then lib.getExe hmClaude.finalPackage else lib.getExe pkgs.claude-code;
             window.position = "float";
             window.float = {
               width = "80%";
