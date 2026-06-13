@@ -43,9 +43,7 @@
             "flood.media.tailscale"
             "loki.media.tailscale"
             "tempo.media.tailscale"
-            "uptime.media.tailscale"
             "flaresolverr.media.tailscale"
-            "lidarr.media.tailscale"
           ];
           "192.168.1.5" = [ "home.local" ];
           "192.168.1.6" = [ "laptop.local" ];

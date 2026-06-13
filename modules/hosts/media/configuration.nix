@@ -31,7 +31,6 @@
         jellyfin.extraGroups = [ "deluge" ];
         sonarr.extraGroups = [ "deluge" ];
         radarr.extraGroups = [ "deluge" ];
-        lidarr.extraGroups = [ "deluge" ];
         bazarr.extraGroups = [ "deluge" ];
       };
 
@@ -53,7 +52,6 @@
           ++ lib.optionals config.services.prowlarr.enable [ "/var/lib/private/prowlarr" ]
           ++ lib.optionals config.services.sonarr.enable [ "/var/lib/sonarr" ]
           ++ lib.optionals config.services.radarr.enable [ "/var/lib/radarr" ]
-          ++ lib.optionals config.services.lidarr.enable [ "/var/lib/lidarr" ]
           ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
           ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
           ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
@@ -74,7 +72,6 @@
           config.services.prowlarr.settings.server.port
           config.services.sonarr.settings.server.port
           config.services.radarr.settings.server.port
-          config.services.lidarr.settings.server.port
           config.services.bazarr.listenPort
           config.services.flaresolverr.port
           config.services.flood.port
@@ -203,7 +200,6 @@
               // mkVirtualHost "prowlarr" config.services.prowlarr.settings.server.port
               // mkVirtualHost "sonarr" config.services.sonarr.settings.server.port
               // mkVirtualHost "radarr" config.services.radarr.settings.server.port
-              // mkVirtualHost "lidarr" config.services.lidarr.settings.server.port
               // mkVirtualHost "bazarr" config.services.bazarr.listenPort
               // mkVirtualHost "flaresolverr" config.services.flaresolverr.port
               // mkVirtualHost "flood" config.services.flood.port
@@ -217,7 +213,6 @@
         prowlarr.enable = true;
         sonarr.enable = true;
         radarr.enable = true;
-        lidarr.enable = true;
         bazarr.enable = true;
         flaresolverr.enable = true;
 
