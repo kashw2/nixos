@@ -22,6 +22,19 @@
 
       attic.server.enable = true;
 
+      # `/mnt/torrents` is owned `deluge:deluge` mode 0770, so only deluge can
+      # traverse it. Jellyfin and the *arr stack need to read/write the tree;
+      # add them to the `deluge` group (which acts as the shared media group)
+      # rather than loosening the tree to 0777. New files land 0664/0775 under
+      # the default umask, so group members can read them.
+      users.users = {
+        jellyfin.extraGroups = [ "deluge" ];
+        sonarr.extraGroups = [ "deluge" ];
+        radarr.extraGroups = [ "deluge" ];
+        lidarr.extraGroups = [ "deluge" ];
+        bazarr.extraGroups = [ "deluge" ];
+      };
+
       impermanence = {
         enable = true;
         rootDevice = "/dev/disk/by-partlabel/disk-main-root";
