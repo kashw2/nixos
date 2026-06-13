@@ -59,6 +59,7 @@
       url = "github:zhaofengli/attic";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
     };
     nixcord = {
       url = "github:KaylorBen/nixcord";
@@ -68,10 +69,12 @@
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixlib.follows = "nixpkgs";
     };
     impermanence = {
       url = "github:nix-community/impermanence";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
