@@ -223,11 +223,11 @@
               terraform = [ "terraform_fmt" ];
               go = [ "gofmt" ];
               json = [ "prettier" ];
-              yaml = [ "yq" ];
               sh = [ "shfmt" ];
               _ = [ "trim_whitespace" ];
             }
             // lib.optionalAttrs (!config.isServer) {
+              yaml = [ "yq" ];
               prisma = [ "prismaFmt" ];
             };
             formatters = lib.optionalAttrs (!config.isServer) {
