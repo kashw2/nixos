@@ -18,15 +18,7 @@
 
       programs.nixvim.extraConfigLua = ''
         require("atone").setup({})
-        local codestats_key_file = io.open("${config.sops.secrets."codestats_api_key".path}", "r")
-        if codestats_key_file then
-          local codestats_key = codestats_key_file:read("*a"):gsub("%s+$", "")
-          codestats_key_file:close()
-          require('codestats').setup({
-            username = "Keanu Ashwell",
-            api_key = codestats_key,
-          })
-        end
+        pcall(dofile, "${config.sops.templates."codestats-setup.lua".path}")
       '';
 
       programs.nixvim.plugins = {

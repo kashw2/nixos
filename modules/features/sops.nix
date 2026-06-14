@@ -142,6 +142,18 @@
           mode = "0400";
         };
 
+        templates."codestats-setup.lua" = {
+          content = ''
+            require('codestats').setup({
+              username = "Keanu Ashwell",
+              api_key = "${config.sops.placeholder.codestats_api_key}",
+            })
+          '';
+          owner = "keanu";
+          group = "keanu";
+          mode = "0400";
+        };
+
         templates."git_email_address" = {
           content = ''
             [user]
