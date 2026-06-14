@@ -6,6 +6,8 @@
     nix = {
       url = "github:nixos/nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-23-11.follows = "nixpkgs";
+      inputs.nixpkgs-regression.follows = "nixpkgs";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
@@ -53,21 +55,26 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs-attic.url = "github:nixos/nixpkgs/nixos-26.05";
     attic = {
       url = "github:zhaofengli/attic";
-      # TODO: Pin to nixpkgs
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
     };
     nixcord = {
       url = "github:KaylorBen/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-nixcord.follows = "nixpkgs";
     };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixlib.follows = "nixpkgs";
     };
     impermanence = {
       url = "github:nix-community/impermanence";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";

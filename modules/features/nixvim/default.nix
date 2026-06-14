@@ -1,7 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.nixvim =
-    { pkgs, lib, ... }:
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
     {
       imports = [
         inputs.nixvim.nixosModules.nixvim
@@ -49,8 +54,10 @@
         ];
         extraPackages = [
           pkgs.shfmt
-          pkgs.yq-go
           inputs.nixfmt.packages.${pkgs.stdenv.hostPlatform.system}.default
+        ]
+        ++ lib.optionals (!config.isServer) [
+          pkgs.yq-go
           pkgs.postgresql # Used so that the database plugin can use the psql executable
           pkgs.ansible-language-server
         ];

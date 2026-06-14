@@ -22,6 +22,7 @@
         package = inputs.nix.packages.${pkgs.system}.default;
         optimise.automatic = true;
         gc.automatic = true;
+        gc.options = "--delete-older-than 30d";
         channel.enable = false; # All hosts use flakes
         extraOptions = ''
           warn-dirty = false

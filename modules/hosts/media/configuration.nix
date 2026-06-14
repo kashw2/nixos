@@ -31,7 +31,6 @@
         jellyfin.extraGroups = [ "deluge" ];
         sonarr.extraGroups = [ "deluge" ];
         radarr.extraGroups = [ "deluge" ];
-        lidarr.extraGroups = [ "deluge" ];
         bazarr.extraGroups = [ "deluge" ];
       };
 
@@ -53,10 +52,8 @@
           ++ lib.optionals config.services.prowlarr.enable [ "/var/lib/private/prowlarr" ]
           ++ lib.optionals config.services.sonarr.enable [ "/var/lib/sonarr" ]
           ++ lib.optionals config.services.radarr.enable [ "/var/lib/radarr" ]
-          ++ lib.optionals config.services.lidarr.enable [ "/var/lib/lidarr" ]
           ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
           ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
-          ++ lib.optionals config.services.uptime-kuma.enable [ "/var/lib/private/uptime-kuma" ]
           ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
           ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
           ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
@@ -75,13 +72,11 @@
           config.services.prowlarr.settings.server.port
           config.services.sonarr.settings.server.port
           config.services.radarr.settings.server.port
-          config.services.lidarr.settings.server.port
           config.services.bazarr.listenPort
           config.services.flaresolverr.port
           config.services.flood.port
           config.services.deluge.web.port
           config.services.deluge.config.daemon_port
-          (lib.toInt config.services.uptime-kuma.settings.PORT)
           5201 # iperf3
         ];
         interfaces = {
@@ -205,7 +200,6 @@
               // mkVirtualHost "prowlarr" config.services.prowlarr.settings.server.port
               // mkVirtualHost "sonarr" config.services.sonarr.settings.server.port
               // mkVirtualHost "radarr" config.services.radarr.settings.server.port
-              // mkVirtualHost "lidarr" config.services.lidarr.settings.server.port
               // mkVirtualHost "bazarr" config.services.bazarr.listenPort
               // mkVirtualHost "flaresolverr" config.services.flaresolverr.port
               // mkVirtualHost "flood" config.services.flood.port
@@ -213,17 +207,14 @@
               // mkVirtualHost "mimir" config.services.mimir.configuration.server.http_listen_port
               // mkVirtualHost "grafana" config.services.grafana.settings.server.http_port
               // mkVirtualHost "loki" config.services.loki.configuration.server.http_listen_port
-              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port
-              // mkVirtualHost "uptime" config.services.uptime-kuma.settings.PORT;
+              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port;
           };
 
         prowlarr.enable = true;
         sonarr.enable = true;
         radarr.enable = true;
-        lidarr.enable = true;
         bazarr.enable = true;
         flaresolverr.enable = true;
-        uptime-kuma.enable = true;
 
         flood = {
           enable = true;
