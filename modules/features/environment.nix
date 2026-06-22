@@ -124,7 +124,7 @@
         };
 
         services = {
-          fwupd.enable = true;
+          fwupd.enable = !config.isServer;
           journald.extraConfig = "SystemMaxUse=500M";
         };
 
