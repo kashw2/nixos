@@ -26,7 +26,7 @@
       security = {
         sudo.wheelNeedsPassword = false;
         polkit.enable = true;
-        rtkit.enable = true;
+        rtkit.enable = !config.isServer;
 
         apparmor = {
           enable = true;
