@@ -75,10 +75,6 @@
           };
           users.groups.atticd = { };
 
-          environment.persistence."/persist".directories = lib.mkIf config.impermanence.enable [
-            "/var/lib/atticd"
-          ];
-
           systemd.services.atticd-bootstrap = {
             description = "Create the nixos attic cache if absent";
             wantedBy = [ "multi-user.target" ];
@@ -88,6 +84,7 @@
               config.services.atticd.package
               inputs.attic.packages.${pkgs.stdenv.hostPlatform.system}.attic-client
               pkgs.curl
+              pkgs.sqlite
             ];
             serviceConfig = {
               Type = "oneshot";
@@ -106,6 +103,11 @@
                 attic cache create nixos
                 attic cache configure nixos --public
               fi
+              # Inject stable signing key so trusted-public-keys never needs to change
+              sqlite3 /var/lib/atticd/server.db \
+                "UPDATE cache SET keypair = '$(cat ${
+                  config.sops.secrets."attic_signing_key".path
+                })' WHERE name = 'nixos'"
             '';
           };
         })

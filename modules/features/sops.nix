@@ -93,6 +93,11 @@
           };
           "tailscale" = { };
           "attic_server_token" = lib.mkIf (config.networking.hostName == "media") { };
+          "attic_signing_key" = lib.mkIf (config.networking.hostName == "media") {
+            owner = "atticd";
+            group = "atticd";
+            mode = "0400";
+          };
           # Client push token (JWT) for `attic watch-store`. Available on all
           # hosts so each builder can push its closures to the media cache.
           "attic_push_token" = { };
