@@ -1,7 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.thinkpadDiskoConfiguration =
-    { pkgs, lib, config, ... }:
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
     {
       imports = [
         inputs.disko.nixosModules.disko
@@ -11,7 +16,7 @@
         disk = {
           main = {
             type = "disk";
-            device = "/dev/disk/by-id/ata-INTEL_SSDSCKJF180A5L_CVTQ607003DM180D";
+            device = "/dev/disk/by-id/ata-SanDisk_SD8SN8U-128G-1006_174671803618";
             content = {
               type = "gpt";
               partitions = {
