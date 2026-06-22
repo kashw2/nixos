@@ -97,12 +97,12 @@
             pkgs.killall
             pkgs.lsof
             pkgs.btop
-            pkgs.watch
             pkgs.tree
-            pkgs.curl
             self.packages.${pkgs.stdenv.hostPlatform.system}.fastfetch
           ]
           ++ lib.optionals (!config.isServer) [
+            pkgs.curl
+            pkgs.watch
             pkgs.cliphist
             pkgs.git
             pkgs.unzip
