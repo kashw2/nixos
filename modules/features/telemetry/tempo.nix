@@ -25,7 +25,6 @@
               grpc.endpoint = "0.0.0.0:5317";
               http.endpoint = "0.0.0.0:5318";
             };
-            compactor.compaction.block_retention = "48h";
             storage = {
               trace = {
                 backend = "local";
@@ -39,10 +38,13 @@
               };
               storage.path = "/var/lib/tempo";
             };
-            overrides.defaults.metrics_generator.processors = [
-              "service_graphs"
-              "span_metrics"
-            ];
+            overrides.defaults = {
+              compaction.block_retention = "48h";
+              metrics_generator.processors = [
+                "service_graphs"
+                "span_metrics"
+              ];
+            };
           };
         };
 
