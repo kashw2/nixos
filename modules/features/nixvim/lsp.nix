@@ -26,6 +26,7 @@
             bashls.enable = true;
             cmake.enable = !config.isServer;
             eslint.enable = !config.isServer;
+            ts_ls.enable = !config.isServer;
             html.enable = !config.isServer;
             gradle_ls.enable = !config.isServer;
             docker_compose_language_service.enable = true;
@@ -37,6 +38,13 @@
             typos_lsp.enable = true;
             metals.enable = !config.isServer;
             nixd.enable = true;
+            lua_ls = {
+              enable = true;
+              settings.Lua = {
+                workspace.library.__raw = "vim.api.nvim_get_runtime_file('', true)";
+                telemetry.enable = false;
+              };
+            };
             nushell.enable = true;
             yamlls.enable = true;
             jsonls.enable = true;
