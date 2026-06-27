@@ -50,7 +50,10 @@
         bufdelete.enable = true;
         ts-autotag.enable = true;
         todo-comments.enable = true;
-        telescope.enable = true;
+        telescope = {
+          enable = true;
+          extensions.fzf-native.enable = true;
+        };
         fidget.enable = true;
         image.enable = true;
         colorizer.enable = true;
