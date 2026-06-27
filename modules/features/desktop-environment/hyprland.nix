@@ -56,7 +56,6 @@
             "--config"
             (pkgs.writeText "hyprland.lua" ''
               hl.on("hyprland.start", function()
-                hl.exec_cmd("${lib.getExe' pkgs.dbus "dbus-update-activation-environment"} --systemd DISPLAY HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE && systemctl --user stop hyprland-session.target && systemctl --user start hyprland-session.target")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper}")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle}")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprshade} auto")
