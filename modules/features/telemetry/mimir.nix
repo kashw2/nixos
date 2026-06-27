@@ -42,7 +42,7 @@
               filesystem.dir = "/var/lib/mimir/blocks";
               tsdb = {
                 dir = "/var/lib/mimir/tsdb";
-                retention_period = "8760h";
+                retention_period = "240h";
               };
             };
 
@@ -73,7 +73,7 @@
             };
 
             limits = {
-              compactor_blocks_retention_period = "8760h";
+              compactor_blocks_retention_period = "240h";
             };
           };
         };
