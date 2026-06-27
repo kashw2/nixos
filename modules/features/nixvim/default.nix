@@ -32,6 +32,7 @@
           number = true;
           relativenumber = true;
           shortmess = "filnxtToOFTS";
+          scrolloff = 8;
         };
         diagnostic.settings = {
           virtual_lines = false;
@@ -55,6 +56,7 @@
         extraPackages = [
           pkgs.shfmt
           inputs.nixfmt.packages.${pkgs.stdenv.hostPlatform.system}.default
+          pkgs.ueberzugpp
         ]
         ++ lib.optionals (!config.isServer) [
           pkgs.yq-go
