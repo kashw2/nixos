@@ -928,7 +928,10 @@ ShellRoot {
                                 cursorShape: Qt.PointingHandCursor
                                 onEntered: parent.hovered = true
                                 onExited: parent.hovered = false
-                                onClicked: Hyprland.dispatch("workspace " + parent.wsId)
+                                onClicked: {
+                                    shell.closePopup();
+                                    parent.modelData.activate();
+                                }
                             }
                         }
                     }
