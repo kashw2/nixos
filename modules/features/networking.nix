@@ -78,13 +78,15 @@
 
       environment = {
         systemPackages = [
-          pkgs.nmap
           pkgs.dstp
           pkgs.dig
           pkgs.traceroute
           pkgs.inetutils
-          pkgs.whois
           pkgs.unixtools.netstat
+        ]
+        ++ lib.optionals (!config.isServer) [
+          pkgs.whois
+          pkgs.nmap
         ];
       };
     };
