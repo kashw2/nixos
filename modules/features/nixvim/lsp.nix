@@ -39,7 +39,7 @@
             metals.enable = !config.isServer;
             nixd.enable = true;
             lua_ls = {
-              enable = true;
+              enable = !config.isServer;
               settings.Lua = {
                 workspace.library.__raw = "vim.api.nvim_get_runtime_file('', true)";
                 telemetry.enable = false;

@@ -48,14 +48,14 @@
         snacks.enable = true;
         auto-session.enable = true;
         bufdelete.enable = true;
-        ts-autotag.enable = true;
+        ts-autotag.enable = !config.isServer;
         todo-comments.enable = true;
         telescope = {
           enable = true;
           extensions.fzf-native.enable = true;
         };
         fidget.enable = true;
-        image.enable = true;
+        image.enable = !config.isServer;
         colorizer.enable = true;
         render-markdown.enable = true;
         bufferline.enable = true;
@@ -208,20 +208,20 @@
             format_on_save.timeoutMs = 500;
             formatters_by_ft = {
               nix = [ "nixfmt" ];
+              markdown = [ "prettier" ];
+              json = [ "prettier" ];
+              sh = [ "shfmt" ];
+              _ = [ "trim_whitespace" ];
+            }
+            // lib.optionalAttrs (!config.isServer) {
               typescript = [ "prettier" ];
               javascript = [ "prettier" ];
               typescriptreact = [ "prettier" ];
               javascriptreact = [ "prettier" ];
               css = [ "prettier" ];
               html = [ "prettier" ];
-              markdown = [ "prettier" ];
               terraform = [ "terraform_fmt" ];
               go = [ "gofmt" ];
-              json = [ "prettier" ];
-              sh = [ "shfmt" ];
-              _ = [ "trim_whitespace" ];
-            }
-            // lib.optionalAttrs (!config.isServer) {
               yaml = [ "yq" ];
               prisma = [ "prismaFmt" ];
             };
@@ -251,23 +251,15 @@
             [
               g.bash # bashls
               g.dockerfile # docker_language_server
-              g.gomod # gopls
-              g.gosum # gopls
-              g.gowork # gopls
-              g.helm # helm_ls
               g.ini # systemd_lsp (no dedicated systemd grammar)
-              g.javascript # conform (javascript/javascriptreact)
               g.jq # jqls
               g.json # jsonls
               g.json5 # jsonls
               g.nix # nixd
               g.nu # nushell
-              g.tsx # conform (typescriptreact)
               g.yaml # yamlls, docker_compose_language_service
               g.markdown # prettier (markdown)
               g.markdown_inline # render-markdown.nvim needs this alongside markdown
-              g.lua # extraConfigLua + editing this config
-              g.luadoc
               g.query # treesitter .scm query files
               g.regex
               g.comment # todo-comments highlighting
@@ -276,9 +268,17 @@
               g.diff # gitsigns / git-conflict diffs
               g.gitcommit # commit message buffers
               g.git_rebase # interactive rebase buffers
-              g.toml # Cargo.toml and assorted config
             ]
             ++ lib.optionals (!config.isServer) [
+              g.toml # Cargo.toml and assorted config
+              g.luadoc
+              g.tsx # conform (typescriptreact)
+              g.javascript # conform (javascript/javascriptreact)
+              g.lua # extraConfigLua + editing this config
+              g.gomod # gopls
+              g.gosum # gopls
+              g.gowork # gopls
+              g.helm # helm_ls
               g.cmake # cmake
               g.css # cssls, tailwindcss
               g.go # gopls
