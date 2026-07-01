@@ -627,17 +627,15 @@ ShellRoot {
     Process {
         id: weatherCheck
         command: shell.weatherCustomCity !== ""
-            ? ["curl", "-sf", "--max-time", "5", "wttr.in/" + encodeURIComponent(shell.weatherCustomCity) + "?format=%C|%t"]
-            : ["curl", "-sf", "--max-time", "5", "wttr.in/?format=%C|%t"]
+            ? ["curl", "-sf", "--max-time", "5", "wttr.in/" + encodeURIComponent(shell.weatherCustomCity) + "?format=%C"]
+            : ["curl", "-sf", "--max-time", "5", "wttr.in/?format=%C"]
         running: true
         stdout: SplitParser {
             onRead: data => {
-                var line = data.toString().trim();
-                var parts = line.split("|");
-                if (parts.length >= 2) {
-                    shell.weatherCondition = parts[0].trim().toLowerCase();
-                    shell.weatherTemp = parts[1].trim().replace("+", "");
-                }
+                // wttr.in supplies only the textual condition (drives the icon);
+                // the displayed temperature comes from Open-Meteo's `current`.
+                var cond = data.toString().trim();
+                if (cond !== "") shell.weatherCondition = cond.toLowerCase();
             }
         }
     }
@@ -653,7 +651,7 @@ ShellRoot {
     // Open-Meteo; otherwise resolve from IP via ipinfo.io.
     Process {
         id: weatherForecastCheck
-        command: ["sh", "-c", "enc=\"$1\"; if [ -n \"$enc\" ]; then geo=$(curl -sf --max-time 5 \"https://geocoding-api.open-meteo.com/v1/search?name=$enc&count=1\"); [ -z \"$geo\" ] && exit 0; lat=$(printf '%s' \"$geo\" | grep -oE '\"latitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); lon=$(printf '%s' \"$geo\" | grep -oE '\"longitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); city=$(printf '%s' \"$geo\" | grep -oE '\"name\":\"[^\"]*\"' | head -1 | sed -E 's/.*\"([^\"]*)\"$/\\1/'); { [ -z \"$lat\" ] || [ -z \"$lon\" ]; } && exit 0; else info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; fi; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\"", "sh", shell.weatherCustomCity !== "" ? encodeURIComponent(shell.weatherCustomCity) : ""]
+        command: ["sh", "-c", "enc=\"$1\"; if [ -n \"$enc\" ]; then geo=$(curl -sf --max-time 5 \"https://geocoding-api.open-meteo.com/v1/search?name=$enc&count=1\"); [ -z \"$geo\" ] && exit 0; lat=$(printf '%s' \"$geo\" | grep -oE '\"latitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); lon=$(printf '%s' \"$geo\" | grep -oE '\"longitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); city=$(printf '%s' \"$geo\" | grep -oE '\"name\":\"[^\"]*\"' | head -1 | sed -E 's/.*\"([^\"]*)\"$/\\1/'); { [ -z \"$lat\" ] || [ -z \"$lon\" ]; } && exit 0; else info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; fi; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\"", "sh", shell.weatherCustomCity !== "" ? encodeURIComponent(shell.weatherCustomCity) : ""]
         running: true
         stdout: SplitParser {
             onRead: data => {
@@ -695,6 +693,11 @@ ShellRoot {
                             humidity: humAvg
                         });
                     }
+                    // Current temperature comes from Open-Meteo's `current`
+                    // block — the authoritative observation. wttr.in only feeds
+                    // the textual condition (which drives the icon).
+                    if (parsed.current && parsed.current.temperature_2m != null)
+                        shell.weatherTemp = Math.round(parsed.current.temperature_2m) + "°C";
                     shell.weatherLocationName = city;
                     shell.weatherForecast = days;
                 } catch(e) {}
