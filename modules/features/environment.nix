@@ -13,7 +13,6 @@
       # All configurations and downstream modules will have access to it
       imports = [
         self.nixosModules.nix
-        self.nixosModules.attic
         self.nixosModules.telemetry
         self.nixosModules.security
         self.nixosModules.networking

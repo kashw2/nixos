@@ -20,8 +20,6 @@
 
       features.telemetry.role = "host";
 
-      attic.server.enable = true;
-
       # `/mnt/torrents` is owned `deluge:deluge` mode 0770, so only deluge can
       # traverse it. Jellyfin and the *arr stack need to read/write the tree;
       # add them to the `deluge` group (which acts as the shared media group)

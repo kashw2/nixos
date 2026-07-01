@@ -36,17 +36,16 @@
           substituters = [
             "https://cache.nixos.org/"
             "https://nix-community.cachix.org"
-            "http://100.116.38.8:8080/nixos"
+            # "http://100.116.38.8:8080/nixos"
           ];
           trusted-substituters = [
             "https://cache.nixos.org/"
             "https://nix-community.cachix.org"
-            "http://100.116.38.8:8080/nixos"
+            # "http://100.116.38.8:8080/nixos"
           ];
           trusted-public-keys = [
             "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
             "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-            "nixos:OfYc0+Gd91P4GChe7uQz/4+rAQfMFiegVVnSwNFPPbQ="
           ];
           auto-optimise-store = true;
           connect-timeout = 5;
