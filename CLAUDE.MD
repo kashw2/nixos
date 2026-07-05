@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-NixOS flake-based configuration managing four hosts (home, laptop, thinkpad, media) with Colmena deployment. Uses flake-parts and import-tree for modular organization.
+NixOS flake-based configuration managing five hosts (home, laptop, thinkpad, media, homelab) with Colmena deployment. Uses flake-parts and import-tree for modular organization.
 
 ## Build & Deploy Commands
 
 ```bash
-# Enter dev shell (provides colmena, nix, git)
+# Enter dev shell (provides colmena, nix)
 nix develop
 
 # Deploy to all hosts
@@ -52,12 +52,12 @@ This repo follows the [dendritic pattern](https://github.com/mightyiam/dendritic
 
 - **`hosts/`** — Per-machine configs (hardware, disko partitions, GPU drivers). Each host imports the same ordered set of feature modules.
 - **`desktop.nix`**, **`laptop.nix`**, **`server.nix`** — Host templates (`desktopTemplate`, `laptopTemplate`, `serverTemplate`) that compose feature modules for each host class. Desktop enables display manager, audio, etc.; laptop adds laptop-specific tweaks; server is minimal with no desktop environment.
-- **`features/`** — Reusable NixOS modules: `environment.nix`, `nix.nix`, `security.nix`, `networking.nix`, `audio.nix`, `virtualisation.nix`, `sops.nix`
+- **`features/`** — Reusable NixOS modules: `environment.nix`, `nix/`, `security.nix`, `networking.nix`, `audio.nix`, `virtualisation.nix`, `sops.nix`
 - **`features/desktop-environment/`** — Hyprland WM, SDDM display manager (with custom Sugar Candy theme), hyprlock, hypridle, hyprpaper, quickshell. Most are **wrapper** modules.
 - **`features/nixvim/`** — Neovim config split across: `default.nix` (core), `plugins.nix`, `lsp.nix`, `keymaps.nix`, `colorschemes.nix`, `highlights.nix`, `atone-nvim.nix` (custom plugin)
 - **`features/telemetry/`** — LGTP observability stack: Grafana, Prometheus, Loki, Tempo, Alloy. Role-based (`features.telemetry.role` = `"host"` or `"client"`).
 - **`users/keanu/`** — User config, home-manager programs, system packages, SSH authorized keys
-- **`colmena.nix`** — Deployment targets for all four hosts (home.local, laptop.local, thinkpad.local, media.local)
+- **`colmena.nix`** — Deployment targets for all five hosts (home.local, laptop.local, thinkpad.local, media.local, homelab.local)
 - **`secrets/`** — SSH host keys per machine; SOPS-encrypted secrets in `secrets/secrets.yaml` (at repo root)
 
 ### Wrapper Modules Pattern
@@ -69,7 +69,8 @@ Desktop/shell programs use `flake.wrappers.<name>` from nix-wrapper-modules to c
 - **home**: AMD desktop, AMDGPU, dual NIC (ethernet + WiFi), GRUB boot — uses `desktopTemplate`
 - **laptop**: Intel+NVIDIA hybrid GPU (NVIDIA prime), dual NIC — uses `desktopTemplate` + `laptopTemplate`
 - **thinkpad**: AMD laptop, WiFi-only, Bluetooth enabled — uses `desktopTemplate` + `laptopTemplate`
-- **media**: Server host running Jellyfin, *arr stack (Sonarr, Radarr, Prowlarr, Lidarr, Bazarr), Deluge/Flood, Nginx reverse proxy, and full telemetry stack (role = host) — uses `serverTemplate`
+- **media**: Server host running Jellyfin, *arr stack (Sonarr, Radarr, Prowlarr, Bazarr), Deluge/Flood, Nginx reverse proxy, and full telemetry stack (role = host) — uses `serverTemplate`
+- **homelab**: Server host acting as a distributed build machine for the other hosts, telemetry client (role = client), static IP, GRUB forced over systemd-boot — uses `serverTemplate`
 
 Desktop hosts share the same module import order and user configuration. Host-specific differences are in hardware configs, disko partition layouts, and host templates.
 

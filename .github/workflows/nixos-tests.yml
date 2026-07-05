@@ -24,6 +24,7 @@ jobs:
           - jellyfin
           - arr-stack
           - telemetry-host
+          - telemetry-client
     steps:
       - uses: actions/checkout@v7.0.0
       - uses: jlumbroso/free-disk-space@v1.3.1
