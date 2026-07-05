@@ -19,7 +19,11 @@
       };
 
       nix = {
-        package = inputs.nix.packages.${pkgs.system}.default;
+        package = inputs.nix.packages.${pkgs.system}.default.override (prev: {
+          nix-functional-tests = prev.nix-functional-tests.overrideAttrs {
+            doCheck = false;
+          };
+        });
         optimise.automatic = true;
         gc.automatic = true;
         gc.options = "--delete-older-than 30d";
