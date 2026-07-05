@@ -37,7 +37,7 @@ nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'
 
 # Nixos Anywhere
 
-Because every host uses impermanence + sops-nix, `/persist` needs the sops age key and ed25519 host key seeded prior to first activation — otherwise sops can't decrypt and `keanu_password` never materialises. `deploy-host` (defined in `modules/deploy.nix`) stages those files from the key USB and invokes `nixos-anywhere --extra-files` in one step.
+Because hosts use sops-nix (most with impermanence), `/persist` needs the sops age key and ed25519 host key seeded prior to first activation — otherwise sops can't decrypt and `keanu_password` never materialises. `deploy-host` (defined in `modules/deploy.nix`) stages those files from the key USB and invokes `nixos-anywhere --extra-files` in one step.
 
 ## Usage
 
@@ -55,7 +55,7 @@ Type the root password when `ssh-copy-id` prompts you
 
 ### Flags
 
-- `--host <name>` — host attr in `flake.nixosConfigurations` (`home`, `laptop`, `thinkpad`, `media`).
+- `--host <name>` — host attr in `flake.nixosConfigurations` (`home`, `laptop`, `thinkpad`, `media`, `homelab`).
 - `--ip <addr>` — target IP or hostname. Connection is always made as `root`.
 - `--path <usb-root>` — USB root path. Defaults to the first directory under `/run/media/$USER`.
 
