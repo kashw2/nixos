@@ -16,7 +16,6 @@ jobs:
   flake-check:
     name: Flake Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v7.0.0
       - uses: jlumbroso/free-disk-space@v1.3.1
@@ -51,7 +50,6 @@ jobs:
   detect-hosts:
     name: Detect Hosts
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     outputs:
       hosts: ${{ steps.detect.outputs.hosts }}
     steps:
@@ -62,7 +60,6 @@ jobs:
     name: Build Configuration
     needs: detect-hosts
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
