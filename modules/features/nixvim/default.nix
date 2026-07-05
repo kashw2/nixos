@@ -56,9 +56,9 @@
         extraPackages = [
           pkgs.shfmt
           inputs.nixfmt.packages.${pkgs.stdenv.hostPlatform.system}.default
-          pkgs.ueberzugpp
         ]
         ++ lib.optionals (!config.isServer) [
+          pkgs.ueberzugpp
           pkgs.yq-go
           pkgs.postgresql # Used so that the database plugin can use the psql executable
           pkgs.ansible-language-server

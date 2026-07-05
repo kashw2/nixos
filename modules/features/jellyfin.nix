@@ -10,7 +10,7 @@
       };
 
       hardware = {
-        enableAllFirmware = true;
+        enableRedistributableFirmware = true;
         intel-gpu-tools.enable = true;
         graphics = {
           enable = true;

@@ -80,7 +80,10 @@
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixfmt.url = "github:nixos/nixfmt";
+    nixfmt = {
+      url = "github:nixos/nixfmt";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

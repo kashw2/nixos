@@ -40,6 +40,10 @@
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
       };
 
+      # graphic-desktop.nix in nixpkgs sets this to true and consumes 1.2GB of storage
+      # It's primary usage is for TTS and is not something we'd require
+      services.speechd.enable = false;
+
       # Used by quickshell on laptops for battery info and power profiles
       services.upower.enable = config.isLaptop;
       services.power-profiles-daemon.enable = config.isLaptop;
