@@ -66,7 +66,7 @@
               pkgs.nixpkgs-review
             ]
             ++ lib.optionals (config.isDesktop) [
-              pkgs.opencode
+              inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
               pkgs.obs-studio
             ]
             ++ [
@@ -155,6 +155,7 @@
             mcp.enable = !config.isServer;
             claude-code = {
               enable = !config.isServer;
+              package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
               enableMcpIntegration = true;
             };
             git = {
