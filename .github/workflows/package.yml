@@ -76,7 +76,7 @@ jobs:
         package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
     steps:
       - uses: actions/checkout@v7.0.0
-      - uses: cachix/install-nix-action@v31.10.6
+      - uses: cachix/install-nix-action@v31.10.7
         with:
           extra_nix_config: |
             extra-substituters = https://nix-community.cachix.org
