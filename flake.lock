@@ -562,11 +562,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1782748876,
-        "narHash": "sha256-ODZh4jYjGieX2W15VAv/yIUnio74CnaDOe18X77tEwM=",
+        "lastModified": 1784196509,
+        "narHash": "sha256-9HGaGEH02u4Du65bqfY4tHKOzuzUVz3j4hm2XmUq+84=",
         "owner": "hyprwm",
         "repo": "hypridle",
-        "rev": "128dcfa96dfc9c90136c9a80c6e2443f8b54928c",
+        "rev": "ba40c0aa16a998c393167ed85de990dd8b6e1ccd",
         "type": "github"
       },
       "original": {
