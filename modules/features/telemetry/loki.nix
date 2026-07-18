@@ -71,7 +71,7 @@
             pattern_ingester = {
               enabled = true;
               metric_aggregation = {
-                loki_address = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}";
+                loki_address = "127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}";
               };
             };
             frontend = {
