@@ -27,6 +27,9 @@
         gc.automatic = true;
         gc.options = "--delete-older-than 30d";
         channel.enable = false; # All hosts use flakes
+        # Pin <nixpkgs> to the flake input so legacy commands (nix-shell -p,
+        # nix repl '<nixpkgs>') resolve against the same pinned nixpkgs.
+        nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
         extraOptions = ''
           warn-dirty = false
           !include ${config.sops.templates."nix-access-tokens".path}
