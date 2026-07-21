@@ -39,7 +39,7 @@
               storage.path = "/var/lib/tempo";
             };
             overrides.defaults = {
-              compaction.block_retention = "48h";
+              compaction.block_retention = "480h";
               metrics_generator.processors = [
                 "service_graphs"
                 "span_metrics"

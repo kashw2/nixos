@@ -53,6 +53,12 @@
             };
             limits_config = {
               metric_aggregation_enabled = true;
+              retention_period = "480h";
+            };
+            compactor = {
+              working_directory = "/tmp/loki/compactor";
+              retention_enabled = true;
+              delete_request_store = "filesystem";
             };
             schema_config = {
               configs = [
