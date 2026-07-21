@@ -223,6 +223,14 @@
         deluge = {
           enable = true;
           declarative = true;
+          # Remove when https://github.com/NixOS/nixpkgs/issues/540545 is resolved.
+          package = pkgs.deluged.override {
+            python3Packages = pkgs.python3Packages.overrideScope (
+              _final: prev: {
+                setuptools = prev.setuptools_80;
+              }
+            );
+          };
           authFile = pkgs.writeText "auth" ''
             localclient:3e44dc790d0bc9f6d76a37af26e7cba72d93cb1d:10
           '';
