@@ -1431,11 +1431,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1784347607,
-        "narHash": "sha256-VI5cdo27nEZ3m1SlgB8RvBbrqFUO2/dUgrrLWe407oA=",
+        "lastModified": 1784696348,
+        "narHash": "sha256-R8PjOpmbBRBYxaDTLwoPIWqKnI4g97o8afDQEqJJ4IE=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "31cd72fdba8fa052e437ce7e6879c4fe62def10f",
+        "rev": "48199e04590301db3a47603919037df65c828797",
         "type": "github"
       },
       "original": {
@@ -1531,6 +1531,7 @@
         "nixvim": "nixvim",
         "quickshell": "quickshell",
         "sops-nix": "sops-nix",
+        "superpowers": "superpowers",
         "wrapper-modules": "wrapper-modules"
       }
     },
@@ -1567,6 +1568,22 @@
         "owner": "NixOS",
         "ref": "release-26.05",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "superpowers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783029415,
+        "narHash": "sha256-kHdQ9e44doBk2yYW88tMSCqVG8ycYcvJSZlrIziXhpA=",
+        "owner": "obra",
+        "repo": "superpowers",
+        "rev": "d884ae04edebef577e82ff7c4e143debd0bbec99",
+        "type": "github"
+      },
+      "original": {
+        "owner": "obra",
+        "repo": "superpowers",
         "type": "github"
       }
     },
