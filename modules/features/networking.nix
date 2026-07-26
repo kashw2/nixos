@@ -22,6 +22,8 @@
       services.iperf3.enable = true;
 
       networking = {
+        # Prepends an entry for work DNS server
+        networkmanager.insertNameservers = lib.optionals (!config.isServer) [ "10.1.2.4" ];
         hosts = {
           "100.77.4.43" = [ "home.tailscale" ];
           "100.65.188.7" = [ "family.tailscale" ];
