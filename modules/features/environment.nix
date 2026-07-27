@@ -81,7 +81,14 @@
             EDITOR = "nvim";
             NIXPKGS_ALLOW_UNFREE = 1;
             NIXPKGS_ALLOW_INSECURE = 1;
+          }
+          // lib.optionalAttrs (!config.isServer) {
+            NAUTILUS_4_EXTENSION_DIR = "${pkgs.nautilus-python}/lib/nautilus/extensions-4";
           };
+
+          pathsToLink = lib.optionals (!config.isServer) [
+            "/share/nautilus-python/extensions"
+          ];
 
           etc."current-system-packages".text =
             let
@@ -105,6 +112,8 @@
             pkgs.cliphist
             pkgs.git
             pkgs.unzip
+            pkgs.nautilus-python
+            inputs.nautilus-my-computer.packages.${pkgs.stdenv.hostPlatform.system}.default
           ];
         };
 
