@@ -15,7 +15,6 @@
         graphics = {
           enable = true;
           extraPackages = [
-            pkgs.intel-ocl # generic OpenCL support, for all processors
             # For newer processors (Broadwell and higher, ca. 2014), use this paired with `LIBVA_DRIVER_NAME=iHD`:
             pkgs.intel-media-driver
             # In addition, for newer processors (13th gen and higher), add this as well:
