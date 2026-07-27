@@ -6,14 +6,12 @@ Canvas {
 
     property int percent: 0
     property bool charging: false
-    property color toggleGreen: Theme.toggleGreen
 
     width: 24
     height: 12
 
     onPercentChanged: requestPaint()
     onChargingChanged: requestPaint()
-    onToggleGreenChanged: requestPaint()
 
     onPaint: {
         var ctx = getContext("2d");
@@ -34,7 +32,7 @@ Canvas {
         var pct = percent / 100;
         var fillColor;
         if (charging) {
-            fillColor = toggleGreen;
+            fillColor = Theme.toggleGreen;
         } else if (percent <= 10) {
             fillColor = Qt.rgba(0.9, 0.2, 0.2, 0.9);
         } else if (percent <= 25) {
@@ -42,7 +40,7 @@ Canvas {
         } else if (percent <= 50) {
             fillColor = Qt.rgba(0.95, 0.85, 0.2, 0.8);
         } else {
-            fillColor = toggleGreen;
+            fillColor = Theme.toggleGreen;
         }
 
         var maxFillWidth = 17;
