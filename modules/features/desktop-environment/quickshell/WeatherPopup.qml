@@ -7,18 +7,6 @@ Variants {
     required property var shell
     model: Quickshell.screens
 
-    function conditionToIconType(c) {
-        if (!c) return "cloudy";
-        if (c.indexOf("thunder") !== -1) return "thunder";
-        if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
-        if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
-        if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
-        if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
-        if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
-        if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
-        return "cloudy";
-    }
-
     function weatherCodeToIconType(code) {
         if (code === 0) return "sunny";
         if (code === 1 || code === 2) return "partlycloudy";
@@ -76,7 +64,7 @@ Variants {
         margins.right: 0
         margins.left: popup.screen ? Math.max(8, (popup.screen.width - popup.popupWidth) / 2) : 8
 
-        backgroundColor: root.backdropFor(root.conditionToIconType(root.shell.weatherCondition))
+        backgroundColor: root.backdropFor(root.shell.conditionToIconType(root.shell.weatherCondition))
 
         property bool editingCity: false
         onCleared: editingCity = false
@@ -288,7 +276,7 @@ Variants {
                 WeatherIcon {
                     anchors.verticalCenter: parent.verticalCenter
                     iconSize: 40
-                    iconType: root.conditionToIconType(root.shell.weatherCondition)
+                    iconType: root.shell.conditionToIconType(root.shell.weatherCondition)
                     animTime: popup.animTime
                 }
 

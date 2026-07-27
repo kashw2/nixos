@@ -102,6 +102,18 @@ ShellRoot {
         weatherEffectOverride = modes[(idx + 1) % modes.length];
     }
 
+    function conditionToIconType(c) {
+        if (!c) return "cloudy";
+        if (c.indexOf("thunder") !== -1) return "thunder";
+        if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
+        if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
+        if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
+        if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
+        if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
+        if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
+        return "cloudy";
+    }
+
     function setWeatherCity(name) {
         var trimmed = (name || "").trim();
         var changed = trimmed !== shell.weatherCustomCity;
@@ -1241,18 +1253,7 @@ ShellRoot {
                             id: weatherCanvas
                             anchors.verticalCenter: parent.verticalCenter
                             iconSize: 14
-                            iconType: {
-                                var c = shell.weatherCondition;
-                                if (!c) return "cloudy";
-                                if (c.indexOf("thunder") !== -1) return "thunder";
-                                if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
-                                if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
-                                if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
-                                if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
-                                if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
-                                if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
-                                return "cloudy";
-                            }
+                            iconType: shell.conditionToIconType(shell.weatherCondition)
                             animTime: shell.weatherAnimTime
                         }
 
