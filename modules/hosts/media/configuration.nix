@@ -53,6 +53,7 @@
           ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
           ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
           ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
+          ++ lib.optionals config.services.loki.enable [ "/var/lib/loki" ]
           ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
           ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
       };
