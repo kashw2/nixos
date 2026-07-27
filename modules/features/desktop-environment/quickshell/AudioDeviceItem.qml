@@ -31,7 +31,7 @@ Rectangle {
         Text {
             text: root.modelData.name
             color: Theme.text
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: root.modelData.isDefault
             elide: Text.ElideRight
             width: parent.width - 20

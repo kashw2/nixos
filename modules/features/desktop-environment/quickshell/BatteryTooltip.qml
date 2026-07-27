@@ -38,7 +38,7 @@ Variants {
                 anchors.centerIn: parent
                 text: (root.shell.batteryCharging ? "Full in " : "") + root.shell.batteryTimeRemaining + (root.shell.batteryCharging ? "" : " remaining")
                 color: Theme.text
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontLabel
             }
         }
     }

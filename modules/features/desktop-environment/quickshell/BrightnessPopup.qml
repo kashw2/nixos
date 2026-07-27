@@ -16,7 +16,7 @@ Variants {
     Text {
         text: "Brightness"
         color: Theme.text
-        font.pixelSize: 13
+        font.pixelSize: Theme.fontTitle
         font.bold: true
     }
 
@@ -94,7 +94,7 @@ Variants {
     Text {
         text: root.shell.brightnessPercent + "%"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         anchors.horizontalCenter: parent.horizontalCenter
     }
     }

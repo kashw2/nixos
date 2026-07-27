@@ -21,7 +21,7 @@ Variants {
         Text {
             text: "Notifications"
             color: Theme.text
-            font.pixelSize: 13
+            font.pixelSize: Theme.fontTitle
             font.bold: true
             Layout.fillWidth: true
         }
@@ -34,14 +34,14 @@ Variants {
             radius: 4
             color: clearHover.containsMouse ? Theme.surfaceBg : Theme.surfaceInner
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
             Text {
                 id: clearText
                 anchors.centerIn: parent
                 text: "Clear all"
                 color: Theme.text
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontLabel
             }
 
             MouseArea {
@@ -61,7 +61,7 @@ Variants {
         visible: root.shell.notifCount === 0
         text: "No notifications"
         color: Theme.iconDim
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontBody
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
         topPadding: 20
@@ -94,7 +94,7 @@ Variants {
                     radius: 8
                     color: hovered ? Theme.surfaceStrong : Theme.surfaceSubtle
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     RowLayout {
                         id: notifItemContent
@@ -128,7 +128,7 @@ Variants {
                                 Text {
                                     text: modelData.appName + "  \u00b7  " + modelData.time
                                     color: Theme.textDim
-                                    font.pixelSize: 10
+                                    font.pixelSize: Theme.fontCaption
                                     Layout.fillWidth: true
                                     elide: Text.ElideRight
                                 }
@@ -144,7 +144,7 @@ Variants {
                                         anchors.centerIn: parent
                                         text: "\u00d7"
                                         color: Theme.textDim
-                                        font.pixelSize: 12
+                                        font.pixelSize: Theme.fontBody
                                     }
 
                                     MouseArea {
@@ -160,7 +160,7 @@ Variants {
                             Text {
                                 text: modelData.summary
                                 color: Theme.text
-                                font.pixelSize: 12
+                                font.pixelSize: Theme.fontBody
                                 font.bold: true
                                 width: parent.width
                                 wrapMode: Text.WordWrap
@@ -172,7 +172,7 @@ Variants {
                                 visible: modelData.body !== ""
                                 text: modelData.body
                                 color: Theme.textDim
-                                font.pixelSize: 11
+                                font.pixelSize: Theme.fontLabel
                                 width: parent.width
                                 wrapMode: Text.WordWrap
                                 elide: Text.ElideRight

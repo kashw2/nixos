@@ -914,14 +914,14 @@ ShellRoot {
                                 : hovered ? Theme.workspaceHover
                                 : "transparent"
 
-                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                             Text {
                                 id: wsLabel
                                 anchors.centerIn: parent
                                 text: parent.label
                                 color: Theme.text
-                                font.pixelSize: 12
+                                font.pixelSize: Theme.fontBody
                                 font.bold: parent.isActive
                             }
 
@@ -954,7 +954,7 @@ ShellRoot {
                     color: shell.activePopup === "media" ? Theme.surfaceActive
                          : hovered ? Theme.buttonHover : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     Row {
                         id: mediaRow
@@ -975,7 +975,7 @@ ShellRoot {
                             text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
                                 ? shell.mprisPlayer.trackTitle : ""
                             color: Theme.text
-                            font.pixelSize: 13
+                            font.pixelSize: Theme.fontTitle
                             elide: Text.ElideRight
                             width: Math.min(implicitWidth, Math.max(0, (barWindow.width / 2) - 220))
                             visible: text !== ""
@@ -1190,7 +1190,7 @@ ShellRoot {
                     color: hovered ? Theme.buttonHover : "transparent"
                     anchors.verticalCenter: parent.verticalCenter
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     Text {
                         id: dateText
@@ -1199,7 +1199,7 @@ ShellRoot {
                             ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
                             : Qt.formatDateTime(clock.date, "h:mm AP")
                         color: Theme.text
-                        font.pixelSize: 13
+                        font.pixelSize: Theme.fontTitle
                     }
 
                     MouseArea {
@@ -1230,7 +1230,7 @@ ShellRoot {
                          : hovered ? Theme.buttonHover : "transparent"
                     anchors.verticalCenter: parent.verticalCenter
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     Row {
                         id: weatherRow
@@ -1259,7 +1259,7 @@ ShellRoot {
                         Text {
                             text: shell.weatherTemp
                             color: Theme.text
-                            font.pixelSize: 13
+                            font.pixelSize: Theme.fontTitle
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -1267,7 +1267,7 @@ ShellRoot {
                             visible: shell.weatherEffectOverride !== ""
                             text: "(" + shell.weatherEffectOverride + ")"
                             color: Theme.textDim
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontLabel
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }

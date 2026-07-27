@@ -17,7 +17,7 @@ Rectangle {
     radius: 4
     color: mouseArea.containsMouse || active ? Theme.buttonHover : "transparent"
 
-    Behavior on color { ColorAnimation { duration: 150 } }
+    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
     Item {
         id: contentItem

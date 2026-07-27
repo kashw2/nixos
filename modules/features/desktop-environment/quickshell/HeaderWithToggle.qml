@@ -14,7 +14,7 @@ Rectangle {
     radius: 6
     color: hoverArea.containsMouse ? Theme.buttonHover : "transparent"
 
-    Behavior on color { ColorAnimation { duration: 150 } }
+    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
     RowLayout {
         anchors.fill: parent
@@ -24,7 +24,7 @@ Rectangle {
         Text {
             text: root.title
             color: Theme.text
-            font.pixelSize: 13
+            font.pixelSize: Theme.fontTitle
             font.bold: true
             Layout.fillWidth: true
         }
