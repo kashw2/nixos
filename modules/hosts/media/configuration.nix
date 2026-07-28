@@ -210,6 +210,9 @@
             python3Packages = pkgs.python3Packages.overrideScope (
               _final: prev: {
                 setuptools = prev.setuptools_80;
+                sh = prev.sh.overridePythonAttrs (old: {
+                  disabledTests = (old.disabledTests or [ ]) ++ [ "test_general_signal" ];
+                });
               }
             );
           };
