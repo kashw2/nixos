@@ -206,16 +206,11 @@
           enable = true;
           declarative = true;
           # Remove when https://github.com/NixOS/nixpkgs/issues/540545 is resolved.
-          package = pkgs.deluged.override {
-            python3Packages = pkgs.python3Packages.overrideScope (
-              _final: prev: {
-                setuptools = prev.setuptools_80;
-                sh = prev.sh.overridePythonAttrs (old: {
-                  disabledTests = (old.disabledTests or [ ]) ++ [ "test_general_signal" ];
-                });
-              }
-            );
-          };
+          package = pkgs.deluged.overridePythonAttrs (old: {
+            propagatedBuildInputs = map (
+              dep: if (dep.pname or "") == "setuptools" then pkgs.python3Packages.setuptools_80 else dep
+            ) old.propagatedBuildInputs;
+          });
           authFile = pkgs.writeText "auth" ''
             localclient:3e44dc790d0bc9f6d76a37af26e7cba72d93cb1d:10
           '';
