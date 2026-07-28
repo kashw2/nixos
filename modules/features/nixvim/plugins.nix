@@ -55,7 +55,18 @@
           extensions.fzf-native.enable = true;
         };
         fidget.enable = true;
-        image.enable = !config.isServer;
+        image = {
+          enable = !config.isServer;
+          settings.hijack_file_patterns = [
+            "*.png"
+            "*.jpg"
+            "*.jpeg"
+            "*.gif"
+            "*.webp"
+            "*.avif"
+            "*.svg"
+          ];
+        };
         colorizer.enable = true;
         render-markdown.enable = true;
         bufferline.enable = true;
