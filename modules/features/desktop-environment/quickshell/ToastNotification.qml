@@ -68,7 +68,7 @@ Variants {
                         Text {
                             text: root.shell.toastNotification ? (root.shell.toastNotification.appName || "Notification") : ""
                             color: Theme.textDim
-                            font.pixelSize: 10
+                            font.pixelSize: Theme.fontCaption
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
@@ -83,7 +83,7 @@ Variants {
                                 anchors.centerIn: parent
                                 text: "\u00d7"
                                 color: Theme.textDim
-                                font.pixelSize: 12
+                                font.pixelSize: Theme.fontBody
                             }
 
                             MouseArea {
@@ -99,7 +99,7 @@ Variants {
                     Text {
                         text: root.shell.toastNotification ? (root.shell.toastNotification.summary || "") : ""
                         color: Theme.text
-                        font.pixelSize: 12
+                        font.pixelSize: Theme.fontBody
                         font.bold: true
                         width: parent.width
                         wrapMode: Text.WordWrap
@@ -111,7 +111,7 @@ Variants {
                         visible: root.shell.toastNotification ? ((root.shell.toastNotification.body || "") !== "") : false
                         text: root.shell.toastNotification ? (root.shell.toastNotification.body || "") : ""
                         color: Theme.textDim
-                        font.pixelSize: 11
+                        font.pixelSize: Theme.fontLabel
                         width: parent.width
                         wrapMode: Text.WordWrap
                         elide: Text.ElideRight

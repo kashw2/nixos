@@ -18,6 +18,7 @@
     colmena = {
       url = "github:zhaofengli/colmena";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.stable.follows = "nixpkgs";
     };
     wrapper-modules = {
       url = "github:birdeehub/nix-wrapper-modules";
@@ -84,7 +85,10 @@
       url = "github:nixos/nixfmt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    llm-agents.url = "github:numtide/llm-agents.nix";
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nautilus-my-computer = {
       url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
       inputs.nixpkgs.follows = "nixpkgs";

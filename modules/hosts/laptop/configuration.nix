@@ -1,7 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.laptop =
-    { config, pkgs, lib, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     {
 
       imports = [

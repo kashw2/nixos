@@ -19,7 +19,7 @@ Variants {
         Text {
             text: "Volume"
             color: Theme.text
-            font.pixelSize: 13
+            font.pixelSize: Theme.fontTitle
             font.bold: true
             Layout.fillWidth: true
         }
@@ -107,7 +107,7 @@ Variants {
     Text {
         text: root.shell.volumePercent + "%"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         anchors.horizontalCenter: parent.horizontalCenter
     }
 
@@ -119,7 +119,7 @@ Variants {
         Text {
             text: "Output"
             color: Theme.iconDim
-            font.pixelSize: 10
+            font.pixelSize: Theme.fontCaption
         }
 
         Repeater {
@@ -140,7 +140,7 @@ Variants {
         Text {
             text: "Microphone"
             color: Theme.text
-            font.pixelSize: 13
+            font.pixelSize: Theme.fontTitle
             font.bold: true
             Layout.fillWidth: true
         }
@@ -231,7 +231,7 @@ Variants {
     Text {
         text: root.shell.micGainPercent + "%"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         anchors.horizontalCenter: parent.horizontalCenter
     }
 
@@ -285,7 +285,7 @@ Variants {
         Text {
             text: "Input"
             color: Theme.iconDim
-            font.pixelSize: 10
+            font.pixelSize: Theme.fontCaption
         }
 
         Repeater {

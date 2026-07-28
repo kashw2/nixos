@@ -53,6 +53,7 @@
           ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
           ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
           ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
+          ++ lib.optionals config.services.loki.enable [ "/var/lib/loki" ]
           ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
           ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
       };
@@ -147,25 +148,6 @@
         };
       };
 
-      boot.kernel.sysctl = {
-        "net.core.rmem_max" = 67108864;
-        "net.core.wmem_max" = 67108864;
-        "net.ipv4.tcp_rmem" = "4096 87380 67108864";
-        "net.ipv4.tcp_wmem" = "4096 65536 67108864";
-        "net.core.somaxconn" = 4096;
-        "net.core.netdev_max_backlog" = 8192;
-        "net.ipv4.ip_local_port_range" = "1024 65535";
-        "net.ipv4.tcp_tw_reuse" = 1;
-        "net.ipv4.tcp_slow_start_after_idle" = 0;
-        "net.ipv4.tcp_fin_timeout" = 15;
-        "net.ipv4.tcp_max_syn_backlog" = 8192;
-        "net.ipv4.tcp_mtu_probing" = 1;
-        "net.core.optmem_max" = 2097152;
-        "net.ipv4.tcp_max_tw_buckets" = 65536;
-        "net.core.default_qdisc" = "fq";
-        "net.ipv4.tcp_congestion_control" = "bbr";
-      };
-
       services = {
         nginx =
           let
@@ -224,13 +206,11 @@
           enable = true;
           declarative = true;
           # Remove when https://github.com/NixOS/nixpkgs/issues/540545 is resolved.
-          package = pkgs.deluged.override {
-            python3Packages = pkgs.python3Packages.overrideScope (
-              _final: prev: {
-                setuptools = prev.setuptools_80;
-              }
-            );
-          };
+          package = pkgs.deluged.overridePythonAttrs (old: {
+            propagatedBuildInputs = map (
+              dep: if (dep.pname or "") == "setuptools" then pkgs.python3Packages.setuptools_80 else dep
+            ) old.propagatedBuildInputs;
+          });
           authFile = pkgs.writeText "auth" ''
             localclient:3e44dc790d0bc9f6d76a37af26e7cba72d93cb1d:10
           '';

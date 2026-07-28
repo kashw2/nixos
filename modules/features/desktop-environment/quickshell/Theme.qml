@@ -40,6 +40,13 @@ QtObject {
     readonly property color graphCpu:      Qt.rgba(0.4, 0.8, 0.4, 0.90)
     readonly property color graphRam:      Qt.rgba(1, 1, 1, 0.70)
 
+    readonly property int fontCaption: 10
+    readonly property int fontLabel:   11
+    readonly property int fontBody:    12
+    readonly property int fontTitle:   13
+
+    readonly property int animFast: 150
+
     property Timer _hourTimer: Timer {
         interval: 60000
         running: true

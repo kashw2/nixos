@@ -27,11 +27,11 @@
             };
             common = {
               instance_addr = "127.0.0.1";
-              path_prefix = "/tmp/loki";
+              path_prefix = "/var/lib/loki";
               storage = {
                 filesystem = {
-                  chunks_directory = "/tmp/loki/chunks";
-                  rules_directory = "/tmp/loki/rules";
+                  chunks_directory = "/var/lib/loki/chunks";
+                  rules_directory = "/var/lib/loki/rules";
                 };
               };
               replication_factor = 1;
@@ -56,7 +56,7 @@
               retention_period = "480h";
             };
             compactor = {
-              working_directory = "/tmp/loki/compactor";
+              working_directory = "/var/lib/loki/compactor";
               retention_enabled = true;
               delete_request_store = "filesystem";
             };

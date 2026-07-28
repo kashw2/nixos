@@ -1,7 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.homeDiskoConfiguration =
-    { pkgs, lib, config, ... }:
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
     {
       imports = [
         inputs.disko.nixosModules.disko

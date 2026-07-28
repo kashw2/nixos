@@ -7,15 +7,31 @@ on:
       - flake.lock
       - modules/**
       - secrets/**
+      - tests/**
   schedule:
     - cron: 0 0 * * 0 # runs every week
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  nixfmt:
+    name: Nixfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.0
+      - run: nix develop --command bash -c 'nixfmt --check $(git ls-files "*.nix")'
+  deadnix:
+    name: Deadnix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.0
+      - run: nix develop --command bash -c 'deadnix --no-lambda-pattern-names --fail $(git ls-files "*.nix")'
   flake-check:
     name: Flake Check
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: jlumbroso/free-disk-space@v1.3.1

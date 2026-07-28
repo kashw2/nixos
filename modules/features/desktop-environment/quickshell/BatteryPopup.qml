@@ -16,7 +16,7 @@ Variants {
     Text {
         text: "Battery"
         color: Theme.text
-        font.pixelSize: 13
+        font.pixelSize: Theme.fontTitle
         font.bold: true
     }
 
@@ -33,7 +33,7 @@ Variants {
     Text {
         text: root.shell.batteryStatus
         color: Theme.textDim
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontBody
         anchors.horizontalCenter: parent.horizontalCenter
     }
 
@@ -68,14 +68,14 @@ Variants {
         Text {
             text: "Power draw"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
 
         Text {
             text: root.shell.batteryPowerDraw
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
         }
     }
 
@@ -85,7 +85,7 @@ Variants {
     Text {
         text: "Power Profile"
         color: Theme.text
-        font.pixelSize: 13
+        font.pixelSize: Theme.fontTitle
         font.bold: true
     }
 
@@ -113,7 +113,7 @@ Variants {
                     radius: 4
                     color: isActive ? Theme.surfaceActive : hovered ? Theme.surfaceInner : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     Text {
                         anchors.centerIn: parent
@@ -123,7 +123,7 @@ Variants {
                             return "Performance";
                         }
                         color: isActive ? Theme.text : Theme.textDim
-                        font.pixelSize: 11
+                        font.pixelSize: Theme.fontLabel
                         font.bold: isActive
                     }
 
@@ -149,14 +149,14 @@ Variants {
         Text {
             text: "Battery Health"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
 
         Text {
             text: root.shell.batteryHealthPercent + "%"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
         }
     }
 
@@ -169,7 +169,7 @@ Variants {
         visible: root.shell.batteryHistoryCount >= 2
         text: "Last Hour"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
     }
 
     // Charge history sparkline

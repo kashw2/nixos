@@ -17,7 +17,7 @@ Variants {
     Text {
         text: "More"
         color: Theme.text
-        font.pixelSize: 13
+        font.pixelSize: Theme.fontTitle
         font.bold: true
     }
 
@@ -38,7 +38,7 @@ Variants {
             radius: 6
             color: hovered ? Theme.buttonHover : "transparent"
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
             Row {
                 anchors.verticalCenter: parent.verticalCenter
@@ -105,7 +105,7 @@ Variants {
                 Text {
                     text: row.modelData.label
                     color: Theme.text
-                    font.pixelSize: 12
+                    font.pixelSize: Theme.fontBody
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

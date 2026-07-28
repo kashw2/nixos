@@ -24,7 +24,7 @@ Variants {
     Text {
         text: "Connected"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         font.bold: true
         visible: root.shell.bluetoothPowered && root.shell.btConnectedDevices.length > 0
     }
@@ -44,7 +44,7 @@ Variants {
             radius: 6
             color: hovered ? Theme.surfaceActive : Theme.surfaceBg
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
             RowLayout {
                 anchors.fill: parent
@@ -55,7 +55,7 @@ Variants {
                 Text {
                     text: modelData.name
                     color: Theme.text
-                    font.pixelSize: 13
+                    font.pixelSize: Theme.fontTitle
                     font.bold: true
                     Layout.fillWidth: true
                 }
@@ -63,7 +63,7 @@ Variants {
                 Text {
                     text: "Connected"
                     color: Theme.textDim
-                    font.pixelSize: 11
+                    font.pixelSize: Theme.fontLabel
                 }
             }
 
@@ -87,7 +87,7 @@ Variants {
     Text {
         text: "Paired"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         font.bold: true
         visible: root.shell.bluetoothPowered && root.shell.btPairedDevices.length > 0
     }
@@ -119,7 +119,7 @@ Variants {
                     radius: 6
                     color: hovered ? Theme.buttonHover : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     RowLayout {
                         anchors.fill: parent
@@ -130,14 +130,14 @@ Variants {
                         Text {
                             text: modelData.name
                             color: Theme.text
-                            font.pixelSize: 13
+                            font.pixelSize: Theme.fontTitle
                             Layout.fillWidth: true
                         }
 
                         Text {
                             text: "Paired"
                             color: Theme.textDim
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontLabel
                         }
                     }
 
@@ -168,7 +168,7 @@ Variants {
         Text {
             text: "Available"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
             Layout.fillWidth: true
         }
@@ -176,7 +176,7 @@ Variants {
         Text {
             text: root.shell.btScanning ? "Scanning…" : ""
             color: Theme.iconDim
-            font.pixelSize: 10
+            font.pixelSize: Theme.fontCaption
             font.italic: true
         }
     }
@@ -206,7 +206,7 @@ Variants {
                     radius: 6
                     color: hovered ? Theme.buttonHover : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     RowLayout {
                         anchors.fill: parent
@@ -217,7 +217,7 @@ Variants {
                         Text {
                             text: modelData.name
                             color: Theme.text
-                            font.pixelSize: 13
+                            font.pixelSize: Theme.fontTitle
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
@@ -225,7 +225,7 @@ Variants {
                         Text {
                             text: "Pair"
                             color: Theme.textDim
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontLabel
                         }
                     }
 
@@ -244,7 +244,7 @@ Variants {
                 visible: root.shell.btDiscoveredDevices.length === 0
                 text: root.shell.btScanning ? "Searching for devices…" : "No devices found"
                 color: Theme.iconDim
-                font.pixelSize: 12
+                font.pixelSize: Theme.fontBody
                 font.italic: true
                 leftPadding: 10
             }
@@ -256,7 +256,7 @@ Variants {
         visible: !root.shell.bluetoothPowered
         text: "Bluetooth is disabled"
         color: Theme.textDim
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontBody
     }
     }
 }

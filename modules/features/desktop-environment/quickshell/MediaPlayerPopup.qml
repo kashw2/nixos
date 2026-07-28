@@ -51,7 +51,7 @@ Variants {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Now playing"
                 color: Theme.text
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontTitle
                 font.bold: true
             }
 
@@ -61,7 +61,7 @@ Variants {
                 visible: popup.hasPlayer
                 text: popup.player ? popup.player.identity : ""
                 color: Theme.textDim
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontLabel
                 elide: Text.ElideRight
             }
         }
@@ -73,7 +73,7 @@ Variants {
             horizontalAlignment: Text.AlignHCenter
             text: "No media playing"
             color: Theme.textDim
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontBody
         }
 
         // Now-playing card
@@ -130,7 +130,7 @@ Variants {
                     visible: popup.player && popup.player.trackArtist !== ""
                     text: popup.player ? popup.player.trackArtist : ""
                     color: Theme.textDim
-                    font.pixelSize: 12
+                    font.pixelSize: Theme.fontBody
                     elide: Text.ElideRight
                 }
 
@@ -139,7 +139,7 @@ Variants {
                     visible: popup.player && popup.player.trackAlbum !== ""
                     text: popup.player ? popup.player.trackAlbum : ""
                     color: Theme.textDim
-                    font.pixelSize: 11
+                    font.pixelSize: Theme.fontLabel
                     elide: Text.ElideRight
                 }
             }
@@ -154,7 +154,7 @@ Variants {
             Text {
                 text: popup.player ? root.fmtTime(popup.player.position) : "0:00"
                 color: Theme.textDim
-                font.pixelSize: 10
+                font.pixelSize: Theme.fontCaption
                 Layout.preferredWidth: 36
                 horizontalAlignment: Text.AlignRight
             }
@@ -206,7 +206,7 @@ Variants {
             Text {
                 text: popup.player ? root.fmtTime(popup.player.length) : "0:00"
                 color: Theme.textDim
-                font.pixelSize: 10
+                font.pixelSize: Theme.fontCaption
                 Layout.preferredWidth: 36
             }
         }
@@ -336,7 +336,7 @@ Variants {
                             anchors.centerIn: parent
                             text: chip.modelData.identity !== "" ? chip.modelData.identity : "Player"
                             color: chip.isActive ? Theme.text : Theme.textDim
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontLabel
                         }
 
                         MouseArea {

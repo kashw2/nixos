@@ -34,7 +34,7 @@ Variants {
     Text {
         text: "Ethernet"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         font.bold: true
         visible: root.shell.ethernetConnected
     }
@@ -46,7 +46,7 @@ Variants {
         radius: 6
         color: ethHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
         RowLayout {
             anchors.fill: parent
@@ -57,7 +57,7 @@ Variants {
             Text {
                 text: root.shell.ethernetInterface ? root.shell.ethernetInterface : "Ethernet"
                 color: Theme.text
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontTitle
                 font.bold: true
                 Layout.fillWidth: true
             }
@@ -65,7 +65,7 @@ Variants {
             Text {
                 text: "Connected"
                 color: Theme.textDim
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontLabel
             }
         }
 
@@ -85,7 +85,7 @@ Variants {
     Text {
         text: "Connected"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         font.bold: true
         visible: Networking.wifiEnabled && root.shell.connectedNetwork !== null
     }
@@ -97,7 +97,7 @@ Variants {
         radius: 6
         color: currentNetHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
         RowLayout {
             anchors.fill: parent
@@ -108,7 +108,7 @@ Variants {
             Text {
                 text: root.shell.connectedNetwork ? root.shell.connectedNetwork.name : ""
                 color: Theme.text
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontTitle
                 font.bold: true
                 Layout.fillWidth: true
             }
@@ -116,7 +116,7 @@ Variants {
             Text {
                 text: root.shell.connectedNetwork ? Math.round(root.shell.connectedNetwork.signalStrength * 100) + "%" : ""
                 color: Theme.textDim
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontLabel
             }
         }
 
@@ -136,7 +136,7 @@ Variants {
     Text {
         text: "Available"
         color: Theme.textDim
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontLabel
         font.bold: true
         visible: Networking.wifiEnabled
     }
@@ -174,7 +174,7 @@ Variants {
                             : isSelected ? Theme.surfaceSubtle
                             : "transparent"
 
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                         RowLayout {
                             anchors.fill: parent
@@ -185,20 +185,20 @@ Variants {
                             Text {
                                 text: modelData.name
                                 color: Theme.text
-                                font.pixelSize: 13
+                                font.pixelSize: Theme.fontTitle
                                 Layout.fillWidth: true
                             }
 
                             Text {
                                 visible: modelData.security !== WifiSecurityType.None && !modelData.known
                                 text: "\ud83d\udd12"
-                                font.pixelSize: 10
+                                font.pixelSize: Theme.fontCaption
                             }
 
                             Text {
                                 text: Math.round(modelData.signalStrength * 100) + "%"
                                 color: Theme.textDim
-                                font.pixelSize: 11
+                                font.pixelSize: Theme.fontLabel
                             }
                         }
 
@@ -236,7 +236,7 @@ Variants {
                         radius: 6
                         color: Theme.surfaceSubtle
 
-                        Behavior on height { NumberAnimation { duration: 150 } }
+                        Behavior on height { NumberAnimation { duration: Theme.animFast } }
 
                         RowLayout {
                             anchors.fill: parent
@@ -257,7 +257,7 @@ Variants {
                                     anchors.rightMargin: 6
                                     verticalAlignment: TextInput.AlignVCenter
                                     color: Theme.text
-                                    font.pixelSize: 12
+                                    font.pixelSize: Theme.fontBody
                                     echoMode: TextInput.Password
                                     clip: true
                                     onTextChanged: root.shell.passwordInput = text
@@ -278,13 +278,13 @@ Variants {
                                 radius: 4
                                 color: connectHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
-                                Behavior on color { ColorAnimation { duration: 150 } }
+                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: "Connect"
                                     color: Theme.text
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontLabel
                                 }
 
                                 MouseArea {
@@ -314,7 +314,7 @@ Variants {
                         color: Theme.surfaceSubtle
                         clip: true
 
-                        Behavior on height { NumberAnimation { duration: 150 } }
+                        Behavior on height { NumberAnimation { duration: Theme.animFast } }
 
                         Column {
                             id: eapColumn
@@ -338,7 +338,7 @@ Variants {
                                     anchors.rightMargin: 6
                                     verticalAlignment: TextInput.AlignVCenter
                                     color: Theme.text
-                                    font.pixelSize: 12
+                                    font.pixelSize: Theme.fontBody
                                     clip: true
                                     onTextChanged: root.shell.eapIdentityInput = text
 
@@ -347,7 +347,7 @@ Variants {
                                         verticalAlignment: Text.AlignVCenter
                                         text: "Identity"
                                         color: Theme.textDim
-                                        font.pixelSize: 12
+                                        font.pixelSize: Theme.fontBody
                                         visible: !eapIdentityField.text && !eapIdentityField.activeFocus
                                     }
 
@@ -369,7 +369,7 @@ Variants {
                                     anchors.rightMargin: 6
                                     verticalAlignment: TextInput.AlignVCenter
                                     color: Theme.text
-                                    font.pixelSize: 12
+                                    font.pixelSize: Theme.fontBody
                                     echoMode: TextInput.Password
                                     clip: true
                                     onTextChanged: root.shell.eapPasswordInput = text
@@ -379,7 +379,7 @@ Variants {
                                         verticalAlignment: Text.AlignVCenter
                                         text: "Password"
                                         color: Theme.textDim
-                                        font.pixelSize: 12
+                                        font.pixelSize: Theme.fontBody
                                         visible: !eapPasswordField.text && !eapPasswordField.activeFocus
                                     }
 
@@ -402,7 +402,7 @@ Variants {
                                     visible: root.shell.eapConnecting
                                     text: "Connecting..."
                                     color: Theme.textDim
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontLabel
                                     Layout.fillWidth: true
                                 }
 
@@ -410,7 +410,7 @@ Variants {
                                     visible: root.shell.eapError !== "" && !root.shell.eapConnecting
                                     text: root.shell.eapError
                                     color: "#ff6b6b"
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontLabel
                                     Layout.fillWidth: true
                                 }
 
@@ -426,13 +426,13 @@ Variants {
                                     color: eapConnectHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
                                     opacity: root.shell.eapConnecting ? 0.5 : 1.0
 
-                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "Connect"
                                         color: Theme.text
-                                        font.pixelSize: 11
+                                        font.pixelSize: Theme.fontLabel
                                     }
 
                                     MouseArea {
@@ -462,7 +462,7 @@ Variants {
         visible: root.shell.wifiDev !== null && !Networking.wifiEnabled
         text: "WiFi is disabled"
         color: Theme.textDim
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontBody
     }
 
     // No wifi device message
@@ -470,7 +470,7 @@ Variants {
         visible: root.shell.wifiDev === null
         text: "No WiFi adapter found"
         color: Theme.textDim
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontBody
     }
     }
 }

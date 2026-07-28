@@ -15,7 +15,7 @@ Variants {
     Text {
         text: "System Monitor"
         color: Theme.text
-        font.pixelSize: 13
+        font.pixelSize: Theme.fontTitle
         font.bold: true
     }
 
@@ -24,13 +24,13 @@ Variants {
         Text {
             text: "CPU"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
         Text {
             text: root.shell.cpuPercent + "%"
             color: Theme.text
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
         }
     }
@@ -118,13 +118,13 @@ Variants {
         Text {
             text: "Memory"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
         Text {
             text: root.shell.ramUsedGb + " / " + root.shell.ramTotalGb + " GB (" + root.shell.ramPercent + "%)"
             color: Theme.text
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
         }
     }
@@ -210,7 +210,7 @@ Variants {
         Text {
             text: "CPU Temperature"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
         Text {
@@ -218,7 +218,7 @@ Variants {
             color: root.shell.cpuTemp > 85 ? Qt.rgba(0.9, 0.2, 0.2, 0.9)
                  : root.shell.cpuTemp > 70 ? Qt.rgba(0.95, 0.5, 0.15, 0.85)
                  : Theme.text
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
         }
     }
@@ -230,13 +230,13 @@ Variants {
         Text {
             text: "Disk (/)"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
         Text {
             text: root.shell.diskUsed + " / " + root.shell.diskTotal + " (" + root.shell.diskPercent + "%)"
             color: Theme.text
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
         }
     }
@@ -265,7 +265,7 @@ Variants {
         Text {
             text: "Network"
             color: Theme.textDim
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             Layout.fillWidth: true
         }
     }
@@ -276,14 +276,14 @@ Variants {
         Text {
             text: "\u2193 " + root.shell.formatBytesPerSec(root.shell.netRxRate)
             color: Qt.rgba(0.4, 0.8, 0.4, 1.0)
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
             Layout.fillWidth: true
         }
         Text {
             text: "\u2191 " + root.shell.formatBytesPerSec(root.shell.netTxRate)
             color: Qt.rgba(0.95, 0.6, 0.3, 1.0)
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontLabel
             font.bold: true
             horizontalAlignment: Text.AlignRight
         }

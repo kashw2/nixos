@@ -373,7 +373,7 @@ Variants {
                                 Text {
                                     text: appItem.modelData.name || ""
                                     color: Theme.text
-                                    font.pixelSize: 13
+                                    font.pixelSize: Theme.fontTitle
                                     font.bold: true
                                     elide: Text.ElideRight
                                     width: parent.width
@@ -383,7 +383,7 @@ Variants {
                                     visible: text !== ""
                                     text: appItem.modelData.genericName || appItem.modelData.comment || ""
                                     color: Theme.textDim
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontLabel
                                     elide: Text.ElideRight
                                     width: parent.width
                                 }
@@ -408,7 +408,7 @@ Variants {
                     visible: launcherBox.expanded && launcherWindow.filteredEntries.length === 0
                     text: "No matches"
                     color: Theme.textDim
-                    font.pixelSize: 12
+                    font.pixelSize: Theme.fontBody
                     Layout.alignment: Qt.AlignHCenter
                     Layout.bottomMargin: 8
                     opacity: visible ? 1 : 0

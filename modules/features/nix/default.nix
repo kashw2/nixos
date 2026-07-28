@@ -14,7 +14,7 @@
       ];
 
       nixpkgs.config = {
-        allowUnfree = lib.mkForce true;
+        allowUnfree = true;
         nvidia.acceptLicense = builtins.elem "nvidia" config.services.xserver.videoDrivers;
       };
 

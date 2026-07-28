@@ -7,18 +7,6 @@ Variants {
     required property var shell
     model: Quickshell.screens
 
-    function conditionToIconType(c) {
-        if (!c) return "cloudy";
-        if (c.indexOf("thunder") !== -1) return "thunder";
-        if (c.indexOf("snow") !== -1 || c.indexOf("sleet") !== -1 || c.indexOf("blizzard") !== -1 || c.indexOf("ice") !== -1) return "snow";
-        if (c.indexOf("rain") !== -1 || c.indexOf("drizzle") !== -1 || c.indexOf("shower") !== -1) return "rain";
-        if (c.indexOf("mist") !== -1 || c.indexOf("fog") !== -1 || c.indexOf("haze") !== -1) return "fog";
-        if (c.indexOf("partly") !== -1 || c.indexOf("patchy") !== -1) return "partlycloudy";
-        if (c.indexOf("cloud") !== -1 || c.indexOf("overcast") !== -1) return "cloudy";
-        if (c.indexOf("sunny") !== -1 || c.indexOf("clear") !== -1) return "sunny";
-        return "cloudy";
-    }
-
     function weatherCodeToIconType(code) {
         if (code === 0) return "sunny";
         if (code === 1 || code === 2) return "partlycloudy";
@@ -76,7 +64,7 @@ Variants {
         margins.right: 0
         margins.left: popup.screen ? Math.max(8, (popup.screen.width - popup.popupWidth) / 2) : 8
 
-        backgroundColor: root.backdropFor(root.conditionToIconType(root.shell.weatherCondition))
+        backgroundColor: root.backdropFor(root.shell.conditionToIconType(root.shell.weatherCondition))
 
         property bool editingCity: false
         onCleared: editingCity = false
@@ -106,7 +94,7 @@ Variants {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Weather"
                 color: Theme.text
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontTitle
                 font.bold: true
             }
 
@@ -122,7 +110,7 @@ Variants {
                 color: popup.editingCity ? Theme.surfaceActive
                     : hovered ? Theme.buttonHover : "transparent"
 
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                 Row {
                     id: locationRow
@@ -135,7 +123,7 @@ Variants {
                             ? root.shell.weatherLocationName
                             : "Set city"
                         color: Theme.textDim
-                        font.pixelSize: 11
+                        font.pixelSize: Theme.fontLabel
                         elide: Text.ElideRight
                     }
 
@@ -143,7 +131,7 @@ Variants {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.shell.weatherCustomCity !== "" ? "★" : "✎"
                         color: Theme.iconDim
-                        font.pixelSize: 10
+                        font.pixelSize: Theme.fontCaption
                     }
                 }
 
@@ -186,7 +174,7 @@ Variants {
                     height: parent.height
                     verticalAlignment: TextInput.AlignVCenter
                     color: Theme.text
-                    font.pixelSize: 12
+                    font.pixelSize: Theme.fontBody
                     clip: true
 
                     Text {
@@ -194,7 +182,7 @@ Variants {
                         verticalAlignment: Text.AlignVCenter
                         text: "Enter a city, e.g. London"
                         color: Theme.textDim
-                        font.pixelSize: 12
+                        font.pixelSize: Theme.fontBody
                         visible: !cityInput.text && !cityInput.activeFocus
                     }
 
@@ -217,13 +205,13 @@ Variants {
                     radius: 4
                     color: resetHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "Auto"
                         color: Theme.text
-                        font.pixelSize: 11
+                        font.pixelSize: Theme.fontLabel
                     }
 
                     MouseArea {
@@ -249,13 +237,13 @@ Variants {
                     color: applyHover.containsMouse && opacity === 1.0
                         ? Theme.surfaceActive : Theme.surfaceBg
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "Apply"
                         color: Theme.text
-                        font.pixelSize: 11
+                        font.pixelSize: Theme.fontLabel
                     }
 
                     MouseArea {
@@ -288,7 +276,7 @@ Variants {
                 WeatherIcon {
                     anchors.verticalCenter: parent.verticalCenter
                     iconSize: 40
-                    iconType: root.conditionToIconType(root.shell.weatherCondition)
+                    iconType: root.shell.conditionToIconType(root.shell.weatherCondition)
                     animTime: popup.animTime
                 }
 
@@ -308,7 +296,7 @@ Variants {
                         return c.length > 0 ? c.charAt(0).toUpperCase() + c.slice(1) : "";
                     }
                     color: Theme.textDim
-                    font.pixelSize: 13
+                    font.pixelSize: Theme.fontTitle
                 }
 
                 // ·
@@ -325,7 +313,7 @@ Variants {
                     visible: popup.today !== null
                     text: popup.today ? popup.today.tempMax + "°/" + popup.today.tempMin + "°" : ""
                     color: Theme.text
-                    font.pixelSize: 13
+                    font.pixelSize: Theme.fontTitle
                 }
 
                 // ·
@@ -342,7 +330,7 @@ Variants {
                     visible: popup.today && popup.today.humidity !== null
                     text: popup.today ? popup.today.humidity + "%" : ""
                     color: Theme.textDim
-                    font.pixelSize: 13
+                    font.pixelSize: Theme.fontTitle
                 }
 
             }
@@ -355,7 +343,7 @@ Variants {
             visible: popup.upcoming.length === 0
             text: "Loading forecast…"
             color: Theme.textDim
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontBody
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
@@ -389,7 +377,7 @@ Variants {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: root.dayNameFor(card.modelData.date)
                         color: Theme.text
-                        font.pixelSize: 12
+                        font.pixelSize: Theme.fontBody
                         font.bold: true
                     }
 
@@ -419,7 +407,7 @@ Variants {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: card.modelData.tempMin + "°"
                             color: Theme.textDim
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontLabel
                         }
 
                         Row {
@@ -450,7 +438,7 @@ Variants {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: (card.modelData.precipChance > 0 ? card.modelData.precipChance : 0) + "%"
                                 color: Theme.textDim
-                                font.pixelSize: 10
+                                font.pixelSize: Theme.fontCaption
                             }
                         }
 
@@ -460,7 +448,7 @@ Variants {
                                 ? card.modelData.humidity + "% hum"
                                 : "—"
                             color: Theme.textDim
-                            font.pixelSize: 10
+                            font.pixelSize: Theme.fontCaption
                         }
                     }
                 }
