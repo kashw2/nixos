@@ -40,7 +40,7 @@
             nixd.enable = true;
             lua_ls = {
               enable = !config.isServer;
-              settings.Lua = {
+              config.settings.Lua = {
                 workspace.library.__raw = "vim.api.nvim_get_runtime_file('', true)";
                 telemetry.enable = false;
               };

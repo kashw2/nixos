@@ -19,6 +19,7 @@
 
       programs.nixvim = {
         enable = true;
+        nixpkgs.source = inputs.nixpkgs;
         package =
           (inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.neovim).overrideAttrs
             (_: {
