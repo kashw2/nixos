@@ -29,8 +29,7 @@
       services.iperf3.enable = true;
 
       networking = {
-        # Prepends an entry for work DNS server
-        networkmanager.insertNameservers = lib.optionals (!config.isServer) [ "10.1.2.4" ];
+        networkmanager.dns = lib.mkIf (!config.isServer) "dnsmasq";
         hosts = {
           "100.77.4.43" = [ "home.tailscale" ];
           "100.65.188.7" = [ "family.tailscale" ];
@@ -86,6 +85,9 @@
       };
 
       environment = {
+        etc."NetworkManager/dnsmasq.d/azure-postgres.conf" = lib.mkIf (!config.isServer) {
+          text = "server=/postgres.database.azure.com/10.1.2.4\n";
+        };
         systemPackages = [
           pkgs.dstp
           pkgs.dig
