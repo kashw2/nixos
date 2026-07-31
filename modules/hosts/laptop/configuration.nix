@@ -57,31 +57,11 @@
                 autoconnect = true;
               };
               ipv4 = {
-                address1 = "192.168.1.6";
+                address1 = "192.168.1.16";
                 gateway = "192.168.1.1";
                 method = "auto";
               };
             };
-          };
-        };
-        interfaces = {
-          enp4s0f1 = {
-            useDHCP = false;
-            ipv4.addresses = [
-              {
-                address = "192.168.1.6";
-                prefixLength = 24;
-              }
-            ];
-          };
-          wlp3s0 = {
-            useDHCP = false;
-            ipv4.addresses = [
-              {
-                address = "192.168.1.6";
-                prefixLength = 24;
-              }
-            ];
           };
         };
       };
