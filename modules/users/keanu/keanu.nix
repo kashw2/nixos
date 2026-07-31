@@ -52,6 +52,7 @@
               pkgs.slack
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               pkgs.gh
+              pkgs.bitbucket-cli
               pkgs.infracost
               pkgs.prettier
               pkgs.nodejs_24
