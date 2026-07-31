@@ -42,31 +42,11 @@
                 autoconnect = true;
               };
               ipv4 = {
-                address1 = "192.168.1.5";
+                address1 = "192.168.1.15";
                 gateway = "192.168.1.1";
                 method = "auto";
               };
             };
-          };
-        };
-        interfaces = {
-          enp10s0 = {
-            useDHCP = false;
-            ipv4.addresses = [
-              {
-                address = "192.168.1.5";
-                prefixLength = 24;
-              }
-            ];
-          };
-          wlp9s0 = {
-            useDHCP = false;
-            ipv4.addresses = [
-              {
-                address = "192.168.1.5";
-                prefixLength = 24;
-              }
-            ];
           };
         };
       };
