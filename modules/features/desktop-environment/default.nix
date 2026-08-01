@@ -44,7 +44,6 @@
       # It's primary usage is for TTS and is not something we'd require
       services.speechd.enable = false;
 
-      # Used by quickshell on laptops for battery info
       services.upower.enable = config.isLaptop;
 
       services.displayManager.autoLogin = {
