@@ -31,7 +31,6 @@ jobs:
   flake-check:
     name: Flake Check
     runs-on: ubuntu-latest
-    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: jlumbroso/free-disk-space@v1.3.1
