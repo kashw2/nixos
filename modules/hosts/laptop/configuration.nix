@@ -70,9 +70,11 @@
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
           open = false;
-          powerManagement.enable = false;
+          powerManagement.enable = true;
           powerManagement.finegrained = false;
           prime = {
+            offload.enable = true;
+            offload.enableOffloadCmd = true;
             intelBusId = "PCI:00:02:0";
             nvidiaBusId = "PCI:01:00:0";
           };
