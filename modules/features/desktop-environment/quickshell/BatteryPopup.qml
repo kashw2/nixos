@@ -81,67 +81,6 @@ Variants {
 
     SectionSeparator {}
 
-    // Power profile
-    Text {
-        text: "Power Profile"
-        color: Theme.text
-        font.pixelSize: Theme.fontTitle
-        font.bold: true
-    }
-
-    Rectangle {
-        width: parent.width
-        height: 28
-        radius: 6
-        color: Theme.surfaceInner
-
-        Row {
-            anchors.fill: parent
-            anchors.margins: 2
-
-            Repeater {
-                model: ["power-saver", "balanced", "performance"]
-
-                Rectangle {
-                    required property string modelData
-                    required property int index
-                    property bool isActive: root.shell.powerProfile === modelData
-                    property bool hovered: false
-
-                    width: parent.width / 3
-                    height: parent.height
-                    radius: 4
-                    color: isActive ? Theme.surfaceActive : hovered ? Theme.surfaceInner : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: {
-                            if (modelData === "power-saver") return "Saver";
-                            if (modelData === "balanced") return "Balanced";
-                            return "Performance";
-                        }
-                        color: isActive ? Theme.text : Theme.textDim
-                        font.pixelSize: Theme.fontLabel
-                        font.bold: isActive
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: root.shell.setPowerProfile(modelData)
-                    }
-                }
-            }
-        }
-    }
-
-    SectionSeparator {}
-
     // Battery health
     RowLayout {
         width: parent.width

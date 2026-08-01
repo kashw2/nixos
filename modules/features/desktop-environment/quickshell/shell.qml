@@ -55,7 +55,6 @@ ShellRoot {
     property string batteryStatus: ""
     property string batteryTimeRemaining: ""
     property string batteryPowerDraw: ""
-    property string powerProfile: ""
     property int batteryHealthPercent: 100
     property var batteryHistory: []
     property int batteryHistoryCount: 0
@@ -306,11 +305,6 @@ ShellRoot {
     onBatteryPercentChanged: checkBatteryNotifications()
     onBatteryChargingChanged: checkBatteryNotifications()
 
-    function setPowerProfile(profile) {
-        powerProfileSet.profile = profile;
-        powerProfileSet.running = true;
-    }
-
     function openPopup(name, screen) {
         shell.activePopup = name;
         shell.activePopupScreen = screen;
@@ -447,26 +441,6 @@ ShellRoot {
     }
 
     Process {
-        id: powerProfileCheck
-        command: ["powerprofilesctl", "get"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                shell.powerProfile = data.toString().trim();
-            }
-        }
-    }
-
-    Process {
-        id: powerProfileSet
-        property string profile: ""
-        command: ["powerprofilesctl", "set", profile]
-        onRunningChanged: {
-            if (!running) powerProfileCheck.running = true;
-        }
-    }
-
-    Process {
         id: batteryHealthCheck
         command: ["sh", "-c", "echo DESIGN:$(cat /sys/class/power_supply/BAT*/energy_full_design 2>/dev/null || cat /sys/class/power_supply/BAT*/charge_full_design 2>/dev/null) && echo FULL:$(cat /sys/class/power_supply/BAT*/energy_full 2>/dev/null || cat /sys/class/power_supply/BAT*/charge_full 2>/dev/null)"]
         running: true
@@ -592,7 +566,6 @@ ShellRoot {
             batCheck.running = true;
             batteryTimeCheck.running = true;
             batteryPowerCheck.running = true;
-            powerProfileCheck.running = true;
             batteryHealthCheck.running = true;
             brightnessCheck.running = true;
             audioCtrl.refresh();
