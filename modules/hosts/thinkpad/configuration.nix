@@ -2,6 +2,9 @@
 {
   flake.nixosModules.thinkpad =
     { pkgs, lib, ... }:
+    let
+      batteryChargeLimit = false;
+    in
     {
 
       imports = [
@@ -73,6 +76,11 @@
           enable = true;
           extraPackages = [ pkgs.libvdpau-va-gl ];
         };
+      };
+
+      services.tlp.settings = lib.mkIf batteryChargeLimit {
+        START_CHARGE_THRESH_BAT0 = 75;
+        STOP_CHARGE_THRESH_BAT0 = 80;
       };
 
     };
