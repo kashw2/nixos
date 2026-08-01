@@ -212,7 +212,7 @@
                     anonymiseByDefault = true;
                   };
                   appleMusicRichPresence.enable = true;
-                  lastFmRichPresence.enable = true;
+                  musicRichPresence.enable = true;
                   callTimer.enable = true;
                   clearUrls.enable = true;
                   copyUserUrls.enable = true;
