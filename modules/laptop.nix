@@ -51,6 +51,20 @@
 
       services = {
         gvfs.enable = true; # Nautilus requires this for certain locations (Trash etc)
+        tlp = {
+          enable = true;
+          settings = {
+            CPU_SCALING_GOVERNOR_ON_AC = "performance";
+            CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+            CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
+            CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+            PCIE_ASPM_ON_BAT = "powersupersave";
+            SATA_LINKPWR_ON_BAT = "min_power";
+            WIFI_PWR_ON_BAT = "on";
+            USB_AUTOSUSPEND = 1;
+          };
+        };
+        power-profiles-daemon.enable = false;
       };
 
     };
