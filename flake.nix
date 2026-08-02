@@ -78,7 +78,7 @@
       inputs.home-manager.follows = "home-manager";
     };
     quickshell = {
-      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
+      url = "github:quickshell-mirror/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixfmt = {
