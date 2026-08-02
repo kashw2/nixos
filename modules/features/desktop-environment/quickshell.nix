@@ -28,7 +28,6 @@
           pkgs.jq
           pkgs.curl
           pkgs.upower
-          pkgs.power-profiles-daemon
           pkgs.pipewire
           pkgs.playerctl
         ]
