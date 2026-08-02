@@ -59,19 +59,6 @@
           "192.168.1.9" = [ "thinkpad.local" ];
           "192.168.1.10" = [ "family.local" ];
           "192.168.1.11" = [ "macmini.local" ];
-          "192.168.1.12" = [
-            "media.local"
-            "mimir.media.local"
-            "radarr.media.local"
-            "sonarr.media.local"
-            "grafana.media.local"
-            "bazarr.media.local"
-            "jellyfin.media.local"
-            "prowlarr.media.local"
-            "deluge.media.local"
-            "alloy.media.local"
-            "flood.media.local"
-          ];
         };
         firewall = {
           enable = true;
