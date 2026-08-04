@@ -35,6 +35,12 @@
         wlr.enable = true;
       };
 
+      systemd.user.targets.hyprland-session = {
+        description = "Hyprland compositor session";
+        bindsTo = [ "graphical-session.target" ];
+        before = [ "graphical-session.target" ];
+      };
+
       programs.hyprlock = {
         enable = true;
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
