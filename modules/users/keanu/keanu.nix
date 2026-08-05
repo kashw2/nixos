@@ -103,7 +103,7 @@
               ]
               ++ lib.optionals (!config.isServer) [
                 ".config/discord"
-                ".config/Vencord" # Vencord plugins etc
+                ".config/Equicord" # Equicord plugins etc
                 ".mozilla"
                 ".config/mozilla"
                 ".config/Slack" # Slack authentication and settings
@@ -200,7 +200,7 @@
               # Only enable if discord is installed for this user, that way servers aren't getting it
               enable = !config.isServer;
               discord = {
-                vencord.enable = true;
+                equicord.enable = true;
                 openASAR.enable = false;
               };
               config = {
@@ -229,7 +229,6 @@
                   relationshipNotifier.enable = true;
                   shikiCodeblocks.enable = true;
                   silentTyping.enable = true;
-                  sortFriendRequests.enable = true;
                   spotifyCrack.enable = true;
                   typingTweaks.enable = true;
                   youtubeAdblock.enable = true;
