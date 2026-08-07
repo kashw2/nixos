@@ -1220,11 +1220,11 @@
       },
       "locked": {
         "dir": "packaging/nix",
-        "lastModified": 1785339816,
-        "narHash": "sha256-x6RO80nEeVHeCBRei6LczKpJ2BhiJ8x52CHKms6U+sw=",
+        "lastModified": 1785876782,
+        "narHash": "sha256-PPsUs6l1eg0mBiiAaJEi0/bf5cy58G7H/wHOqOhqeec=",
         "owner": "yannmasoch",
         "repo": "nautilus-my-computer",
-        "rev": "4a1b705eb2ac6457772456328d924e162a752e42",
+        "rev": "5355aff0ccbc9cf1e80678267f3674400289eaaa",
         "type": "github"
       },
       "original": {
