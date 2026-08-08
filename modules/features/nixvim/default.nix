@@ -55,6 +55,12 @@
             ];
             command = "set filetype=terraform";
           }
+          {
+            desc = "Auto-answer swap-file prompts";
+            event = [ "SwapExists" ];
+            pattern = [ "*" ];
+            command = "let v:swapchoice = 'e'";
+          }
         ];
         extraPackages = [
           pkgs.shfmt
