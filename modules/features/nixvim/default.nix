@@ -33,7 +33,8 @@
           wrap = false;
           number = true;
           relativenumber = true;
-          shortmess = "filnxtToOFTS";
+          shortmess = "filnxtToOFTSI";
+          more = false;
           scrolloff = 8;
         };
         diagnostic.settings = {
