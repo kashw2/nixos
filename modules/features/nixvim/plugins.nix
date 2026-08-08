@@ -46,7 +46,14 @@
         };
         web-devicons.enable = true;
         snacks.enable = true;
-        auto-session.enable = true;
+        auto-session = {
+          enable = true;
+          settings.restore_error_handler.__raw = ''
+            function()
+              return true
+            end
+          '';
+        };
         bufdelete.enable = true;
         ts-autotag.enable = !config.isServer;
         todo-comments.enable = true;
