@@ -67,18 +67,8 @@
       };
 
       hardware = {
-        nvidia = {
-          package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
-          open = false;
-          powerManagement.enable = true;
-          powerManagement.finegrained = false;
-          prime = {
-            offload.enable = true;
-            offload.enableOffloadCmd = true;
-            intelBusId = "PCI:00:02:0";
-            nvidiaBusId = "PCI:01:00:0";
-          };
-        };
+        # nouveau (not proprietary) so the Pascal GTX 1050 can D3cold when idle.
+        # Slow reclocking; offload is DRI_PRIME=1.
         bluetooth = {
           enable = true;
           powerOnBoot = true;
@@ -94,7 +84,16 @@
         };
       };
 
-      services.xserver.videoDrivers = [ "nvidia" ];
+      services.xserver.videoDrivers = [ "nouveau" ];
+
+      # Colon-free iGPU alias; AQ_DRM_DEVICES is colon-separated so by-path names break it.
+      services.udev.extraRules = ''
+        KERNEL=="card*", SUBSYSTEM=="drm", KERNELS=="0000:00:02.0", SYMLINK+="dri/igpu"
+      '';
+
+      # Pin the compositor to the iGPU so the dGPU stays idle. Session env, not
+      # hl.env(): aquamarine reads it before the config parses.
+      environment.sessionVariables.AQ_DRM_DEVICES = "/dev/dri/igpu";
 
     };
 }
