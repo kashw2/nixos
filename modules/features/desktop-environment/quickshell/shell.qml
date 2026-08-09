@@ -96,7 +96,7 @@ ShellRoot {
         return "none";
     }
     function cycleWeatherEffect() {
-        var modes = ["", "rain", "snow", "thunder"];
+        var modes = ["", "none", "rain", "snow", "thunder"];
         var idx = modes.indexOf(weatherEffectOverride);
         weatherEffectOverride = modes[(idx + 1) % modes.length];
     }
@@ -1239,7 +1239,7 @@ ShellRoot {
 
                         Text {
                             visible: shell.weatherEffectOverride !== ""
-                            text: "(" + shell.weatherEffectOverride + ")"
+                            text: "(" + (shell.weatherEffectOverride === "none" ? "off" : shell.weatherEffectOverride) + ")"
                             color: Theme.textDim
                             font.pixelSize: Theme.fontLabel
                             anchors.verticalCenter: parent.verticalCenter
