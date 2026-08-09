@@ -177,6 +177,7 @@ ShellRoot {
 
     property bool toastVisible: false
     property var toastNotification: null
+    property int toastSeq: 0
     property var notifHistory: []
     property int notifCount: 0
 
@@ -264,6 +265,7 @@ ShellRoot {
             image: ""
         };
         toastVisible = true;
+        toastSeq++;
         toastTimer.restart();
     }
 
@@ -349,6 +351,7 @@ ShellRoot {
             shell.addNotification(notification.appName, notification.summary, notification.body, notification.appIcon, notification.image);
             shell.toastNotification = notification;
             shell.toastVisible = true;
+            shell.toastSeq++;
             toastTimer.restart();
         }
     }
@@ -1299,8 +1302,8 @@ ShellRoot {
     // Media player popup - one per screen
     MediaPlayerPopup { shell: shell }
 
-    // Toast notification popup - one per screen
-    ToastNotification { shell: shell }
+    // Notch notification - one per screen
+    NotchNotification { shell: shell }
 
     // === Weather Effects Overlay ===
     WeatherOverlay { shell: shell }

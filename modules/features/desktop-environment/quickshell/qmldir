@@ -22,7 +22,7 @@ SectionSeparator 1.0 SectionSeparator.qml
 Slider 1.0 Slider.qml
 SysMonIcon 1.0 SysMonIcon.qml
 SystemMonitorPopup 1.0 SystemMonitorPopup.qml
-ToastNotification 1.0 ToastNotification.qml
+NotchNotification 1.0 NotchNotification.qml
 ToggleSwitch 1.0 ToggleSwitch.qml
 TrayOverflowPopup 1.0 TrayOverflowPopup.qml
 VolumeIcon 1.0 VolumeIcon.qml
