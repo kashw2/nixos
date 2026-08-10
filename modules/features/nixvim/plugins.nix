@@ -240,17 +240,8 @@
               terraform = [ "terraform_fmt" ];
               go = [ "gofmt" ];
               yaml = [ "yq" ];
-              prisma = [ "prismaFmt" ];
-            };
-            formatters = lib.optionalAttrs (!config.isServer) {
-              prismaFmt = {
-                command = lib.getExe pkgs.prisma;
-                args = [
-                  "format"
-                  "--schema"
-                  "$FILENAME"
-                ];
-                stdin = false;
+              prisma = {
+                lsp_format = "prefer";
               };
             };
           };
@@ -303,7 +294,7 @@
               g.hcl # terraformls, tflint
               g.html # html, tailwindcss
               g.hyprlang # hyprls
-              g.prisma # prismaFmt
+              g.prisma # prismals
               g.python # pylsp
               g.rust # rust_analyzer
               g.scala # metals

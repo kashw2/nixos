@@ -20,6 +20,7 @@
             rust_analyzer.enable = !config.isServer;
             tailwindcss.enable = !config.isServer;
             postgres_lsp.enable = !config.isServer;
+            prismals.enable = !config.isServer;
             systemd_lsp.enable = true;
             helm_ls.enable = true;
             cssls.enable = !config.isServer;
