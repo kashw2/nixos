@@ -33,6 +33,7 @@
           wrap = false;
           number = true;
           relativenumber = true;
+          cursorline = true;
           shortmess = "filnxtToOFTSI";
           more = false;
           scrolloff = 8;

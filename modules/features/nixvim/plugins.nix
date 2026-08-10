@@ -81,7 +81,6 @@
         lualine.enable = true;
         gitsigns.enable = true;
         tiny-glimmer.enable = true;
-        cursorline.enable = true;
         vim-dadbod.enable = !config.isServer;
         vim-dadbod-completion.enable = !config.isServer;
         vim-dadbod-ui.enable = !config.isServer;
