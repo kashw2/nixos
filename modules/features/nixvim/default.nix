@@ -37,6 +37,9 @@
           shortmess = "filnxtToOFTSI";
           more = false;
           scrolloff = 8;
+          expandtab = true;
+          shiftwidth = 2;
+          tabstop = 2;
         };
         diagnostic.settings = {
           virtual_lines = false;
