@@ -36,10 +36,12 @@
           cursorline = true;
           shortmess = "filnxtToOFTSI";
           more = false;
-          scrolloff = 8;
+          scrolloff = 14;
           expandtab = true;
           shiftwidth = 2;
           tabstop = 2;
+          undofile = true;
+          autoread = true;
         };
         diagnostic.settings = {
           virtual_lines = false;
@@ -64,6 +66,17 @@
             event = [ "SwapExists" ];
             pattern = [ "*" ];
             command = "let v:swapchoice = 'e'";
+          }
+          {
+            desc = "Check for external file changes on focus and idle";
+            event = [
+              "FocusGained"
+              "BufEnter"
+              "CursorHold"
+              "CursorHoldI"
+            ];
+            pattern = [ "*" ];
+            command = "if mode() !~ '\\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif";
           }
         ];
         extraPackages = [
