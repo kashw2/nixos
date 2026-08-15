@@ -89,6 +89,7 @@
         lensline.enable = true;
         lualine.enable = true;
         gitsigns.enable = true;
+        illuminate.enable = true;
         tiny-glimmer.enable = true;
         vim-dadbod.enable = !config.isServer;
         vim-dadbod-completion.enable = !config.isServer;
@@ -249,9 +250,7 @@
               terraform = [ "terraform_fmt" ];
               go = [ "gofmt" ];
               yaml = [ "yq" ];
-              prisma = {
-                lsp_format = "prefer";
-              };
+              prism.lsp_format = "prefer";
             };
           };
         };
