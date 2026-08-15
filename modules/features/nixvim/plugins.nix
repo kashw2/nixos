@@ -19,6 +19,15 @@
       programs.nixvim.extraConfigLua = ''
         require("atone").setup({})
         pcall(dofile, "${config.sops.templates."codestats-setup.lua".path}")
+      ''
+      + lib.optionalString (!config.isServer) ''
+        local tuicr = require("toggleterm.terminal").Terminal:new({
+          cmd = "${lib.getExe' inputs.tuicr.packages.${pkgs.stdenv.hostPlatform.system}.default "tuicr"}",
+          direction = "float",
+          float_opts = { border = "rounded" },
+          hidden = true,
+        })
+        vim.keymap.set("n", "cr", function() tuicr:toggle() end, { silent = true })
       '';
 
       programs.nixvim.plugins = {

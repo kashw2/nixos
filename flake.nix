@@ -93,6 +93,10 @@
       url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    tuicr = {
+      url = "github:agavra/tuicr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
