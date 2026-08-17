@@ -237,6 +237,13 @@
                 };
               };
             };
+            tmux = {
+              enable = true;
+              terminal = "tmux-256color";
+              extraConfig = ''
+                set -ga terminal-overrides ",*256col*:Tc"
+              '';
+            };
           };
         };
 
