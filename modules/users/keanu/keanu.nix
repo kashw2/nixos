@@ -242,6 +242,7 @@
               terminal = "tmux-256color";
               extraConfig = ''
                 set -ga terminal-overrides ",*256col*:Tc"
+                set -g allow-passthrough on
               '';
             };
           };
