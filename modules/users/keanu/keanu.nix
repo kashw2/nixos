@@ -243,6 +243,8 @@
               extraConfig = ''
                 set -ga terminal-overrides ",*256col*:Tc"
                 set -g allow-passthrough on
+                set -s extended-keys on
+                set -sa terminal-features "xterm*:extkeys"
               '';
             };
           };
