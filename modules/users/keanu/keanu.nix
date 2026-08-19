@@ -149,6 +149,15 @@
                 type = "http";
                 url = "https://mcp.shortcut.com/mcp";
               };
+              azure = {
+                command = lib.getExe' pkgs.nodejs "npx";
+                args = [
+                  "-y"
+                  "@azure/mcp@latest"
+                  "server"
+                  "start"
+                ];
+              };
             };
           };
           programs = {
