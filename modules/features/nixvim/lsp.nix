@@ -38,7 +38,10 @@
             tflint.enable = !config.isServer;
             typos_lsp.enable = true;
             metals.enable = !config.isServer;
-            nixd.enable = true;
+            nixd = {
+              enable = true;
+              package = inputs.nixd.packages.${pkgs.system}.nixd;
+            };
             lua_ls = {
               enable = !config.isServer;
               config.settings.Lua = {
