@@ -64,6 +64,7 @@
               pkgs.d2
               pkgs.nixos-anywhere
               pkgs.nixpkgs-review
+              pkgs.jetbrains.datagrip
             ]
             ++ lib.optionals (config.isDesktop) [
               inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
