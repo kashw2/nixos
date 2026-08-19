@@ -72,6 +72,16 @@
 
         documentation.enable = false;
 
+        programs.nix-ld = lib.mkIf (!config.isServer) {
+          enable = true;
+          libraries = [
+            pkgs.stdenv.cc.cc.lib
+            pkgs.zlib
+            pkgs.icu
+            pkgs.openssl
+          ];
+        };
+
         environment = {
           shells = [ self.packages.${pkgs.stdenv.hostPlatform.system}.nushell ];
           localBinInPath = true;
