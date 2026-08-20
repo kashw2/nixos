@@ -249,11 +249,41 @@
             tmux = {
               enable = true;
               terminal = "tmux-256color";
+              prefix = "C-a";
               extraConfig = ''
                 set -ga terminal-overrides ",*256col*:Tc"
                 set -g allow-passthrough on
                 set -s extended-keys on
                 set -sa terminal-features "xterm*:extkeys"
+
+                set -g status on
+                set -g status-position bottom
+                set -g status-justify left
+                set -g status-interval 5
+                set -g status-style "bg=#0B0B14,fg=#CDD6F4"
+                set -g status-left-length 100
+                set -g status-right-length 100
+
+                set -g status-left "#[fg=#0B0B14,bg=#CBA6F7,bold] #S #[fg=#CBA6F7,bg=#0B0B14] "
+
+                set -g window-status-separator ""
+                set -g window-status-format "#[fg=#A6ADC8,bg=#0B0B14] #I #W "
+                set -g window-status-current-format "#[fg=#0B0B14,bg=#89B4FA,bold] #I #W #[fg=#89B4FA,bg=#0B0B14] "
+                setw -g window-status-activity-style "fg=#F9E2AF,bg=#0B0B14,none"
+
+                set -g status-right "#[fg=#CDD6F4,bg=#10101A] #H #[fg=#0B0B14,bg=#CBA6F7,bold] %Y-%m-%d #[fg=#0B0B14,bg=#89B4FA,bold] %H:%M "
+
+                set -g pane-border-style "fg=#10101A"
+                set -g pane-active-border-style "fg=#CBA6F7"
+                set -g message-style "bg=#10101A,fg=#CDD6F4"
+                set -g message-command-style "bg=#10101A,fg=#CDD6F4"
+                set -g mode-style "bg=#CBA6F7,fg=#0B0B14"
+
+                # splits: | vertical, - horizontal (open in cwd)
+                bind | split-window -h -c "#{pane_current_path}"
+                bind - split-window -v -c "#{pane_current_path}"
+                unbind '"'
+                unbind %
               '';
             };
           };
