@@ -91,9 +91,6 @@
         gitsigns.enable = true;
         illuminate.enable = true;
         tiny-glimmer.enable = true;
-        vim-dadbod.enable = !config.isServer;
-        vim-dadbod-completion.enable = !config.isServer;
-        vim-dadbod-ui.enable = !config.isServer;
         diagram.enable = !config.isServer;
         git-conflict.enable = true;
         barbecue.enable = true;
@@ -306,7 +303,7 @@
               g.python # pylsp
               g.rust # rust_analyzer
               g.scala # metals
-              g.sql # postgres_lsp, vim-dadbod
+              g.sql # postgres_lsp
               g.terraform # conform (terraform_fmt)
               g.typescript # conform (typescript)
               self.packages.${pkgs.stdenv.hostPlatform.system}.tree-sitter-bruno # bruno-nvim
