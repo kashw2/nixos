@@ -93,6 +93,7 @@
                 ".local/share/nix"
                 ".local/share/nvim" # neovim state (shada, swap, undo, plugin data)
                 ".local/share/zoxide" # zoxide frecency database
+                ".local/share/tmux" # tmux-resurrect saved sessions
                 ".config/nushell" # nushell history
                 ".config/sops" # sops CLI age key
                 ".gnupg" # GPG keyring (signing/encryption keys)
@@ -250,6 +251,9 @@
               enable = true;
               terminal = "tmux-256color";
               prefix = "C-a";
+              plugins = with pkgs.tmuxPlugins; [
+                resurrect
+              ];
               extraConfig = ''
                 set -ga terminal-overrides ",*256col*:Tc"
                 set -g allow-passthrough on
@@ -284,6 +288,11 @@
                 bind - split-window -v -c "#{pane_current_path}"
                 unbind '"'
                 unbind %
+
+                set -g @resurrect-dir '${config.users.users.keanu.home}/.local/share/tmux/resurrect'
+                set -g @continuum-restore 'on'
+                set -g @continuum-save-interval '1'
+                run-shell ${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/continuum.tmux
               '';
             };
           };
