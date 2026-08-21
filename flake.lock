@@ -1906,11 +1906,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1786410815,
-        "narHash": "sha256-bQb/MpJLX+c4v78GUiEbj89FdeJjYgBrr8BmNQNvvTE=",
+        "lastModified": 1787242072,
+        "narHash": "sha256-HWZWRvcHC1U72b8bP6TgvhBiz6mGM6P9qDuL4w2kaUI=",
         "owner": "agavra",
         "repo": "tuicr",
-        "rev": "00061f379f8fb6263788fe11601a82c15827dd09",
+        "rev": "0dacb6b711b088096a3578677c311cafc1ce3e99",
         "type": "github"
       },
       "original": {
