@@ -141,11 +141,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785930890,
-        "narHash": "sha256-QN4Oy1B4Vma9DiMyXiyssrpgMuIPgkNyO8jb6k2H4oY=",
+        "lastModified": 1786742289,
+        "narHash": "sha256-r61K9svFDQkI5jONYksneDtDT5c4SkWrZVD3ni5O6Ak=",
         "owner": "zhaofengli",
         "repo": "colmena",
-        "rev": "a156fd9146e69a577fe6f5542a7c6ed83a6888ce",
+        "rev": "dc22786a43315b212eeafe13409a7203328e5a30",
         "type": "github"
       },
       "original": {
