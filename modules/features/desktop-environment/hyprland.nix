@@ -59,7 +59,6 @@
                 hl.exec_cmd("${lib.getExe' pkgs.systemd "systemctl"} --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE && ${lib.getExe' pkgs.dbus "dbus-update-activation-environment"} --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE && ${lib.getExe' pkgs.systemd "systemctl"} --user start hyprland-session.target")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper}")
                 hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle}")
-                hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprshade} auto")
                 hl.exec_cmd("${lib.getExe' pkgs.wl-clipboard "wl-paste"} --watch ${lib.getExe pkgs.cliphist} store")
                 hl.exec_cmd("${lib.getExe pkgs.slack}")
                 hl.exec_cmd("${
@@ -126,9 +125,6 @@
               hl.bind("SUPER + S",       hl.dsp.window.float({ action = "toggle" }))
               hl.bind("SUPER + F",       hl.dsp.window.fullscreen())
               hl.bind("SUPER + P",       hl.dsp.window.pseudo())
-              hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("${
-                lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprshade
-              } toggle blue-light-filter"))
               hl.bind("SUPER + left",    hl.dsp.focus({ direction = "left" }))
               hl.bind("SUPER + right",   hl.dsp.focus({ direction = "right" }))
               hl.bind("SUPER + up",      hl.dsp.focus({ direction = "up" }))
