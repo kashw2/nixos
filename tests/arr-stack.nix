@@ -3,7 +3,7 @@
   perSystem =
     { pkgs, ... }:
     {
-      checks.arr-stack =
+      packages.arr-stack =
         (inputs.nixpkgs.lib.nixos.runTest {
           hostPkgs = pkgs;
           name = "arr-stack";

@@ -3,7 +3,7 @@
   perSystem =
     { pkgs, ... }:
     {
-      checks.telemetry-client =
+      packages.telemetry-client =
         (inputs.nixpkgs.lib.nixos.runTest {
           hostPkgs = pkgs;
           name = "telemetry-client";
