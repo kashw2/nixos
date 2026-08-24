@@ -3,7 +3,7 @@
   perSystem =
     { pkgs, ... }:
     {
-      checks.jellyfin =
+      packages.jellyfin =
         (inputs.nixpkgs.lib.nixos.runTest {
           hostPkgs = pkgs;
           name = "jellyfin";
