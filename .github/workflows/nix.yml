@@ -110,3 +110,45 @@ jobs:
       - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
         env:
           NIXPKGS_ALLOW_UNFREE: 1
+  vm-tests:
+    name: VM Test ${{ matrix.test }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - telemetry-host
+          - telemetry-client
+          - arr-stack
+          - jellyfin
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+      - uses: cachix/install-nix-action@v31.11.1
+        with:
+          extra_nix_config: |
+            extra-substituters = https://nix-community.cachix.org
+            extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+      - uses: tailscale/github-action@v4.1.3
+        continue-on-error: true
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+      - uses: ryanccn/attic-action@v0
+        continue-on-error: true
+        with:
+          endpoint: http://100.116.38.8:8080
+          cache: nixos
+          token: ${{ secrets.ATTIC_TOKEN }}
+      - run: nix develop --command nix build .#${{ matrix.test }} --impure
+        env:
+          NIXPKGS_ALLOW_UNFREE: 1
