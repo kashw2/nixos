@@ -149,6 +149,6 @@ jobs:
           endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
-      - run: nix develop --command nix build .#${{ matrix.test }} --impure
+      - run: nix develop --command nix build .#${{ matrix.test }} --impure -L
         env:
           NIXPKGS_ALLOW_UNFREE: 1
