@@ -168,6 +168,9 @@
               package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
               enableMcpIntegration = true;
               plugins = [ inputs.superpowers ];
+              skills = builtins.mapAttrs (name: _: "${inputs.anthropic-skills}/skills/${name}") (
+                builtins.readDir "${inputs.anthropic-skills}/skills"
+              );
             };
             git = {
               enable = true;
