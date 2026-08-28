@@ -72,6 +72,8 @@
             ]
             ++ [
               inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
+              inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default
+              self.packages.${pkgs.stdenv.hostPlatform.system}.tmux
               pkgs.nix-update
               pkgs.hydra-check
             ];
@@ -93,6 +95,7 @@
                 ".local/share/nix"
                 ".local/share/nvim" # neovim state (shada, swap, undo, plugin data)
                 ".local/share/zoxide" # zoxide frecency database
+                ".local/share/tmux" # tmux-resurrect saved sessions
                 ".config/nushell" # nushell history
                 ".config/sops" # sops CLI age key
                 ".gnupg" # GPG keyring (signing/encryption keys)
@@ -171,6 +174,53 @@
               skills = builtins.mapAttrs (name: _: "${inputs.anthropic-skills}/skills/${name}") (
                 builtins.readDir "${inputs.anthropic-skills}/skills"
               );
+              settings.hooks =
+                let
+                  workmux = lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux";
+                in
+                {
+                  UserPromptSubmit = [
+                    {
+                      hooks = [
+                        {
+                          type = "command";
+                          command = "${workmux} set-window-status working";
+                        }
+                      ];
+                    }
+                  ];
+                  PostToolUse = [
+                    {
+                      hooks = [
+                        {
+                          type = "command";
+                          command = "${workmux} set-window-status working";
+                        }
+                      ];
+                    }
+                  ];
+                  Stop = [
+                    {
+                      hooks = [
+                        {
+                          type = "command";
+                          command = "${workmux} set-window-status done";
+                        }
+                      ];
+                    }
+                  ];
+                  Notification = [
+                    {
+                      matcher = "permission_prompt|elicitation_dialog";
+                      hooks = [
+                        {
+                          type = "command";
+                          command = "${workmux} set-window-status waiting";
+                        }
+                      ];
+                    }
+                  ];
+                };
             };
             git = {
               enable = true;
