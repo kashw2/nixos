@@ -13,3 +13,5 @@ updates:
       interval: weekly
     directories:
       - /
+    cooldown:
+      default-days: 7
