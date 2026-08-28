@@ -1282,11 +1282,11 @@
       },
       "locked": {
         "dir": "packaging/nix",
-        "lastModified": 1785876782,
-        "narHash": "sha256-PPsUs6l1eg0mBiiAaJEi0/bf5cy58G7H/wHOqOhqeec=",
+        "lastModified": 1787677584,
+        "narHash": "sha256-/NIVLA4d1iqnVZguXlF/AGL9HYsD4KURFU2v/Z0W3YQ=",
         "owner": "yannmasoch",
         "repo": "nautilus-my-computer",
-        "rev": "5355aff0ccbc9cf1e80678267f3674400289eaaa",
+        "rev": "4491c0ed8f872ab0494e95e58e79083a4ddd3799",
         "type": "github"
       },
       "original": {
