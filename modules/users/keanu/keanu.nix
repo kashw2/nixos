@@ -59,6 +59,7 @@
               pkgs.gcc # Required by some go projects
               pkgs.bruno
               pkgs.bruno-cli
+              pkgs.tmuxp
               pkgs.obsidian
               pkgs.vlc
               pkgs.d2
