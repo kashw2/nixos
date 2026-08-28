@@ -15,5 +15,8 @@ updates:
       - /
     cooldown:
       default-days: 7
+      # These merge faster than the cooldown window (>100 commits in <7d), so
+      # their whole fetch window stays inside cooldown and they never update.
       exclude:
         - nixpkgs
+        - llm-agents
