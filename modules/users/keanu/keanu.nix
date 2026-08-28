@@ -175,6 +175,12 @@
               skills = builtins.mapAttrs (name: _: "${inputs.anthropic-skills}/skills/${name}") (
                 builtins.readDir "${inputs.anthropic-skills}/skills"
               );
+              # Empty strings suppress the Co-Authored-By / "Generated with Claude Code" attribution.
+              settings.attribution = {
+                commit = "";
+                pr = "";
+                sessionUrl = false;
+              };
               settings.hooks =
                 let
                   workmux = lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux";
