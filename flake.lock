@@ -1924,11 +1924,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1787242072,
-        "narHash": "sha256-HWZWRvcHC1U72b8bP6TgvhBiz6mGM6P9qDuL4w2kaUI=",
+        "lastModified": 1787679101,
+        "narHash": "sha256-AnLLEOI3QaWZLMy339nJeyfCXt4NZpnzsYhZXTEagkU=",
         "owner": "agavra",
         "repo": "tuicr",
-        "rev": "0dacb6b711b088096a3578677c311cafc1ce3e99",
+        "rev": "2793274e62db966004b888914f856d325dc4ecdf",
         "type": "github"
       },
       "original": {
