@@ -241,7 +241,6 @@
             trackers.numwant.set = 100
             pieces.memory.max.set = 2000M
             network.max_open_sockets.set = 8000
-            network.http.max_open.set = 128
           '';
         };
 
