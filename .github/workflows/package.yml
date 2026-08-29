@@ -7,6 +7,7 @@ on:
       - flake.lock
       - modules/features/nushell.nix
       - modules/features/kitty.nix
+      - modules/features/tmux.nix
       - modules/features/fastfetch/**
       - modules/features/act.nix
       - modules/features/desktop-environment/sddm-sugar-candy.nix
@@ -19,6 +20,7 @@ on:
       - modules/deploy.nix
       - modules/features/nixvim/atone-nvim.nix
       - modules/features/nixvim/codestats.nix
+      - modules/features/nixvim/tree-sitter-bruno.nix
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -40,6 +42,7 @@ jobs:
               - 'flake.lock'
             nushell: 'modules/features/nushell.nix'
             kitty: 'modules/features/kitty.nix'
+            tmux: 'modules/features/tmux.nix'
             fastfetch: 'modules/features/fastfetch/**'
             act: 'modules/features/act.nix'
             sddm-sugar-candy: 'modules/features/desktop-environment/sddm-sugar-candy.nix'
@@ -49,6 +52,8 @@ jobs:
             hyprpaper: 'modules/features/desktop-environment/hyprpaper.nix'
             atone-nvim: 'modules/features/nixvim/atone-nvim.nix'
             codestats: 'modules/features/nixvim/codestats.nix'
+            bruno-nvim: 'modules/features/nixvim/tree-sitter-bruno.nix'
+            tree-sitter-bruno: 'modules/features/nixvim/tree-sitter-bruno.nix'
             quickshell:
               - 'modules/features/desktop-environment/quickshell.nix'
               - 'modules/features/desktop-environment/quickshell/**'
@@ -59,7 +64,7 @@ jobs:
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","kitty","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","quickshell","fastfetch","deploy-host"]'
+          ALL='["nushell","act","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","quickshell","fastfetch","deploy-host"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else

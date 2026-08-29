@@ -90,6 +90,7 @@
           alias "tfim" = ${lib.getExe pkgs.terraform} import
           alias "tfiu" = ${lib.getExe pkgs.terraform} init --upgrade
           alias "tfp" = ${lib.getExe pkgs.terraform} plan
+          alias "tml" = ${lib.getExe pkgs.tmuxp} load
           alias "colmena" = ${
             lib.getExe inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
           } --impure
