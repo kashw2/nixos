@@ -40,8 +40,8 @@
       # persistence. For services that set `DynamicUser = true` in their
       # systemd unit, the real state lives at `/var/lib/private/<name>` —
       # persisting there avoids fighting the symlink systemd creates at
-      # `/var/lib/<name>`. Deluge is intentionally omitted: its `dataDir`
-      # is set to `/mnt/torrents`, which lives on a separate
+      # `/var/lib/<name>`. rTorrent is intentionally omitted: its `dataDir`
+      # is set to `/mnt/torrents/.rtorrent`, which lives on a separate
       # (non-impermanent) disk.
       environment.persistence = lib.mkIf config.impermanence.enable {
         "/persist".directories =
