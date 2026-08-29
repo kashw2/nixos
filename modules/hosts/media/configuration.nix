@@ -253,5 +253,7 @@
 
       systemd.services.rtorrent.serviceConfig.LimitNOFILE = 32768;
 
+      systemd.services.flood.serviceConfig.SupplementaryGroups = [ "rtorrent" ];
+
     };
 }
