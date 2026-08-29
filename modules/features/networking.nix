@@ -46,7 +46,6 @@
             "bazarr.media.tailscale"
             "jellyfin.media.tailscale"
             "prowlarr.media.tailscale"
-            "deluge.media.tailscale"
             "alloy.media.tailscale"
             "flood.media.tailscale"
             "loki.media.tailscale"
