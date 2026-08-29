@@ -193,9 +193,9 @@
                     }
                   ];
                   locations."/RPC2".extraConfig = ''
-                    include ${config.services.nginx.package}/conf/scgi_params;
-                    scgi_param SCRIPT_NAME /RPC2;
                     scgi_param CONTENT_LENGTH $content_length;
+                    scgi_param SCGI 1;
+                    scgi_param SCRIPT_NAME /RPC2;
                     scgi_pass unix:/run/rtorrent/rpc.sock;
                   '';
                 };
