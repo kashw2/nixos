@@ -40,7 +40,7 @@
               profile = ''
                 include <tunables/global>
 
-                profile nginx ${lib.getExe config.services.nginx.package} {
+                profile nginx ${lib.getExe config.services.nginx.package} flags=(attach_disconnected) {
                   include <abstractions/base>
                   include <abstractions/nameservice>
                   include <abstractions/openssl>
@@ -67,6 +67,8 @@
                   /run/nginx/*.pid rw,
                   /run/nginx.pid rw,
                   /run/nginx/** rw,
+                  /run/rtorrent/ r,
+                  /run/rtorrent/rpc.sock rw,
                   /proc/sys/kernel/random/uuid r,
                   @{PROC}/@{pid}/** r,
 
