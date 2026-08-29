@@ -20,16 +20,15 @@
 
       features.telemetry.role = "host";
 
-      # `/mnt/torrents` is owned `deluge:deluge` mode 0770, so only deluge can
-      # traverse it. Jellyfin and the *arr stack need to read/write the tree;
-      # add them to the `deluge` group (which acts as the shared media group)
-      # rather than loosening the tree to 0777. New files land 0664/0775 under
-      # the default umask, so group members can read them.
+      # `/mnt/torrents` is owned `rtorrent:rtorrent`; group members can read the
+      # tree. Jellyfin and the *arr stack join the `rtorrent` group (the shared
+      # media group) so they can read/write downloads and import targets.
       users.users = {
-        jellyfin.extraGroups = [ "deluge" ];
-        sonarr.extraGroups = [ "deluge" ];
-        radarr.extraGroups = [ "deluge" ];
-        bazarr.extraGroups = [ "deluge" ];
+        jellyfin.extraGroups = [ "rtorrent" ];
+        sonarr.extraGroups = [ "rtorrent" ];
+        radarr.extraGroups = [ "rtorrent" ];
+        bazarr.extraGroups = [ "rtorrent" ];
+        nginx.extraGroups = [ "rtorrent" ];
       };
 
       impermanence = {
@@ -74,8 +73,6 @@
           config.services.bazarr.listenPort
           config.services.flaresolverr.port
           config.services.flood.port
-          config.services.deluge.web.port
-          config.services.deluge.config.daemon_port
           5201 # iperf3
         ];
         interfaces = {
@@ -183,11 +180,26 @@
               // mkVirtualHost "bazarr" config.services.bazarr.listenPort
               // mkVirtualHost "flaresolverr" config.services.flaresolverr.port
               // mkVirtualHost "flood" config.services.flood.port
-              // mkVirtualHost "deluge" config.services.deluge.web.port
               // mkVirtualHost "mimir" config.services.mimir.configuration.server.http_listen_port
               // mkVirtualHost "grafana" config.services.grafana.settings.server.http_port
               // mkVirtualHost "loki" config.services.loki.configuration.server.http_listen_port
-              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port;
+              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port
+              // {
+                "rtorrent-rpc" = {
+                  listen = [
+                    {
+                      addr = "127.0.0.1";
+                      port = 8000;
+                    }
+                  ];
+                  locations."/RPC2".extraConfig = ''
+                    include ${config.services.nginx.package}/conf/scgi_params;
+                    scgi_param SCRIPT_NAME /RPC2;
+                    scgi_param CONTENT_LENGTH $content_length;
+                    scgi_pass unix:/run/rtorrent/rpc.sock;
+                  '';
+                };
+              };
           };
 
         prowlarr.enable = true;
@@ -202,70 +214,45 @@
           port = 5517;
         };
 
-        deluge = {
+        rtorrent = {
           enable = true;
-          declarative = true;
-          # Remove when https://github.com/NixOS/nixpkgs/issues/540545 is resolved.
-          package = pkgs.deluged.overridePythonAttrs (old: {
-            propagatedBuildInputs = map (
-              dep: if (dep.pname or "") == "setuptools" then pkgs.python3Packages.setuptools_80 else dep
-            ) old.propagatedBuildInputs;
-          });
-          authFile = pkgs.writeText "auth" ''
-            localclient:3e44dc790d0bc9f6d76a37af26e7cba72d93cb1d:10
+          dataDir = "/mnt/torrents/.rtorrent";
+          downloadDir = "/mnt/torrents/Downloads";
+          port = 50000;
+          openFirewall = true;
+          configText = lib.mkAfter ''
+            # Public-tracker swarm participation
+            dht.mode.set = auto
+            protocol.pex.set = yes
+            trackers.use_udp.set = yes
+            protocol.encryption.set = allow_incoming,try_outgoing,enable_retry
+
+            # Unlimited rates (seedbox)
+            throttle.global_up.max_rate.set_kb = 0
+            throttle.global_down.max_rate.set_kb = 0
+
+            # Scale for ~825 torrents on the N150
+            throttle.max_uploads.global.set = 1000
+            throttle.max_uploads.set = 8
+            throttle.min_peers.normal.set = 1
+            throttle.max_peers.normal.set = 100
+            throttle.min_peers.seed.set = -1
+            throttle.max_peers.seed.set = 100
+            trackers.numwant.set = 100
+            pieces.memory.max.set = 2000M
+            network.max_open_sockets.set = 8000
+            network.http.max_open.set = 128
           '';
-          dataDir = "/mnt/torrents";
-          config = {
-            auto_managed = true;
-            allow_remote = true;
-            daemon_port = 58846;
-
-            # Connection limits (conservative for N150 4-core / 12GB RAM)
-            max_connections_global = 1500;
-            max_connections_per_second = 200;
-            max_connections_per_torrent = 75;
-            max_half_open_connections = 100;
-
-            # Active torrents
-            max_active_limit = 1000;
-            max_active_seeding = 1000;
-            max_active_downloading = 20;
-
-            # Upload slots
-            max_upload_slots_global = 1000;
-            max_upload_slots_per_torrent = 8;
-
-            # Speeds — unlimited for seedbox
-            max_upload_speed = -1.0;
-            max_download_speed = -1.0;
-
-            # Seeding policy
-            share_ratio_limit = 2;
-            seed_time_limit = 60;
-            seed_time_ratio_limit = 1;
-            stop_seed_ratio = config.services.deluge.config.share_ratio_limit;
-            remove_seed_at_ratio = true;
-
-            # Cache — 256MB (16384 pieces × 16KB)
-            cache_size = 16384;
-            cache_expiry = 120;
-
-            # Don't count slow peers against limits
-            dont_count_slow_torrents = true;
-
-            # Encryption
-            enc_in_policy = 1;
-            enc_out_policy = 1;
-            enc_level = 1;
-
-            # Disable phone-home
-            send_info = false;
-            new_release_check = false;
-          };
-          web.enable = true;
         };
 
       };
+
+      systemd.tmpfiles.rules = [
+        "d /mnt/torrents 2775 rtorrent rtorrent -"
+        "d /mnt/torrents/Downloads 2775 rtorrent rtorrent -"
+      ];
+
+      systemd.services.rtorrent.serviceConfig.LimitNOFILE = 32768;
 
     };
 }
