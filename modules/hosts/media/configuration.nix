@@ -75,6 +75,7 @@
           config.services.flood.port
           5201 # iperf3
         ];
+        firewall.allowedUDPPorts = [ config.services.rtorrent.port ];
         interfaces = {
           enp4s0 = {
             useDHCP = false;
@@ -226,6 +227,11 @@
             protocol.pex.set = yes
             trackers.use_udp.set = yes
             protocol.encryption.set = allow_incoming,try_outgoing,enable_retry
+
+            # DHT bootstrap nodes — routing table starts empty and never seeds otherwise
+            dht.add_node = "router.bittorrent.com:6881"
+            dht.add_node = "dht.transmissionbt.com:6881"
+            dht.add_node = "router.utorrent.com:6881"
 
             # Unlimited rates (seedbox)
             throttle.global_up.max_rate.set_kb = 0
