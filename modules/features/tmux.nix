@@ -91,6 +91,8 @@
 
             run-shell ${pkgs.tmuxPlugins.resurrect}/share/tmux-plugins/resurrect/resurrect.tmux
             set -g @resurrect-dir '/home/keanu/.local/share/tmux/resurrect'
+            set -g @resurrect-processes '"~bin/nvim->nvim"'
+            set -g @resurrect-capture-pane-contents 'on'
             set -g @continuum-restore 'on'
             set -g @continuum-save-interval '15'
             run-shell ${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/continuum.tmux
