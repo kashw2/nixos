@@ -247,10 +247,11 @@
                 ignore_alpha = 0.2,
               })
 
-              hl.window_rule({ name = "firefox-ws1",       match = { class = "^(firefox-devedition)$" },       workspace = "1 silent" })
-              hl.window_rule({ name = "kitty-nixosvi-ws4", match = { class = "^(kitty-nixosvi)$" }, workspace = "4 silent" })
-              hl.window_rule({ name = "slack-ws3",         match = { class = "^(slack)$" },         workspace = "3 silent" })
-              hl.window_rule({ name = "discord-ws3",       match = { class = "^(discord)$" },       workspace = "3 silent" })
+              hl.window_rule({ name = "no-maximize",       match = { class = ".*" },                    suppress_event = "maximize" })
+              hl.window_rule({ name = "firefox-ws1",       match = { class = "^(firefox-devedition)$" }, workspace = "1 silent" })
+              hl.window_rule({ name = "kitty-nixosvi-ws4", match = { class = "^(kitty-nixosvi)$" },      workspace = "4 silent" })
+              hl.window_rule({ name = "slack-ws3",         match = { class = "^(slack)$" },              workspace = "3 silent" })
+              hl.window_rule({ name = "discord-ws3",       match = { class = "^(discord)$" },            workspace = "3 silent" })
 
               ${monitorConfiguration}
             '')
