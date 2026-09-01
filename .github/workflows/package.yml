@@ -10,6 +10,7 @@ on:
       - modules/features/tmux.nix
       - modules/features/fastfetch/**
       - modules/features/act.nix
+      - modules/features/floci-cli.nix
       - modules/features/desktop-environment/sddm-sugar-candy.nix
       - modules/features/desktop-environment/hyprland.nix
       - modules/features/desktop-environment/hypridle.nix
@@ -45,6 +46,7 @@ jobs:
             tmux: 'modules/features/tmux.nix'
             fastfetch: 'modules/features/fastfetch/**'
             act: 'modules/features/act.nix'
+            floci-cli: 'modules/features/floci-cli.nix'
             sddm-sugar-candy: 'modules/features/desktop-environment/sddm-sugar-candy.nix'
             hyprland: 'modules/features/desktop-environment/hyprland.nix'
             hypridle: 'modules/features/desktop-environment/hypridle.nix'
@@ -64,7 +66,7 @@ jobs:
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","quickshell","fastfetch","deploy-host"]'
+          ALL='["nushell","act","floci-cli","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","quickshell","fastfetch","deploy-host"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else
