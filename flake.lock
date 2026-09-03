@@ -1169,6 +1169,22 @@
         "type": "github"
       }
     },
+    "i-have-adhd": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788295755,
+        "narHash": "sha256-SU2E8TA63SDmKZlh23PDxkWKk2t7g0kA+SPs7bNcK1o=",
+        "owner": "ayghri",
+        "repo": "i-have-adhd",
+        "rev": "58494af57962b2d7a996b4d419474380a299af5e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ayghri",
+        "repo": "i-have-adhd",
+        "type": "github"
+      }
+    },
     "impermanence": {
       "inputs": {
         "home-manager": [
@@ -1621,6 +1637,7 @@
         "hypridle": "hypridle",
         "hyprland": "hyprland",
         "hyprpaper": "hyprpaper",
+        "i-have-adhd": "i-have-adhd",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "llm-agents": "llm-agents",
