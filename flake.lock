@@ -1963,11 +1963,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787471344,
-        "narHash": "sha256-IwhE4Rp+Q0Fks3N3a/A5+hmGov+vDd7AXrgEUWq+uMw=",
+        "lastModified": 1787818231,
+        "narHash": "sha256-5qzLevquRyuEmeobtjfsGXSfKGhOEd4IIy5IkiM1ktg=",
         "owner": "raine",
         "repo": "workmux",
-        "rev": "10b02e199bb19760cce621d42166fb5d6c3da04a",
+        "rev": "3baa42540aac66299895d0a216c450a6cf483a1f",
         "type": "github"
       },
       "original": {
