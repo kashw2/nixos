@@ -233,15 +233,6 @@
           mode = [ "n" ];
           options.silent = true;
         }
-      ]
-      ++ lib.optionals (!config.isServer) [
-        # Database
-        {
-          action = ":DBUIToggle<CR>";
-          key = "db";
-          mode = [ "n" ];
-          options.silent = true;
-        }
       ];
     };
 }

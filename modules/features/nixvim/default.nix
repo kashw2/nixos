@@ -81,7 +81,6 @@
         ];
         extraPackages = lib.optionals (!config.isServer) [
           pkgs.ueberzugpp
-          pkgs.postgresql # Used so that the database plugin can use the psql executable
           pkgs.ansible-language-server
         ];
       };
