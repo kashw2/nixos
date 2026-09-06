@@ -19,7 +19,7 @@
         }
         {
           hostName = "darwin-build-box.nix-community.org";
-          systems = [ "x86_64-darwin" ];
+          systems = [ "aarch64-darwin" ];
           supportedFeatures = [
             "apple-virt"
             "benchmark"
