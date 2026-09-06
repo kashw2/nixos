@@ -206,7 +206,10 @@
         nvim-tree = {
           enable = true;
           settings = {
-            git.enable = true;
+            git = {
+              enable = true;
+              timeout = 2000;
+            };
             view.width = 30;
             filters = {
               dotfiles = false;
