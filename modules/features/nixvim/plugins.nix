@@ -230,17 +230,25 @@
         };
         conform-nvim = {
           enable = true;
+          autoInstall = {
+            enable = true;
+            overrides = {
+              nixfmt = inputs.nixfmt.packages.${pkgs.stdenv.hostPlatform.system}.default;
+              yq = pkgs.yq-go;
+              terraform_fmt = pkgs.terraform;
+            };
+          };
           settings = {
             ignore_errors = false;
             format_on_save.timeoutMs = 500;
             formatters_by_ft = {
               nix = [ "nixfmt" ];
-              markdown = [ "prettier" ];
-              json = [ "prettier" ];
               sh = [ "shfmt" ];
               _ = [ "trim_whitespace" ];
             }
             // lib.optionalAttrs (!config.isServer) {
+              markdown = [ "prettier" ];
+              json = [ "prettier" ];
               typescript = [ "prettier" ];
               javascript = [ "prettier" ];
               typescriptreact = [ "prettier" ];
@@ -250,7 +258,6 @@
               terraform = [ "terraform_fmt" ];
               go = [ "gofmt" ];
               yaml = [ "yq" ];
-              prism.lsp_format = "prefer";
             };
           };
         };
