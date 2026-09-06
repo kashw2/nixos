@@ -42,6 +42,10 @@
           tabstop = 2;
           undofile = true;
           autoread = true;
+          clipboard = "unnamedplus";
+          ignorecase = true;
+          smartcase = true;
+          signcolumn = "yes";
         };
         diagnostic.settings = {
           virtual_lines = false;
