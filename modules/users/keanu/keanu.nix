@@ -182,6 +182,7 @@
                 pr = "";
                 sessionUrl = false;
               };
+              settings.effortLevel = "xhigh";
               settings.hooks =
                 let
                   workmux = lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux";
