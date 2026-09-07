@@ -104,18 +104,15 @@ Variants {
                         }
                         spacing: 8
 
-                        Image {
-                            source: {
-                                if (modelData.image !== "") return modelData.image;
-                                if (modelData.appIcon !== "") return "image://icon/" + modelData.appIcon;
-                                return "";
-                            }
-                            visible: source !== ""
+                        ResultIcon {
+                            iconSize: 32
+                            imageSource: modelData.image
+                            iconNames: [modelData.appIcon]
+                            fallbackText: (modelData.appName || "?").charAt(0).toUpperCase()
+                            visible: modelData.image !== "" || modelData.appIcon !== ""
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
                             Layout.alignment: Qt.AlignTop
-                            sourceSize.width: 32
-                            sourceSize.height: 32
                         }
 
                         Column {
