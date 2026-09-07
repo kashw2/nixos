@@ -38,6 +38,7 @@
             tflint.enable = !config.isServer;
             typos_lsp.enable = true;
             metals.enable = !config.isServer;
+            roslyn_ls.enable = !config.isServer;
             nixd = {
               enable = true;
               package = inputs.nixd.packages.${pkgs.system}.nixd;
