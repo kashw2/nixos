@@ -1,6 +1,6 @@
 { self, inputs, ... }:
 {
-  flake.nixosModules.nixvimKeymaps =
+  config.flake.nixvimModules.keymaps =
     {
       pkgs,
       lib,
@@ -8,7 +8,7 @@
       ...
     }:
     {
-      programs.nixvim.keymaps = [
+      keymaps = [
         # Unmap
         {
           # Unmap u because we remap undo to Ctrl + Z

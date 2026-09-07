@@ -1,9 +1,9 @@
 { self, inputs, ... }:
 {
-  flake.nixosModules.nixvimHighlights =
+  config.flake.nixvimModules.highlights =
     { pkgs, lib, ... }:
     {
-      programs.nixvim.highlightOverride = {
+      highlightOverride = {
         NvimTreeNormal = {
           bg = "#07070E";
           fg = "#ffffff";
