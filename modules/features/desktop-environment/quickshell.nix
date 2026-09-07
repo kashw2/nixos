@@ -30,6 +30,9 @@
           pkgs.upower
           pkgs.pipewire
           pkgs.playerctl
+          pkgs.fd
+          pkgs.chroma
+          pkgs.wl-clipboard
         ]
         ++ lib.optionals (config.isLaptop) [
           pkgs.brightnessctl

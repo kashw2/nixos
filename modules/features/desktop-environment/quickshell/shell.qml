@@ -1193,16 +1193,10 @@ ShellRoot {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
                         cursorShape: Qt.PointingHandCursor
                         onEntered: parent.hovered = true
                         onExited: parent.hovered = false
-                        onClicked: function(mouse) {
-                            if (mouse.button === Qt.MiddleButton)
-                                Theme.mode = Theme.isDark ? Theme.Light : Theme.Dark;
-                            else
-                                shell.showFullDate = !shell.showFullDate;
-                        }
+                        onClicked: shell.showFullDate = !shell.showFullDate
                     }
                 }
 

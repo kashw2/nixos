@@ -34,23 +34,13 @@ Variants {
     // Tinted backdrop color, derived from the current condition. Subtle so the
     // content still reads cleanly; the alpha keeps it translucent like other popups.
     function backdropFor(iconType) {
-        if (Theme.isDark) {
-            if (iconType === "sunny")        return Qt.rgba(0.18, 0.12, 0.04, 0.55);
-            if (iconType === "partlycloudy") return Qt.rgba(0.08, 0.11, 0.18, 0.55);
-            if (iconType === "rain")         return Qt.rgba(0.05, 0.10, 0.22, 0.58);
-            if (iconType === "snow")         return Qt.rgba(0.08, 0.15, 0.20, 0.55);
-            if (iconType === "thunder")      return Qt.rgba(0.10, 0.05, 0.20, 0.60);
-            if (iconType === "fog")          return Qt.rgba(0.10, 0.10, 0.12, 0.55);
-            return Qt.rgba(0.07, 0.08, 0.10, 0.55); // cloudy
-        } else {
-            if (iconType === "sunny")        return Qt.rgba(1.00, 0.92, 0.70, 0.45);
-            if (iconType === "partlycloudy") return Qt.rgba(0.85, 0.90, 1.00, 0.40);
-            if (iconType === "rain")         return Qt.rgba(0.75, 0.85, 1.00, 0.42);
-            if (iconType === "snow")         return Qt.rgba(0.85, 0.95, 1.00, 0.42);
-            if (iconType === "thunder")      return Qt.rgba(0.78, 0.72, 1.00, 0.42);
-            if (iconType === "fog")          return Qt.rgba(0.86, 0.86, 0.88, 0.40);
-            return Qt.rgba(0.80, 0.82, 0.85, 0.38); // cloudy
-        }
+        if (iconType === "sunny")        return Qt.rgba(0.18, 0.12, 0.04, 0.55);
+        if (iconType === "partlycloudy") return Qt.rgba(0.08, 0.11, 0.18, 0.55);
+        if (iconType === "rain")         return Qt.rgba(0.05, 0.10, 0.22, 0.58);
+        if (iconType === "snow")         return Qt.rgba(0.08, 0.15, 0.20, 0.55);
+        if (iconType === "thunder")      return Qt.rgba(0.10, 0.05, 0.20, 0.60);
+        if (iconType === "fog")          return Qt.rgba(0.10, 0.10, 0.12, 0.55);
+        return Qt.rgba(0.07, 0.08, 0.10, 0.55); // cloudy
     }
 
     BasePopup {

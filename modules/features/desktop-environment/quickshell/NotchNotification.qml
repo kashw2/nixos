@@ -81,21 +81,18 @@ Variants {
                         wobble.restart();
                     }
 
-                    Image {
+                    ResultIcon {
                         id: appIcon
                         anchors.centerIn: parent
                         width: 28
                         height: 28
-                        sourceSize.width: 28
-                        sourceSize.height: 28
+                        iconSize: 28
                         opacity: 0
-                        source: {
-                            var n = notchWindow.notif;
-                            if (!n) return "";
-                            if ((n.image || "") !== "") return n.image;
-                            if ((n.appIcon || "") !== "") return "image://icon/" + n.appIcon;
-                            return "";
-                        }
+                        imageSource: notchWindow.notif ? (notchWindow.notif.image || "") : ""
+                        iconNames: notchWindow.notif ? [notchWindow.notif.appIcon || ""] : []
+                        fallbackText: notchWindow.notif
+                            ? (notchWindow.notif.appName || "?").charAt(0).toUpperCase()
+                            : ""
                     }
 
                     BellIcon {
