@@ -19,9 +19,7 @@ on:
       - modules/features/desktop-environment/quickshell.nix
       - modules/features/desktop-environment/quickshell/**
       - modules/deploy.nix
-      - modules/features/nixvim/atone-nvim.nix
-      - modules/features/nixvim/codestats.nix
-      - modules/features/nixvim/tree-sitter-bruno.nix
+      - modules/features/nixvim/**
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -56,6 +54,7 @@ jobs:
             codestats: 'modules/features/nixvim/codestats.nix'
             bruno-nvim: 'modules/features/nixvim/tree-sitter-bruno.nix'
             tree-sitter-bruno: 'modules/features/nixvim/tree-sitter-bruno.nix'
+            neovim: 'modules/features/nixvim/**'
             quickshell:
               - 'modules/features/desktop-environment/quickshell.nix'
               - 'modules/features/desktop-environment/quickshell/**'
@@ -66,7 +65,7 @@ jobs:
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","floci-cli","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","quickshell","fastfetch","deploy-host"]'
+          ALL='["nushell","act","floci-cli","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else

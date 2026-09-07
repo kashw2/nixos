@@ -1,9 +1,9 @@
 { self, inputs, ... }:
 {
-  flake.nixosModules.nixvimColorschemes =
+  config.flake.nixvimModules.colorschemes =
     { pkgs, lib, ... }:
     {
-      programs.nixvim.colorschemes = {
+      colorschemes = {
         catppuccin = {
           enable = true;
           settings = {

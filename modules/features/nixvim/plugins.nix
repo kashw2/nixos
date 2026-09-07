@@ -1,26 +1,28 @@
 { self, inputs, ... }:
 {
-  flake.nixosModules.nixvimPlugins =
+  config.flake.nixvimModules.plugins =
     {
-      config,
       pkgs,
       lib,
+      config,
       ...
     }:
     {
-      programs.nixvim.extraPlugins = [
+      extraPlugins = [
         self.packages.${pkgs.stdenv.hostPlatform.system}.atone-nvim
         self.packages.${pkgs.stdenv.hostPlatform.system}.codestats
       ]
-      ++ lib.optionals (!config.isServer) [
+      ++ lib.optionals (!config.host.isServer) [
         self.packages.${pkgs.stdenv.hostPlatform.system}.bruno-nvim
       ];
 
-      programs.nixvim.extraConfigLua = ''
+      extraConfigLua = ''
         require("atone").setup({})
-        pcall(dofile, "${config.sops.templates."codestats-setup.lua".path}")
       ''
-      + lib.optionalString (!config.isServer) ''
+      + lib.optionalString (config.host.codestatsSetup != null) ''
+        pcall(dofile, "${config.host.codestatsSetup}")
+      ''
+      + lib.optionalString (!config.host.isServer) ''
         local tuicr = require("toggleterm.terminal").Terminal:new({
           cmd = "${lib.getExe' inputs.tuicr.packages.${pkgs.stdenv.hostPlatform.system}.default "tuicr"}",
           direction = "float",
@@ -30,17 +32,13 @@
         vim.keymap.set("n", "cr", function() tuicr:toggle() end, { silent = true })
       '';
 
-      programs.nixvim.plugins = {
+      plugins = {
         nix.enable = true;
         nix-develop.enable = true;
         claude-code = {
-          enable = !config.isServer;
+          enable = !config.host.isServer;
           settings = {
-            command =
-              let
-                hmClaude = config.home-manager.users.keanu.programs.claude-code;
-              in
-              if hmClaude.enable then lib.getExe hmClaude.finalPackage else lib.getExe pkgs.claude-code;
+            command = config.host.claudeCommand;
             window.position = "float";
             window.float = {
               width = "80%";
@@ -64,7 +62,7 @@
           '';
         };
         bufdelete.enable = true;
-        ts-autotag.enable = !config.isServer;
+        ts-autotag.enable = !config.host.isServer;
         todo-comments.enable = true;
         telescope = {
           enable = true;
@@ -72,7 +70,7 @@
         };
         fidget.enable = true;
         image = {
-          enable = !config.isServer;
+          enable = !config.host.isServer;
           settings.hijack_file_patterns = [
             "*.png"
             "*.jpg"
@@ -91,7 +89,7 @@
         gitsigns.enable = true;
         illuminate.enable = true;
         tiny-glimmer.enable = true;
-        diagram.enable = !config.isServer;
+        diagram.enable = !config.host.isServer;
         git-conflict.enable = true;
         barbecue.enable = true;
         lazygit.enable = true;
@@ -246,7 +244,7 @@
               sh = [ "shfmt" ];
               _ = [ "trim_whitespace" ];
             }
-            // lib.optionalAttrs (!config.isServer) {
+            // lib.optionalAttrs (!config.host.isServer) {
               markdown = [ "prettier" ];
               json = [ "prettier" ];
               typescript = [ "prettier" ];
@@ -292,7 +290,7 @@
               g.gitcommit # commit message buffers
               g.git_rebase # interactive rebase buffers
             ]
-            ++ lib.optionals (!config.isServer) [
+            ++ lib.optionals (!config.host.isServer) [
               g.toml # Cargo.toml and assorted config
               g.luadoc
               g.tsx # conform (typescriptreact)
