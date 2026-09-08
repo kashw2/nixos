@@ -1100,6 +1100,10 @@ ShellRoot {
                                             shell.closePopup();
                                             wsItem.modelData.activate();
                                         }
+                                        onWheel: event => {
+                                            shell.closePopup();
+                                            Hyprland.dispatch(event.angleDelta.y > 0 ? "workspace e-1" : "workspace e+1");
+                                        }
                                     }
                                 }
                             }
@@ -1214,6 +1218,12 @@ ShellRoot {
                             onEntered: parent.hovered = true
                             onExited: parent.hovered = false
                             onClicked: shell.togglePopupFrom(mediaArea, "media", barWindow.modelData)
+                            onWheel: event => {
+                                var p = shell.mprisPlayer;
+                                if (!p || !p.canSeek || !p.length || p.length <= 0) return;
+                                var step = event.angleDelta.y > 0 ? 5 : -5;
+                                p.position = Math.max(0, Math.min(p.length, p.position + step));
+                            }
                         }
                     }
                 }
@@ -1429,6 +1439,8 @@ ShellRoot {
                         implicitWidth: 30
                         active: shell.activePopup === "brightness"
                         onClicked: shell.togglePopupFrom(brightnessButton, "brightness", barWindow.modelData)
+                        onWheel: delta => shell.setBrightness(Math.max(1, Math.min(100,
+                            shell.brightnessPercent + (delta > 0 ? 5 : -5))))
 
                         Connections {
                             target: shell
@@ -1467,6 +1479,8 @@ ShellRoot {
                         implicitWidth: 30
                         active: shell.activePopup === "volume"
                         onClicked: shell.togglePopupFrom(volumeButton, "volume", barWindow.modelData)
+                        onWheel: delta => shell.setVolume(Math.max(0, Math.min(100,
+                            shell.volumePercent + (delta > 0 ? 5 : -5))))
 
                         Connections {
                             target: shell

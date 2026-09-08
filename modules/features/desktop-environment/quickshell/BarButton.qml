@@ -12,6 +12,7 @@ Rectangle {
     property bool pulseArmed: false
 
     signal clicked()
+    signal wheel(int delta)
     signal entered()
     signal exited()
 
@@ -62,5 +63,6 @@ Rectangle {
         onEntered: root.entered()
         onExited: root.exited()
         onClicked: root.clicked()
+        onWheel: event => root.wheel(event.angleDelta.y)
     }
 }
