@@ -78,6 +78,48 @@ Variants {
             });
         }
 
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function accentHex() {
+            var c = Theme.accent;
+            function h(v) {
+                var s = Math.round(v * 255).toString(16);
+                return s.length < 2 ? "0" + s : s;
+            }
+            return "#" + h(c.r) + h(c.g) + h(c.b);
+        }
+
+        function highlightMatch(text, query) {
+            var t = String(text);
+            if (!query) return launcherWindow.escapeHtml(t);
+
+            var lt = t.toLowerCase();
+            var lq = query.toLowerCase();
+            var open = "<font color=\"" + launcherWindow.accentHex() + "\"><b>";
+            var close = "</b></font>";
+
+            var idx = lt.indexOf(lq);
+            if (idx >= 0) {
+                return launcherWindow.escapeHtml(t.substring(0, idx))
+                    + open + launcherWindow.escapeHtml(t.substring(idx, idx + lq.length)) + close
+                    + launcherWindow.escapeHtml(t.substring(idx + lq.length));
+            }
+
+            var out = "";
+            var qi = 0;
+            for (var i = 0; i < t.length; i++) {
+                if (qi < lq.length && lt.charAt(i) === lq.charAt(qi)) {
+                    out += open + launcherWindow.escapeHtml(t.charAt(i)) + close;
+                    qi++;
+                } else {
+                    out += launcherWindow.escapeHtml(t.charAt(i));
+                }
+            }
+            return qi === lq.length ? out : launcherWindow.escapeHtml(t);
+        }
+
         readonly property var rows: {
             var out = [];
             var groups = [
@@ -834,7 +876,10 @@ Variants {
                                                 spacing: 2
 
                                                 Text {
-                                                    text: resultRow.isHeader ? "" : launcherWindow.rowTitle(resultRow.modelData)
+                                                    text: resultRow.isHeader
+                                                        ? ""
+                                                        : launcherWindow.highlightMatch(launcherWindow.rowTitle(resultRow.modelData), launcherWindow.searchText)
+                                                    textFormat: Text.StyledText
                                                     color: Theme.text
                                                     font.pixelSize: Theme.fontTitle
                                                     font.bold: true
