@@ -202,6 +202,18 @@ ShellRoot {
 
     property color mediaAccent: Theme.accent
 
+    readonly property real mediaProgress: {
+        if (!mprisPlayer || !mprisPlayer.length || mprisPlayer.length <= 0) return 0;
+        return Math.max(0, Math.min(1, mprisPlayer.position / mprisPlayer.length));
+    }
+
+    Timer {
+        interval: 1000
+        running: shell.mprisPlayer !== null
+        repeat: true
+        onTriggered: if (shell.mprisPlayer) shell.mprisPlayer.positionChanged()
+    }
+
     property color baseAccent: "#89b4fa"
 
     readonly property int accentWorkspace: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0
@@ -1060,6 +1072,20 @@ ShellRoot {
                         radius: 4
                         color: shell.activePopup === "media" ? Theme.surfaceActive
                              : hovered ? Theme.buttonHover : "transparent"
+
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 1
+                            anchors.left: parent.left
+                            anchors.leftMargin: 8
+                            height: 2
+                            radius: 1
+                            width: Math.max(0, parent.width - 16) * shell.mediaProgress
+                            color: shell.mediaAccent
+                            visible: shell.mediaProgress > 0
+
+                            Behavior on width { NumberAnimation { duration: 900; easing.type: Easing.Linear } }
+                        }
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
