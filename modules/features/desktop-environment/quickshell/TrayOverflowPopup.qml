@@ -46,59 +46,23 @@ Variants {
                 anchors.leftMargin: 8
                 spacing: 10
 
-                Canvas {
+                Item {
                     width: 14
                     height: 14
                     anchors.verticalCenter: parent.verticalCenter
 
-                    property string iconId: row.modelData.id
-                    property color stroke: Theme.iconPrimary
-                    onStrokeChanged: requestPaint()
+                    SysMonIcon {
+                        anchors.centerIn: parent
+                        visible: row.modelData.id === "sysMon"
+                        cpuHistory: root.shell.cpuHistory
+                        ramHistory: root.shell.ramHistory
+                        netHistory: root.shell.netTotalHistory
+                    }
 
-                    onPaint: {
-                        var ctx = getContext("2d");
-                        ctx.clearRect(0, 0, width, height);
-                        ctx.strokeStyle = stroke;
-                        ctx.fillStyle = stroke;
-                        ctx.lineWidth = 1.4;
-                        ctx.lineCap = "round";
-                        ctx.lineJoin = "round";
-
-                        if (iconId === "sysMon") {
-                            ctx.beginPath();
-                            ctx.roundedRect(0.5, 0.5, 13, 10, 1.5, 1.5);
-                            ctx.stroke();
-                            ctx.beginPath();
-                            ctx.moveTo(5, 11.5);
-                            ctx.lineTo(9, 11.5);
-                            ctx.stroke();
-                            ctx.beginPath();
-                            ctx.moveTo(7, 10.5);
-                            ctx.lineTo(7, 11.5);
-                            ctx.stroke();
-                            ctx.lineWidth = 1.2;
-                            ctx.beginPath();
-                            ctx.moveTo(2, 7);
-                            ctx.lineTo(4, 7);
-                            ctx.lineTo(5.5, 3);
-                            ctx.lineTo(7, 8);
-                            ctx.lineTo(8.5, 4);
-                            ctx.lineTo(10, 7);
-                            ctx.lineTo(12, 7);
-                            ctx.stroke();
-                        } else if (iconId === "brightness") {
-                            var cx = 7, cy = 7, r = 3;
-                            ctx.beginPath();
-                            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-                            ctx.stroke();
-                            for (var i = 0; i < 8; i++) {
-                                var a = i * Math.PI / 4;
-                                ctx.beginPath();
-                                ctx.moveTo(cx + Math.cos(a) * (r + 1.5), cy + Math.sin(a) * (r + 1.5));
-                                ctx.lineTo(cx + Math.cos(a) * (r + 3), cy + Math.sin(a) * (r + 3));
-                                ctx.stroke();
-                            }
-                        }
+                    BrightnessIcon {
+                        anchors.centerIn: parent
+                        visible: row.modelData.id === "brightness"
+                        percent: root.shell.brightnessPercent
                     }
                 }
 
@@ -116,14 +80,7 @@ Variants {
                 cursorShape: Qt.PointingHandCursor
                 onEntered: row.hovered = true
                 onExited: row.hovered = false
-                onClicked: {
-                    var screen = root.shell.activePopupScreen;
-                    if (row.modelData.id === "sysMon") {
-                        root.shell.openPopup("sysMon", screen);
-                    } else if (row.modelData.id === "brightness") {
-                        root.shell.openPopup("brightness", screen);
-                    }
-                }
+                onClicked: root.shell.openPopup(row.modelData.id, root.shell.activePopupScreen)
             }
         }
     }
