@@ -202,6 +202,11 @@ ShellRoot {
 
     property color mediaAccent: Theme.accent
 
+    readonly property string wallpaperUrl: {
+        var p = Quickshell.env("QS_WALLPAPER");
+        return p ? "file://" + p : "";
+    }
+
     property bool toastVisible: false
     property var toastNotification: null
     property int toastSeq: 0
@@ -903,6 +908,12 @@ ShellRoot {
             }
             implicitHeight: 40
             color: "transparent"
+
+            AlbumArtColor {
+                source: shell.wallpaperUrl
+                fallback: "#89b4fa"
+                onDominantChanged: Theme.accent = dominant
+            }
 
             AlbumArtColor {
                 source: shell.mprisPlayer && shell.mprisPlayer.trackArtUrl !== "" ? shell.mprisPlayer.trackArtUrl : ""

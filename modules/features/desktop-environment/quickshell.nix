@@ -38,6 +38,7 @@
           pkgs.brightnessctl
         ];
         flags."-p" = ./quickshell;
+        env.QS_WALLPAPER = "${./Background.jpg}";
       };
     };
 }
