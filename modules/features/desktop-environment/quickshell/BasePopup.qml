@@ -22,6 +22,7 @@ PanelWindow {
     property real maxImplicitHeight: -1
     property color backgroundColor: Theme.surfaceBg
     property color borderColor: Theme.hairline
+    property Component backdrop: null
 
     default property alias contentData: contentColumn.data
     readonly property bool isActive: root.shell.activePopup === popupName
@@ -74,6 +75,13 @@ PanelWindow {
 
         Behavior on opacity { NumberAnimation { duration: Theme.animPopup; easing.type: Easing.OutCubic } }
         Behavior on scale { NumberAnimation { duration: Theme.animPopup; easing.type: Easing.OutCubic } }
+
+        Loader {
+            anchors.fill: parent
+            z: -1
+            active: root.backdrop !== null
+            sourceComponent: root.backdrop
+        }
 
         Rectangle {
             anchors.top: parent.top

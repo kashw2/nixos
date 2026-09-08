@@ -35,3 +35,4 @@ WeatherOverlay 1.0 WeatherOverlay.qml
 WeatherPopup 1.0 WeatherPopup.qml
 WifiPopup 1.0 WifiPopup.qml
 AlbumArtColor 1.0 AlbumArtColor.qml
+WeatherBackdrop 1.0 WeatherBackdrop.qml

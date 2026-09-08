@@ -30,6 +30,14 @@ Variants {
 
         backgroundColor: root.backdropFor(root.shell.conditionToIconType(root.shell.weatherCondition))
 
+        backdrop: Component {
+            WeatherBackdrop {
+                iconType: root.shell.conditionToIconType(root.shell.weatherCondition)
+                phase: root.shell.weatherAnimTime
+                cornerRadius: 12
+            }
+        }
+
         property bool editingCity: false
         onCleared: editingCity = false
 
