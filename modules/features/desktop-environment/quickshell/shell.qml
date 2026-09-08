@@ -1053,16 +1053,60 @@ ShellRoot {
                                 animTime: shell.weatherAnimTime
                             }
 
-                            Text {
-                                id: mediaTitle
+                            Item {
+                                id: mediaTitleClip
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
-                                    ? shell.mprisPlayer.trackTitle : ""
-                                color: Theme.text
-                                font.pixelSize: Theme.fontTitle
-                                elide: Text.ElideRight
-                                width: Math.min(implicitWidth, Math.max(0, (barWindow.width / 2) - 220))
-                                visible: text !== ""
+
+                                readonly property real maxWidth: Math.max(0, (barWindow.width / 2) - 220)
+                                readonly property real overflow: Math.max(0, mediaTitle.implicitWidth - maxWidth)
+
+                                width: Math.min(mediaTitle.implicitWidth, maxWidth)
+                                height: mediaTitle.implicitHeight
+                                visible: mediaTitle.text !== ""
+                                clip: true
+
+                                Text {
+                                    id: mediaTitle
+                                    text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
+                                        ? shell.mprisPlayer.trackTitle : ""
+                                    color: Theme.text
+                                    font.pixelSize: Theme.fontTitle
+                                }
+
+                                SequentialAnimation {
+                                    id: marquee
+                                    running: mediaTitleClip.overflow > 0 && mediaArea.hovered
+                                    loops: Animation.Infinite
+                                    onRunningChanged: if (!running) mediaTitle.x = 0
+
+                                    PauseAnimation { duration: 700 }
+                                    NumberAnimation {
+                                        target: mediaTitle; property: "x"
+                                        from: 0; to: -mediaTitleClip.overflow
+                                        duration: mediaTitleClip.overflow * 26
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                    PauseAnimation { duration: 1200 }
+                                    NumberAnimation {
+                                        target: mediaTitle; property: "x"
+                                        from: -mediaTitleClip.overflow; to: 0
+                                        duration: mediaTitleClip.overflow * 26
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                }
+
+                                Rectangle {
+                                    anchors.right: parent.right
+                                    anchors.top: parent.top
+                                    anchors.bottom: parent.bottom
+                                    width: 18
+                                    visible: mediaTitleClip.overflow > 0 && !marquee.running
+                                    gradient: Gradient {
+                                        orientation: Gradient.Horizontal
+                                        GradientStop { position: 0.0; color: "transparent" }
+                                        GradientStop { position: 1.0; color: Theme.barBg }
+                                    }
+                                }
                             }
                         }
 
