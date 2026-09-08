@@ -46,6 +46,7 @@ ShellRoot {
     property bool bluetoothPowered: false
     property var btPairedDevices: []
     property var btConnectedDevices: []
+    property var btBatteryLevels: ({})
     property var btDiscoveredDevices: []
     property bool btScanning: false
 

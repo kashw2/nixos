@@ -61,8 +61,9 @@ Variants {
                 }
 
                 Text {
-                    text: "Connected"
-                    color: Theme.textDim
+                    readonly property var level: root.shell.btBatteryLevels[modelData.mac]
+                    text: level !== undefined ? level + "%" : "Connected"
+                    color: level !== undefined && level <= 20 ? Theme.accentDanger : Theme.textDim
                     font.pixelSize: Theme.fontLabel
                 }
             }
