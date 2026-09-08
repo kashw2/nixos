@@ -19,6 +19,7 @@ QtObject {
     readonly property color workspaceHover:  Qt.rgba(0, 0, 0, 0.35)
 
     property color accent:                 "#89b4fa"
+    Behavior on accent { ColorAnimation { duration: 260; easing.type: Easing.OutCubic } }
     readonly property color accentSoft:    Qt.rgba(accent.r, accent.g, accent.b, 0.22)
     readonly property color accentGlow:    Qt.rgba(accent.r, accent.g, accent.b, 0.35)
 

@@ -202,6 +202,22 @@ ShellRoot {
 
     property color mediaAccent: Theme.accent
 
+    property color baseAccent: "#89b4fa"
+
+    readonly property int accentWorkspace: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0
+        ? Hyprland.focusedWorkspace.id : 1
+
+    function shiftHue(c, steps) {
+        if (c.hsvHue < 0 || steps === 0) return c;
+        return Qt.hsva((c.hsvHue + steps / 8) % 1, c.hsvSaturation, c.hsvValue, 1);
+    }
+
+    Binding {
+        target: Theme
+        property: "accent"
+        value: shell.shiftHue(shell.baseAccent, shell.accentWorkspace - 1)
+    }
+
     readonly property string wallpaperUrl: {
         var p = Quickshell.env("QS_WALLPAPER");
         return p ? "file://" + p : "";
@@ -920,7 +936,7 @@ ShellRoot {
             AlbumArtColor {
                 source: shell.wallpaperUrl
                 fallback: "#89b4fa"
-                onDominantChanged: Theme.accent = dominant
+                onDominantChanged: shell.baseAccent = dominant
             }
 
             AlbumArtColor {
