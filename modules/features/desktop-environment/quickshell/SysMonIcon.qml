@@ -6,6 +6,7 @@ Canvas {
 
     property var cpuHistory: []
     property var ramHistory: []
+    property var netHistory: []
 
     readonly property int maxPoints: 60
     readonly property real xMin: 1.5
@@ -18,8 +19,31 @@ Canvas {
 
     onCpuHistoryChanged: requestPaint()
     onRamHistoryChanged: requestPaint()
+    onNetHistoryChanged: requestPaint()
     Component.onCompleted: requestPaint()
     onVisibleChanged: if (visible) requestPaint()
+
+    function drawArea(ctx, h, color) {
+        if (!h || h.length < 2) return;
+        var peak = 0;
+        for (var p = 0; p < h.length; p++) peak = Math.max(peak, h[p]);
+        if (peak <= 0) return;
+
+        var usableW = xMax - xMin;
+        var usableH = yMax - yMin;
+        var stepX = usableW / (maxPoints - 1);
+        var offset = maxPoints - h.length;
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(xMin + offset * stepX, yMax);
+        for (var i = 0; i < h.length; i++) {
+            ctx.lineTo(xMin + (offset + i) * stepX, yMax - usableH * (h[i] / peak));
+        }
+        ctx.lineTo(xMin + (offset + h.length - 1) * stepX, yMax);
+        ctx.closePath();
+        ctx.fill();
+    }
 
     function drawSeries(ctx, h, color, lw) {
         if (!h || h.length < 2) return;
@@ -64,7 +88,8 @@ Canvas {
 
         var haveCpu = cpuHistory && cpuHistory.length >= 2;
         var haveRam = ramHistory && ramHistory.length >= 2;
-        if (!haveCpu && !haveRam) {
+        var haveNet = netHistory && netHistory.length >= 2;
+        if (!haveCpu && !haveRam && !haveNet) {
             ctx.strokeStyle = Theme.iconDim;
             ctx.lineWidth = 0.8;
             ctx.beginPath();
@@ -73,6 +98,7 @@ Canvas {
             ctx.stroke();
             return;
         }
+        drawArea(ctx, netHistory, Theme.accentSoft);
         drawSeries(ctx, ramHistory, Theme.graphRam, 0.8);
         drawSeries(ctx, cpuHistory, Theme.graphCpu, 1.0);
     }

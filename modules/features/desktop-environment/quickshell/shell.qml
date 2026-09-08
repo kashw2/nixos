@@ -237,6 +237,14 @@ ShellRoot {
     property real netTxRate: 0
     property var netRxHistory: []
     property var netTxHistory: []
+
+    readonly property var netTotalHistory: {
+        var rx = netRxHistory, tx = netTxHistory;
+        var n = Math.min(rx.length, tx.length);
+        var out = [];
+        for (var i = 0; i < n; i++) out.push(rx[rx.length - n + i] + tx[tx.length - n + i]);
+        return out;
+    }
     property int netHistoryCount: 0
     property real netRxPeak: 1
 
@@ -1320,6 +1328,7 @@ ShellRoot {
                             anchors.centerIn: parent
                             cpuHistory: shell.cpuHistory
                             ramHistory: shell.ramHistory
+                            netHistory: shell.netTotalHistory
                         }
                     }
 
