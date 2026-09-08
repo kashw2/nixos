@@ -19,11 +19,12 @@ PanelWindow {
 
     default property alias contentData: contentColumn.data
     readonly property bool isActive: root.shell.activePopup === popupName
+    readonly property bool shown: isActive && root.shell.activePopupScreen === modelData
 
     signal cleared()
 
     screen: modelData
-    visible: isActive && root.shell.activePopupScreen === modelData
+    visible: root.shown || card.opacity > 0.01
 
     HyprlandFocusGrab {
         active: root.isActive && root.shell.activePopupScreen === modelData
@@ -51,10 +52,29 @@ PanelWindow {
     color: "transparent"
 
     Rectangle {
+        id: card
         anchors.fill: parent
         radius: 12
         color: root.backgroundColor
+        border.width: 1
+        border.color: Theme.hairline
         clip: true
+
+        transformOrigin: Item.Top
+        opacity: root.shown ? 1 : 0
+        scale: root.shown ? 1 : 0.96
+
+        Behavior on opacity { NumberAnimation { duration: Theme.animPopup; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: Theme.animPopup; easing.type: Easing.OutCubic } }
+
+        Rectangle {
+            anchors.top: parent.top
+            anchors.topMargin: 1
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width - 24
+            height: 1
+            color: Theme.hairlineTop
+        }
 
         Column {
             id: contentColumn
