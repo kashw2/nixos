@@ -39,3 +39,4 @@ WeatherBackdrop 1.0 WeatherBackdrop.qml
 IdleIcon 1.0 IdleIcon.qml
 PowerIcon 1.0 PowerIcon.qml
 PowerPopup 1.0 PowerPopup.qml
+ThinScrollBar 1.0 ThinScrollBar.qml

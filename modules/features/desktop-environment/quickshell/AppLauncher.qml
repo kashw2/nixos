@@ -3,6 +3,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "."
 
 Variants {
@@ -1115,6 +1116,7 @@ Variants {
                                 clip: true
 
                                 Flickable {
+                                    ScrollBar.vertical: ThinScrollBar {}
                                     anchors.fill: parent
                                     anchors.margins: 10
                                     visible: launcherWindow.previewMode === "text" || launcherWindow.previewMode === "html"

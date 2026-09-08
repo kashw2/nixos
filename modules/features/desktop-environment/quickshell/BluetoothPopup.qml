@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "."
 
 Variants {
@@ -95,6 +96,7 @@ Variants {
 
     // Paired devices list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: root.shell.bluetoothPowered
         width: parent.width
         height: Math.min(contentHeight, 250)
@@ -184,6 +186,7 @@ Variants {
 
     // Available (discovered, unpaired) devices list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: root.shell.bluetoothPowered
         width: parent.width
         height: Math.min(contentHeight, 180)

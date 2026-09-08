@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Networking
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "."
 
 Variants {
@@ -143,6 +144,7 @@ Variants {
 
     // Network list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: Networking.wifiEnabled
         width: parent.width
         height: Math.min(contentHeight, 250)
