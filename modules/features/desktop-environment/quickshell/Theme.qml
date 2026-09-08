@@ -16,7 +16,6 @@ QtObject {
     readonly property color iconPrimary:   "#ffffff"
     readonly property color iconDim:       Qt.rgba(1, 1, 1, 0.40)
 
-    readonly property color workspaceActive: Qt.rgba(0, 0, 0, 0.55)
     readonly property color workspaceHover:  Qt.rgba(0, 0, 0, 0.35)
 
     property color accent:                 "#89b4fa"

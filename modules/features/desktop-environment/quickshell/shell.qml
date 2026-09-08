@@ -901,51 +901,83 @@ ShellRoot {
                 spacing: 0
 
                 // === Left: Workspace indicators ===
-                Row {
-                    spacing: 2
+                Item {
+                    id: wsContainer
                     Layout.alignment: Qt.AlignLeft
+                    Layout.preferredWidth: wsRow.implicitWidth
+                    Layout.preferredHeight: 22
+                    implicitWidth: wsRow.implicitWidth
+                    implicitHeight: 22
 
-                    Repeater {
-                        model: Hyprland.workspaces.values
+                    property Item activeItem: null
 
-                        Rectangle {
-                            required property var modelData
-                            property int wsId: modelData ? modelData.id : -1
-                            property string wsName: modelData && modelData.name ? modelData.name : ""
-                            property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
-                            property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
-                            property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
-                            property bool hovered: false
+                    Rectangle {
+                        id: wsIndicator
+                        visible: wsContainer.activeItem !== null
+                        x: wsContainer.activeItem ? wsContainer.activeItem.x : 0
+                        width: wsContainer.activeItem ? wsContainer.activeItem.width : 0
+                        height: parent.height
+                        radius: 4
+                        color: Theme.accentSoft
+                        border.width: 1
+                        border.color: Theme.accentGlow
 
-                            visible: wsId > 0
-                            implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
-                            width: visible ? implicitWidth : 0
-                            height: 22
-                            radius: 4
-                            color: isActive ? Theme.workspaceActive
-                                : hovered ? Theme.workspaceHover
-                                : "transparent"
+                        Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
+                        Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+                    }
 
-                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Row {
+                        id: wsRow
+                        spacing: 2
+                        height: parent.height
 
-                            Text {
-                                id: wsLabel
-                                anchors.centerIn: parent
-                                text: parent.label
-                                color: Theme.text
-                                font.pixelSize: Theme.fontBody
-                                font.bold: parent.isActive
-                            }
+                        Repeater {
+                            model: Hyprland.workspaces.values
 
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: parent.hovered = true
-                                onExited: parent.hovered = false
-                                onClicked: {
-                                    shell.closePopup();
-                                    parent.modelData.activate();
+                            Rectangle {
+                                id: wsItem
+                                required property var modelData
+                                property int wsId: modelData ? modelData.id : -1
+                                property string wsName: modelData && modelData.name ? modelData.name : ""
+                                property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
+                                property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
+                                property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
+                                property bool hovered: false
+
+                                visible: wsId > 0
+                                implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
+                                width: visible ? implicitWidth : 0
+                                height: 22
+                                radius: 4
+                                color: !isActive && hovered ? Theme.workspaceHover : "transparent"
+
+                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                onIsActiveChanged: if (isActive && visible) wsContainer.activeItem = wsItem
+                                Component.onCompleted: if (isActive && visible) wsContainer.activeItem = wsItem
+                                Component.onDestruction: if (wsContainer.activeItem === wsItem) wsContainer.activeItem = null
+
+                                Text {
+                                    id: wsLabel
+                                    anchors.centerIn: parent
+                                    text: wsItem.label
+                                    color: wsItem.isActive ? Theme.accent : Theme.text
+                                    font.pixelSize: Theme.fontBody
+                                    font.bold: wsItem.isActive
+
+                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onEntered: wsItem.hovered = true
+                                    onExited: wsItem.hovered = false
+                                    onClicked: {
+                                        shell.closePopup();
+                                        wsItem.modelData.activate();
+                                    }
                                 }
                             }
                         }
