@@ -1032,7 +1032,14 @@ ShellRoot {
                 id: leftIsland
                 anchors.left: parent.left
                 anchors.leftMargin: 8
-                y: 3
+                property bool entered: false
+                y: entered ? 3 : -height - 4
+
+                Behavior on y {
+                    NumberAnimation { duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.04 }
+                }
+
+                Timer { interval: 120; running: true; onTriggered: leftIsland.entered = true }
                 height: 32
                 width: leftRow.implicitWidth + 32
                 radius: 16
@@ -1281,7 +1288,14 @@ ShellRoot {
             Rectangle {
                 id: centreIsland
                 anchors.horizontalCenter: parent.horizontalCenter
-                y: 3
+                property bool entered: false
+                y: entered ? 3 : -height - 4
+
+                Behavior on y {
+                    NumberAnimation { duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.04 }
+                }
+
+                Timer { interval: 210; running: true; onTriggered: centreIsland.entered = true }
                 height: 32
                 width: centreRow.implicitWidth + 32
                 radius: 16
@@ -1392,7 +1406,14 @@ ShellRoot {
                 id: rightIsland
                 anchors.right: parent.right
                 anchors.rightMargin: 8
-                y: 3
+                property bool entered: false
+                y: entered ? 3 : -height - 4
+
+                Behavior on y {
+                    NumberAnimation { duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.04 }
+                }
+
+                Timer { interval: 300; running: true; onTriggered: rightIsland.entered = true }
                 height: 32
                 width: rightRow.implicitWidth + 32
                 radius: 16
