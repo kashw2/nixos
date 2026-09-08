@@ -1,20 +1,16 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property int count: 0
 
     width: 14
     height: 16
+    repaintOn: [count]
 
-    onCountChanged: requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-
+    function draw(ctx) {
         ctx.strokeStyle = Theme.iconPrimary;
         ctx.fillStyle = Theme.iconPrimary;
         ctx.lineWidth = 1.4;

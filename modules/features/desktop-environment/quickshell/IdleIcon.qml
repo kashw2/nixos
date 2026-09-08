@@ -1,29 +1,17 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property bool inhibited: false
     property color iconColor: Theme.iconPrimary
-    property real iconSize: 14
     property real steam: 0
 
-    width: iconSize
-    height: iconSize
+    designSize: 14
+    repaintOn: [inhibited, iconColor, inhibited ? steam : 0]
 
-    onInhibitedChanged: if (available) requestPaint()
-    onIconColorChanged: if (available) requestPaint()
-    onSteamChanged: if (available && inhibited) requestPaint()
-    onAvailableChanged: if (available) requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-
-        var s = width / 14;
-        ctx.save();
-        ctx.scale(s, s);
+    function draw(ctx) {
         ctx.strokeStyle = root.iconColor;
         ctx.fillStyle = root.iconColor;
         ctx.lineWidth = 1.3;
@@ -62,7 +50,5 @@ Canvas {
             ctx.lineTo(12.5, 12.5);
             ctx.stroke();
         }
-
-        ctx.restore();
     }
 }

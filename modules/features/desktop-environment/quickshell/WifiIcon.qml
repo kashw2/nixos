@@ -1,19 +1,16 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property bool enabled: false
 
     width: 18
     height: 14
+    repaintOn: [enabled]
 
-    onEnabledChanged: requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
+    function draw(ctx) {
         var col = enabled ? Theme.iconPrimary : Theme.iconDim;
         ctx.strokeStyle = col;
         ctx.lineWidth = 1.6;

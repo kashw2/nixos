@@ -1,22 +1,15 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property int volume: 0
     property bool muted: false
 
-    width: 14
-    height: 14
+    repaintOn: [volume, muted]
 
-    onVolumeChanged: requestPaint()
-    onMutedChanged: requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-
+    function draw(ctx) {
         ctx.strokeStyle = muted ? Theme.iconDim : Theme.iconPrimary;
         ctx.fillStyle = muted ? Theme.iconDim : Theme.iconPrimary;
         ctx.lineWidth = 1.4;

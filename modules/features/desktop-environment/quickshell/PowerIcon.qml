@@ -1,25 +1,15 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property color iconColor: Theme.iconPrimary
-    property real iconSize: 14
 
-    width: iconSize
-    height: iconSize
+    designSize: 14
+    repaintOn: [iconColor]
 
-    onIconColorChanged: if (available) requestPaint()
-    onAvailableChanged: if (available) requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-
-        var s = width / 14;
-        ctx.save();
-        ctx.scale(s, s);
+    function draw(ctx) {
         ctx.strokeStyle = root.iconColor;
         ctx.lineWidth = 1.5;
         ctx.lineCap = "round";
@@ -32,7 +22,5 @@ Canvas {
         ctx.moveTo(7, 1.6);
         ctx.lineTo(7, 7);
         ctx.stroke();
-
-        ctx.restore();
     }
 }

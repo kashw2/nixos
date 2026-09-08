@@ -1,32 +1,18 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property string iconType: "cloudy"
     property color iconColor: Theme.iconPrimary
-    property real iconSize: 24
     property real animTime: 0
 
-    width: iconSize
-    height: iconSize
+    iconSize: 24
+    designSize: 14
+    repaintOn: [iconType, iconColor, iconSize, animTime]
 
-    // Paint as soon as the canvas's render context is ready. requestPaint()
-    // calls made before `available` becomes true are silently dropped, so
-    // hooking this signal avoids blank icons after first construction.
-    onAvailableChanged: if (available) requestPaint()
-    onIconTypeChanged: if (available) requestPaint()
-    onIconColorChanged: if (available) requestPaint()
-    onIconSizeChanged: if (available) requestPaint()
-    onAnimTimeChanged: if (available) requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-        var s = width / 14;
-        ctx.save();
-        ctx.scale(s, s);
+    function draw(ctx) {
         ctx.strokeStyle = iconColor;
         ctx.fillStyle = iconColor;
         ctx.lineWidth = 1.3;
@@ -168,6 +154,5 @@ Canvas {
                 ctx.stroke();
             }
         }
-        ctx.restore();
     }
 }
