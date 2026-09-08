@@ -22,12 +22,6 @@ Variants {
         popupName: "media"
         popupWidth: 380
 
-        anchors.right: false
-        anchors.left: true
-        margins.right: 0
-        margins.left: Math.max(8, Math.min(root.shell.mediaIconX,
-            (popup.screen ? popup.screen.width : 0) - popup.popupWidth - 8))
-
         readonly property var player: root.shell.mprisPlayer
         readonly property bool hasPlayer: player !== null
         readonly property bool isPlaying: hasPlayer && player.isPlaying

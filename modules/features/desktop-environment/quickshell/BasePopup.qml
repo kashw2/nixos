@@ -12,6 +12,11 @@ PanelWindow {
     property int popupWidth: 280
     property int marginTop: 41
     property int marginRight: 8
+    property bool followAnchor: true
+
+    readonly property real anchorCentre: root.shell.popupAnchorX + root.shell.popupAnchorWidth / 2
+    readonly property real screenWidth: modelData ? modelData.width : 0
+    readonly property real anchoredLeft: Math.max(8, Math.min(root.anchorCentre - root.popupWidth / 2, root.screenWidth - root.popupWidth - 8))
     property int padding: 12
     property int spacing: 8
     property real maxImplicitHeight: -1
@@ -37,11 +42,11 @@ PanelWindow {
 
     anchors {
         top: true
-        right: true
+        left: true
     }
     margins {
         top: root.marginTop
-        right: root.marginRight
+        left: root.anchoredLeft
     }
     implicitWidth: root.popupWidth
     implicitHeight: {
@@ -74,6 +79,19 @@ PanelWindow {
             width: parent.width - 24
             height: 1
             color: Theme.hairlineTop
+        }
+
+        Rectangle {
+            id: anchorMark
+            visible: root.followAnchor && root.shell.popupAnchorWidth > 0
+            y: 0
+            width: 28
+            height: 2
+            radius: 1
+            color: Theme.accent
+            x: Math.max(8, Math.min(root.anchorCentre - root.anchoredLeft - width / 2, card.width - width - 8))
+
+            Behavior on x { NumberAnimation { duration: Theme.animPopup; easing.type: Easing.OutCubic } }
         }
 
         Column {

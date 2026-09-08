@@ -62,7 +62,8 @@ ShellRoot {
     property var batteryHoveredScreen: null
     property real batteryIconX: 0
     property real batteryIconWidth: 0
-    property real mediaIconX: 0
+    property real popupAnchorX: 0
+    property real popupAnchorWidth: 0
     property int batteryLastNotifiedThreshold: 0
     readonly property var batteryThresholds: [20, 10, 5]
 
@@ -334,6 +335,13 @@ ShellRoot {
     function openPopup(name, screen) {
         shell.activePopup = name;
         shell.activePopupScreen = screen;
+    }
+
+    function togglePopupFrom(item, name, screen) {
+        var pos = item.mapToItem(null, 0, 0);
+        shell.popupAnchorX = pos.x;
+        shell.popupAnchorWidth = item.width;
+        shell.togglePopup(name, screen);
     }
 
     function togglePopup(name, screen) {
@@ -1045,11 +1053,7 @@ ShellRoot {
                             cursorShape: Qt.PointingHandCursor
                             onEntered: parent.hovered = true
                             onExited: parent.hovered = false
-                            onClicked: {
-                                var pos = mediaArea.mapToItem(null, 0, 0);
-                                shell.mediaIconX = pos.x;
-                                shell.togglePopup("media", barWindow.modelData);
-                            }
+                            onClicked: shell.togglePopupFrom(mediaArea, "media", barWindow.modelData)
                         }
                     }
                 }
@@ -1191,7 +1195,7 @@ ShellRoot {
                         Layout.alignment: Qt.AlignRight
                         implicitWidth: 26
                         active: shell.activePopup === "overflow"
-                        onClicked: shell.togglePopup("overflow", barWindow.modelData)
+                        onClicked: shell.togglePopupFrom(overflowButton, "overflow", barWindow.modelData)
 
                         Row {
                             anchors.centerIn: parent
@@ -1226,7 +1230,7 @@ ShellRoot {
                             shell.batteryIconWidth = batteryButton.width;
                         }
                         onExited: shell.batteryHovered = false
-                        onClicked: shell.togglePopup("battery", barWindow.modelData)
+                        onClicked: shell.togglePopupFrom(batteryButton, "battery", barWindow.modelData)
 
                         Connections {
                             target: shell
@@ -1247,7 +1251,7 @@ ShellRoot {
                         Layout.alignment: Qt.AlignRight
                         implicitWidth: 30
                         active: shell.activePopup === "sysMon"
-                        onClicked: shell.togglePopup("sysMon", barWindow.modelData)
+                        onClicked: shell.togglePopupFrom(sysMonButton, "sysMon", barWindow.modelData)
 
                         SysMonIcon {
                             anchors.centerIn: parent
@@ -1263,7 +1267,7 @@ ShellRoot {
                         Layout.alignment: Qt.AlignRight
                         implicitWidth: 30
                         active: shell.activePopup === "brightness"
-                        onClicked: shell.togglePopup("brightness", barWindow.modelData)
+                        onClicked: shell.togglePopupFrom(brightnessButton, "brightness", barWindow.modelData)
 
                         Connections {
                             target: shell
@@ -1282,7 +1286,7 @@ ShellRoot {
                         Layout.alignment: Qt.AlignRight
                         implicitWidth: 30
                         active: shell.activePopup === "volume"
-                        onClicked: shell.togglePopup("volume", barWindow.modelData)
+                        onClicked: shell.togglePopupFrom(volumeButton, "volume", barWindow.modelData)
 
                         Connections {
                             target: shell
@@ -1305,7 +1309,7 @@ ShellRoot {
                         implicitWidth: 30
                         active: shell.activePopup === "bt"
                         onClicked: {
-                            shell.togglePopup("bt", barWindow.modelData);
+                            shell.togglePopupFrom(btButton, "bt", barWindow.modelData);
                             if (shell.activePopup === "bt") btControllerCheck.running = true;
                         }
 
@@ -1327,7 +1331,7 @@ ShellRoot {
                         implicitWidth: 30
                         active: shell.activePopup === "wifi"
                         onClicked: {
-                            shell.togglePopup("wifi", barWindow.modelData);
+                            shell.togglePopupFrom(wifiButton, "wifi", barWindow.modelData);
                             if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
                             shell.selectedNetworkName = "";
                             shell.passwordInput = "";
@@ -1358,7 +1362,7 @@ ShellRoot {
                         Layout.alignment: Qt.AlignRight
                         implicitWidth: 30
                         active: shell.activePopup === "notif"
-                        onClicked: shell.togglePopup("notif", barWindow.modelData)
+                        onClicked: shell.togglePopupFrom(notifButton, "notif", barWindow.modelData)
 
                         Connections {
                             target: shell

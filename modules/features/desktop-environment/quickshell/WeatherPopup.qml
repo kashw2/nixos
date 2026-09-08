@@ -25,9 +25,7 @@ Variants {
         popupName: "weather"
         popupWidth: 560
 
-        anchors.right: false
-        anchors.left: true
-        margins.right: 0
+        followAnchor: false
         margins.left: popup.screen ? Math.max(8, (popup.screen.width - popup.popupWidth) / 2) : 8
 
         backgroundColor: root.backdropFor(root.shell.conditionToIconType(root.shell.weatherCondition))
