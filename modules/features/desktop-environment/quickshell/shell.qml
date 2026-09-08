@@ -1228,6 +1228,11 @@ ShellRoot {
                         onExited: shell.batteryHovered = false
                         onClicked: shell.togglePopup("battery", barWindow.modelData)
 
+                        Connections {
+                            target: shell
+                            function onBatteryChargingChanged() { batteryButton.pulse(); }
+                        }
+
                         BatteryIcon {
                             anchors.centerIn: parent
                             percent: shell.batteryPercent
@@ -1260,6 +1265,11 @@ ShellRoot {
                         active: shell.activePopup === "brightness"
                         onClicked: shell.togglePopup("brightness", barWindow.modelData)
 
+                        Connections {
+                            target: shell
+                            function onBrightnessPercentChanged() { brightnessButton.pulse(); }
+                        }
+
                         BrightnessIcon {
                             anchors.centerIn: parent
                             percent: shell.brightnessPercent
@@ -1273,6 +1283,12 @@ ShellRoot {
                         implicitWidth: 30
                         active: shell.activePopup === "volume"
                         onClicked: shell.togglePopup("volume", barWindow.modelData)
+
+                        Connections {
+                            target: shell
+                            function onVolumePercentChanged() { volumeButton.pulse(); }
+                            function onVolumeMutedChanged() { volumeButton.pulse(); }
+                        }
 
                         VolumeIcon {
                             anchors.centerIn: parent
@@ -1293,6 +1309,11 @@ ShellRoot {
                             if (shell.activePopup === "bt") btControllerCheck.running = true;
                         }
 
+                        Connections {
+                            target: shell
+                            function onBluetoothPoweredChanged() { btButton.pulse(); }
+                        }
+
                         BluetoothIcon {
                             anchors.centerIn: parent
                             powered: shell.bluetoothPowered
@@ -1310,6 +1331,12 @@ ShellRoot {
                             if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
                             shell.selectedNetworkName = "";
                             shell.passwordInput = "";
+                        }
+
+                        Connections {
+                            target: shell
+                            function onEthernetConnectedChanged() { wifiButton.pulse(); }
+                            function onConnectedNetworkChanged() { wifiButton.pulse(); }
                         }
 
                         WifiIcon {
@@ -1332,6 +1359,11 @@ ShellRoot {
                         implicitWidth: 30
                         active: shell.activePopup === "notif"
                         onClicked: shell.togglePopup("notif", barWindow.modelData)
+
+                        Connections {
+                            target: shell
+                            function onNotifCountChanged() { if (shell.notifCount > 0) notifButton.pulse(); }
+                        }
 
                         BellIcon {
                             anchors.centerIn: parent
