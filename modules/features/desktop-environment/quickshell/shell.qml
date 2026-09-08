@@ -1090,6 +1090,7 @@ ShellRoot {
                                     property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
                                     property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
                                     property bool hovered: false
+                                    readonly property bool urgent: modelData && modelData.urgent === true && !isActive
 
                                     visible: wsId > 0
                                     implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
@@ -1103,6 +1104,29 @@ ShellRoot {
                                     onIsActiveChanged: if (isActive && visible) wsContainer.activeItem = wsItem
                                     Component.onCompleted: if (isActive && visible) wsContainer.activeItem = wsItem
                                     Component.onDestruction: if (wsContainer.activeItem === wsItem) wsContainer.activeItem = null
+
+                                    Rectangle {
+                                        id: urgentOverlay
+                                        anchors.fill: parent
+                                        radius: parent.radius
+                                        color: Theme.accentDanger
+                                        opacity: 0
+
+                                        SequentialAnimation {
+                                            running: wsItem.urgent
+                                            loops: Animation.Infinite
+                                            onRunningChanged: if (!running) urgentOverlay.opacity = 0
+
+                                            NumberAnimation {
+                                                target: urgentOverlay; property: "opacity"
+                                                to: 0.55; duration: 420; easing.type: Easing.OutCubic
+                                            }
+                                            NumberAnimation {
+                                                target: urgentOverlay; property: "opacity"
+                                                to: 0.10; duration: 620; easing.type: Easing.InOutQuad
+                                            }
+                                        }
+                                    }
 
                                     Text {
                                         id: wsLabel
