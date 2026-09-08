@@ -200,6 +200,8 @@ ShellRoot {
         return players[0];
     }
 
+    property color mediaAccent: Theme.accent
+
     property bool toastVisible: false
     property var toastNotification: null
     property int toastSeq: 0
@@ -902,6 +904,11 @@ ShellRoot {
             implicitHeight: 40
             color: "transparent"
 
+            AlbumArtColor {
+                source: shell.mprisPlayer && shell.mprisPlayer.trackArtUrl !== "" ? shell.mprisPlayer.trackArtUrl : ""
+                onDominantChanged: shell.mediaAccent = dominant
+            }
+
             Rectangle {
                 id: leftIsland
                 anchors.left: parent.left
@@ -1029,6 +1036,7 @@ ShellRoot {
                             MediaPlayerIcon {
                                 anchors.verticalCenter: parent.verticalCenter
                                 iconSize: 14
+                                iconColor: shell.mediaAccent
                                 iconType: !shell.mprisPlayer ? "stopped"
                                     : shell.mprisPlayer.isPlaying ? "playing" : "paused"
                                 animTime: shell.weatherAnimTime

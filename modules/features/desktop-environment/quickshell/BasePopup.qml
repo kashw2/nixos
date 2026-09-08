@@ -21,6 +21,7 @@ PanelWindow {
     property int spacing: 8
     property real maxImplicitHeight: -1
     property color backgroundColor: Theme.surfaceBg
+    property color borderColor: Theme.hairline
 
     default property alias contentData: contentColumn.data
     readonly property bool isActive: root.shell.activePopup === popupName
@@ -62,8 +63,10 @@ PanelWindow {
         radius: 12
         color: root.backgroundColor
         border.width: 1
-        border.color: Theme.hairline
+        border.color: root.borderColor
         clip: true
+
+        Behavior on border.color { ColorAnimation { duration: 320 } }
 
         transformOrigin: Item.Top
         opacity: root.shown ? 1 : 0

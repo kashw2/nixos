@@ -21,6 +21,7 @@ Variants {
         shell: root.shell
         popupName: "media"
         popupWidth: 380
+        borderColor: root.shell.mediaAccent
 
         readonly property var player: root.shell.mprisPlayer
         readonly property bool hasPlayer: player !== null
@@ -82,7 +83,11 @@ Variants {
                 Layout.preferredHeight: 96
                 radius: 8
                 color: Theme.surfaceInner
+                border.width: 1
+                border.color: root.shell.mediaAccent
                 clip: true
+
+                Behavior on border.color { ColorAnimation { duration: 320 } }
 
                 Image {
                     anchors.fill: parent
@@ -170,7 +175,9 @@ Variants {
                     width: parent.width * parent.progress
                     height: parent.height
                     radius: 3
-                    color: Theme.iconPrimary
+                    color: root.shell.mediaAccent
+
+                    Behavior on color { ColorAnimation { duration: 320 } }
                 }
 
                 Rectangle {
@@ -179,8 +186,10 @@ Variants {
                     width: 12
                     height: 12
                     radius: 6
-                    color: Theme.iconPrimary
+                    color: root.shell.mediaAccent
                     visible: popup.player && popup.player.canSeek
+
+                    Behavior on color { ColorAnimation { duration: 320 } }
                 }
 
                 MouseArea {
@@ -322,8 +331,8 @@ Variants {
                         implicitHeight: 22
                         radius: 11
                         color: chip.isActive ? Theme.surfaceActive : Theme.surfaceInner
-                        border.color: Theme.surfaceSubtle
                         border.width: 1
+                        border.color: chip.isActive ? root.shell.mediaAccent : Theme.surfaceSubtle
 
                         Text {
                             id: chipLabel
