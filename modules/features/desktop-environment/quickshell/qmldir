@@ -37,3 +37,5 @@ WifiPopup 1.0 WifiPopup.qml
 AlbumArtColor 1.0 AlbumArtColor.qml
 WeatherBackdrop 1.0 WeatherBackdrop.qml
 IdleIcon 1.0 IdleIcon.qml
+PowerIcon 1.0 PowerIcon.qml
+PowerPopup 1.0 PowerPopup.qml

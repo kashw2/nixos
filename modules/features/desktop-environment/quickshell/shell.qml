@@ -12,7 +12,7 @@ ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather", "media"
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather", "media", "power"
     property string activePopup: ""
     property var activePopupScreen: null
     property string selectedNetworkName: ""
@@ -1536,6 +1536,20 @@ ShellRoot {
                         }
                     }
 
+                    // === Power menu ===
+                    BarButton {
+                        id: powerButton
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 26
+                        active: shell.activePopup === "power"
+                        onClicked: shell.togglePopupFrom(powerButton, "power", barWindow.modelData)
+
+                        PowerIcon {
+                            anchors.centerIn: parent
+                            iconColor: powerButton.active ? Theme.accent : Theme.iconPrimary
+                        }
+                    }
+
                     // === Notification bell icon ===
                     BarButton {
                         id: notifButton
@@ -1602,6 +1616,9 @@ ShellRoot {
 
     // System monitor popup - one per screen
     SystemMonitorPopup { shell: shell }
+
+    // Power menu popup - one per screen
+    PowerPopup { shell: shell }
 
     // Notification center popup - one per screen
     NotificationCenter { shell: shell }
