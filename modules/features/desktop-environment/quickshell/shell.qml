@@ -1574,7 +1574,7 @@ ShellRoot {
                         active: shell.activePopup === "bt"
                         onClicked: {
                             shell.togglePopupFrom(btButton, "bt", barWindow.modelData);
-                            if (shell.activePopup === "bt") btControllerCheck.running = true;
+                            if (shell.activePopup === "bt") shell.refreshBluetooth();
                         }
 
                         Connections {
