@@ -116,121 +116,6 @@ Item {
         }
     }
 
-    // A history strip: the series as an area/line, with the current level
-    // filled from the left so trend and level read from the same widget.
-    component Sparkline: Canvas {
-        id: spark
-        property var history: []
-        property real level: 0
-        property color lineColor: Theme.graphRam
-        property int maxPoints: 60
-
-        onHistoryChanged: if (available) requestPaint()
-        onLevelChanged: if (available) requestPaint()
-        onLineColorChanged: if (available) requestPaint()
-        onAvailableChanged: if (available) requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-
-            ctx.fillStyle = Theme.surfaceStrong;
-            ctx.fillRect(0, height - 3, width, 3);
-            ctx.fillStyle = Qt.rgba(lineColor.r, lineColor.g, lineColor.b, 0.85);
-            ctx.fillRect(0, height - 3, width * Math.max(0, Math.min(1, level)), 3);
-
-            var h = spark.history;
-            if (!h || h.length < 2) return;
-
-            var plotH = height - 4;
-            var stepX = width / (maxPoints - 1);
-            var offset = maxPoints - h.length;
-
-            ctx.fillStyle = Qt.rgba(lineColor.r, lineColor.g, lineColor.b, 0.18);
-            ctx.beginPath();
-            for (var i = 0; i < h.length; i++) {
-                var x = (offset + i) * stepX;
-                var y = plotH - (plotH * h[i] / 100);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.lineTo((offset + h.length - 1) * stepX, plotH);
-            ctx.lineTo(offset * stepX, plotH);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = Qt.rgba(lineColor.r, lineColor.g, lineColor.b, 0.9);
-            ctx.lineWidth = 1.2;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            for (var j = 0; j < h.length; j++) {
-                var x2 = (offset + j) * stepX;
-                var y2 = plotH - (plotH * h[j] / 100);
-                if (j === 0) ctx.moveTo(x2, y2);
-                else ctx.lineTo(x2, y2);
-            }
-            ctx.stroke();
-        }
-    }
-
-    component Graph: Canvas {
-        id: graph
-        property var history: []
-        property color lineColor: Theme.graphRam
-        property real maxValue: 100
-        property int maxPoints: 60
-
-        onHistoryChanged: if (available) requestPaint()
-        onMaxValueChanged: if (available) requestPaint()
-        onAvailableChanged: if (available) requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            var h = graph.history;
-            if (!h || h.length < 2) return;
-
-            var top = Math.max(1, graph.maxValue);
-            var stepX = width / (maxPoints - 1);
-            var offset = maxPoints - h.length;
-
-            ctx.strokeStyle = Theme.surfaceSubtle;
-            ctx.lineWidth = 0.5;
-            for (var g = 1; g <= 3; g++) {
-                var gy = height - (height * g / 4);
-                ctx.beginPath();
-                ctx.moveTo(0, gy);
-                ctx.lineTo(width, gy);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = Qt.rgba(lineColor.r, lineColor.g, lineColor.b, 0.15);
-            ctx.beginPath();
-            for (var i = 0; i < h.length; i++) {
-                var x = (offset + i) * stepX;
-                var y = height - (height * Math.min(h[i], top) / top);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.lineTo((offset + h.length - 1) * stepX, height);
-            ctx.lineTo(offset * stepX, height);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = Qt.rgba(lineColor.r, lineColor.g, lineColor.b, 0.9);
-            ctx.lineWidth = 1.5;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            for (var j = 0; j < h.length; j++) {
-                var x2 = (offset + j) * stepX;
-                var y2 = height - (height * Math.min(h[j], top) / top);
-                if (j === 0) ctx.moveTo(x2, y2);
-                else ctx.lineTo(x2, y2);
-            }
-            ctx.stroke();
-        }
-    }
-
     component Meter: Item {
         id: meter
         property string label: ""
@@ -261,14 +146,17 @@ Item {
             font.bold: true
         }
 
-        Sparkline {
+        HistoryGraph {
             anchors.bottom: parent.bottom
             visible: meter.history !== null
             width: parent.width
             height: 14
             history: meter.history !== null ? meter.history : []
             level: meter.fraction
-            lineColor: meter.barColor
+            lineColor: Qt.rgba(meter.barColor.r, meter.barColor.g, meter.barColor.b, 0.9)
+            showGrid: false
+            areaAlpha: 0.18
+            lineWidth: 1.2
         }
 
         Rectangle {
@@ -738,20 +626,20 @@ Item {
                         font.letterSpacing: 0.6
                     }
 
-                    Graph {
+                    HistoryGraph {
                         width: parent.width
                         height: 40
                         history: systemCard.expanded ? root.shell.netRxHistory : []
                         maxValue: systemCard.netTop
-                        lineColor: Qt.rgba(0.4, 0.8, 0.4, 1.0)
+                        lineColor: Qt.rgba(0.4, 0.8, 0.4, 0.9)
                     }
 
-                    Graph {
+                    HistoryGraph {
                         width: parent.width
                         height: 40
                         history: systemCard.expanded ? root.shell.netTxHistory : []
                         maxValue: systemCard.netTop
-                        lineColor: Qt.rgba(0.95, 0.6, 0.3, 1.0)
+                        lineColor: Qt.rgba(0.95, 0.6, 0.3, 0.9)
                     }
 
                     DetailRow {

@@ -52,63 +52,12 @@ Variants {
         }
     }
 
-    Canvas {
-        id: cpuGraph
+    HistoryGraph {
         visible: root.shell.cpuHistoryCount >= 2
         width: parent.width
         height: 40
-
-        property var history: root.shell.cpuHistory
-        property color gridStroke: Theme.surfaceSubtle
-        property color lineStroke: Theme.graphCpu
-        onHistoryChanged: requestPaint()
-        onGridStrokeChanged: requestPaint()
-        onLineStrokeChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            var h = history;
-            if (h.length < 2) return;
-            var maxPoints = 60;
-            var stepX = width / (maxPoints - 1);
-            var offset = maxPoints - h.length;
-
-            ctx.strokeStyle = gridStroke;
-            ctx.lineWidth = 0.5;
-            for (var g = 1; g <= 3; g++) {
-                var gy = height - (height * g * 25 / 100);
-                ctx.beginPath();
-                ctx.moveTo(0, gy);
-                ctx.lineTo(width, gy);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = Qt.rgba(0.4, 0.8, 0.4, 0.15);
-            ctx.beginPath();
-            for (var i = 0; i < h.length; i++) {
-                var x = (offset + i) * stepX;
-                var y = height - (height * h[i] / 100);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.lineTo((offset + h.length - 1) * stepX, height);
-            ctx.lineTo(offset * stepX, height);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = lineStroke;
-            ctx.lineWidth = 1.5;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            for (var j = 0; j < h.length; j++) {
-                var x2 = (offset + j) * stepX;
-                var y2 = height - (height * h[j] / 100);
-                if (j === 0) ctx.moveTo(x2, y2);
-                else ctx.lineTo(x2, y2);
-            }
-            ctx.stroke();
-        }
+        history: root.shell.cpuHistory
+        lineColor: Theme.graphCpu
     }
 
     SectionSeparator {}
@@ -146,61 +95,12 @@ Variants {
         }
     }
 
-    Canvas {
-        id: ramGraph
+    HistoryGraph {
         visible: root.shell.ramHistoryCount >= 2
         width: parent.width
         height: 40
-
-        property var history: root.shell.ramHistory
-        property color gridStroke: Theme.surfaceSubtle
-        onHistoryChanged: requestPaint()
-        onGridStrokeChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            var h = history;
-            if (h.length < 2) return;
-            var maxPoints = 60;
-            var stepX = width / (maxPoints - 1);
-            var offset = maxPoints - h.length;
-
-            ctx.strokeStyle = gridStroke;
-            ctx.lineWidth = 0.5;
-            for (var g = 1; g <= 3; g++) {
-                var gy = height - (height * g * 25 / 100);
-                ctx.beginPath();
-                ctx.moveTo(0, gy);
-                ctx.lineTo(width, gy);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = Qt.rgba(0.3, 0.6, 0.9, 0.15);
-            ctx.beginPath();
-            for (var i = 0; i < h.length; i++) {
-                var x = (offset + i) * stepX;
-                var y = height - (height * h[i] / 100);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.lineTo((offset + h.length - 1) * stepX, height);
-            ctx.lineTo(offset * stepX, height);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = Qt.rgba(0.3, 0.6, 0.9, 0.8);
-            ctx.lineWidth = 1.5;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            for (var j = 0; j < h.length; j++) {
-                var x2 = (offset + j) * stepX;
-                var y2 = height - (height * h[j] / 100);
-                if (j === 0) ctx.moveTo(x2, y2);
-                else ctx.lineTo(x2, y2);
-            }
-            ctx.stroke();
-        }
+        history: root.shell.ramHistory
+        lineColor: Qt.rgba(0.3, 0.6, 0.9, 0.8)
     }
 
     SectionSeparator {}
@@ -289,78 +189,15 @@ Variants {
         }
     }
 
-    Canvas {
-        id: netGraph
+    HistoryGraph {
         visible: root.shell.netHistoryCount >= 2
         width: parent.width
         height: 40
-
-        property var rxHistory: root.shell.netRxHistory
-        property var txHistory: root.shell.netTxHistory
-        property real peak: root.shell.netRxPeak
-        property color gridStroke: Theme.surfaceSubtle
-        onRxHistoryChanged: requestPaint()
-        onTxHistoryChanged: requestPaint()
-        onPeakChanged: requestPaint()
-        onGridStrokeChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            var rx = rxHistory;
-            var tx = txHistory;
-            if (rx.length < 2) return;
-            var maxPoints = 60;
-            var stepX = width / (maxPoints - 1);
-            var offset = maxPoints - rx.length;
-            var scale = peak > 0 ? peak : 1;
-
-            ctx.strokeStyle = gridStroke;
-            ctx.lineWidth = 0.5;
-            for (var g = 1; g <= 3; g++) {
-                var gy = height - (height * g * 25 / 100);
-                ctx.beginPath();
-                ctx.moveTo(0, gy);
-                ctx.lineTo(width, gy);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = Qt.rgba(0.4, 0.8, 0.4, 0.15);
-            ctx.beginPath();
-            for (var i = 0; i < rx.length; i++) {
-                var x = (offset + i) * stepX;
-                var y = height - (height * Math.min(rx[i] / scale, 1));
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.lineTo((offset + rx.length - 1) * stepX, height);
-            ctx.lineTo(offset * stepX, height);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = Qt.rgba(0.4, 0.8, 0.4, 0.9);
-            ctx.lineWidth = 1.5;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            for (var j = 0; j < rx.length; j++) {
-                var x2 = (offset + j) * stepX;
-                var y2 = height - (height * Math.min(rx[j] / scale, 1));
-                if (j === 0) ctx.moveTo(x2, y2);
-                else ctx.lineTo(x2, y2);
-            }
-            ctx.stroke();
-
-            ctx.strokeStyle = Qt.rgba(0.95, 0.6, 0.3, 0.9);
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            for (var k = 0; k < tx.length; k++) {
-                var x3 = (offset + k) * stepX;
-                var y3 = height - (height * Math.min(tx[k] / scale, 1));
-                if (k === 0) ctx.moveTo(x3, y3);
-                else ctx.lineTo(x3, y3);
-            }
-            ctx.stroke();
-        }
+        history: root.shell.netRxHistory
+        secondaryHistory: root.shell.netTxHistory
+        maxValue: root.shell.netRxPeak
+        lineColor: Qt.rgba(0.4, 0.8, 0.4, 0.9)
+        secondaryColor: Qt.rgba(0.95, 0.6, 0.3, 0.9)
     }
     }
 }
