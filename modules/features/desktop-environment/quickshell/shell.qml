@@ -184,6 +184,7 @@ ShellRoot {
 
     // Each entry: { date, weatherCode, tempMax, tempMin, precipChance }
     property var weatherForecast: []
+    property var weatherHourly: []
     property string weatherLocationName: ""
 
     // Shared animation clock for weather icons.
@@ -761,7 +762,7 @@ ShellRoot {
     // Open-Meteo; otherwise resolve from IP via ipinfo.io.
     Process {
         id: weatherForecastCheck
-        command: ["sh", "-c", "enc=\"$1\"; if [ -n \"$enc\" ]; then geo=$(curl -sf --max-time 5 \"https://geocoding-api.open-meteo.com/v1/search?name=$enc&count=1\"); [ -z \"$geo\" ] && exit 0; lat=$(printf '%s' \"$geo\" | grep -oE '\"latitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); lon=$(printf '%s' \"$geo\" | grep -oE '\"longitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); city=$(printf '%s' \"$geo\" | grep -oE '\"name\":\"[^\"]*\"' | head -1 | sed -E 's/.*\"([^\"]*)\"$/\\1/'); { [ -z \"$lat\" ] || [ -z \"$lon\" ]; } && exit 0; else info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; fi; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\"", "sh", shell.weatherCustomCity !== "" ? encodeURIComponent(shell.weatherCustomCity) : ""]
+        command: ["sh", "-c", "enc=\"$1\"; if [ -n \"$enc\" ]; then geo=$(curl -sf --max-time 5 \"https://geocoding-api.open-meteo.com/v1/search?name=$enc&count=1\"); [ -z \"$geo\" ] && exit 0; lat=$(printf '%s' \"$geo\" | grep -oE '\"latitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); lon=$(printf '%s' \"$geo\" | grep -oE '\"longitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); city=$(printf '%s' \"$geo\" | grep -oE '\"name\":\"[^\"]*\"' | head -1 | sed -E 's/.*\"([^\"]*)\"$/\\1/'); { [ -z \"$lat\" ] || [ -z \"$lon\" ]; } && exit 0; else info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; fi; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m,temperature_2m,weather_code&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\"", "sh", shell.weatherCustomCity !== "" ? encodeURIComponent(shell.weatherCustomCity) : ""]
         running: true
         stdout: SplitParser {
             onRead: data => {
@@ -810,6 +811,30 @@ ShellRoot {
                         shell.weatherTemp = Math.round(parsed.current.temperature_2m) + "°C";
                     shell.weatherLocationName = city;
                     shell.weatherForecast = days;
+
+                    // Next 24 hours from now, for the hourly strip.
+                    var hourly = [];
+                    if (h && h.time && h.temperature_2m) {
+                        var n = new Date();
+                        var p2 = function(v) { return (v < 10 ? "0" : "") + v; };
+                        var nowIso = n.getFullYear() + "-" + p2(n.getMonth() + 1) + "-"
+                            + p2(n.getDate()) + "T" + p2(n.getHours());
+                        var start = -1;
+                        for (var si = 0; si < h.time.length; si++) {
+                            if (h.time[si].substring(0, 13) >= nowIso) { start = si; break; }
+                        }
+                        if (start >= 0) {
+                            for (var oi = start; oi < Math.min(start + 24, h.time.length); oi++) {
+                                hourly.push({
+                                    time: h.time[oi],
+                                    hour: parseInt(h.time[oi].substring(11, 13)),
+                                    temp: Math.round(h.temperature_2m[oi]),
+                                    weatherCode: h.weather_code ? h.weather_code[oi] : 0
+                                });
+                            }
+                        }
+                    }
+                    shell.weatherHourly = hourly;
                 } catch(e) {}
             }
         }
