@@ -891,426 +891,470 @@ ShellRoot {
                 left: true
                 right: true
             }
-            implicitHeight: 30
-            color: Theme.barBg
+            implicitHeight: 40
+            color: "transparent"
 
-            RowLayout {
-                anchors.fill: parent
+            Rectangle {
+                id: leftIsland
+                anchors.left: parent.left
                 anchors.leftMargin: 8
-                anchors.rightMargin: 8
-                spacing: 0
+                y: 3
+                height: 32
+                width: leftRow.implicitWidth + 32
+                radius: 16
+                color: Theme.barBg
+                border.width: 1
+                border.color: Theme.hairline
 
-                // === Left: Workspace indicators ===
-                Item {
-                    id: wsContainer
-                    Layout.alignment: Qt.AlignLeft
-                    Layout.preferredWidth: wsRow.implicitWidth
-                    Layout.preferredHeight: 22
-                    implicitWidth: wsRow.implicitWidth
-                    implicitHeight: 22
+                RowLayout {
+                    id: leftRow
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 0
 
-                    property Item activeItem: null
+                    // === Left: Workspace indicators ===
+                    Item {
+                        id: wsContainer
+                        Layout.alignment: Qt.AlignLeft
+                        Layout.preferredWidth: wsRow.implicitWidth
+                        Layout.preferredHeight: 22
+                        implicitWidth: wsRow.implicitWidth
+                        implicitHeight: 22
 
-                    Rectangle {
-                        id: wsIndicator
-                        visible: wsContainer.activeItem !== null
-                        x: wsContainer.activeItem ? wsContainer.activeItem.x : 0
-                        width: wsContainer.activeItem ? wsContainer.activeItem.width : 0
-                        height: parent.height
-                        radius: 4
-                        color: Theme.accentSoft
-                        border.width: 1
-                        border.color: Theme.accentGlow
+                        property Item activeItem: null
 
-                        Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
-                        Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                    }
+                        Rectangle {
+                            id: wsIndicator
+                            visible: wsContainer.activeItem !== null
+                            x: wsContainer.activeItem ? wsContainer.activeItem.x : 0
+                            width: wsContainer.activeItem ? wsContainer.activeItem.width : 0
+                            height: parent.height
+                            radius: 4
+                            color: Theme.accentSoft
+                            border.width: 1
+                            border.color: Theme.accentGlow
 
-                    Row {
-                        id: wsRow
-                        spacing: 2
-                        height: parent.height
+                            Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
+                            Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+                        }
 
-                        Repeater {
-                            model: Hyprland.workspaces.values
+                        Row {
+                            id: wsRow
+                            spacing: 2
+                            height: parent.height
 
-                            Rectangle {
-                                id: wsItem
-                                required property var modelData
-                                property int wsId: modelData ? modelData.id : -1
-                                property string wsName: modelData && modelData.name ? modelData.name : ""
-                                property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
-                                property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
-                                property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
-                                property bool hovered: false
+                            Repeater {
+                                model: Hyprland.workspaces.values
 
-                                visible: wsId > 0
-                                implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
-                                width: visible ? implicitWidth : 0
-                                height: 22
-                                radius: 4
-                                color: !isActive && hovered ? Theme.workspaceHover : "transparent"
+                                Rectangle {
+                                    id: wsItem
+                                    required property var modelData
+                                    property int wsId: modelData ? modelData.id : -1
+                                    property string wsName: modelData && modelData.name ? modelData.name : ""
+                                    property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
+                                    property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
+                                    property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
+                                    property bool hovered: false
 
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                                onIsActiveChanged: if (isActive && visible) wsContainer.activeItem = wsItem
-                                Component.onCompleted: if (isActive && visible) wsContainer.activeItem = wsItem
-                                Component.onDestruction: if (wsContainer.activeItem === wsItem) wsContainer.activeItem = null
-
-                                Text {
-                                    id: wsLabel
-                                    anchors.centerIn: parent
-                                    text: wsItem.label
-                                    color: wsItem.isActive ? Theme.accent : Theme.text
-                                    font.pixelSize: Theme.fontBody
-                                    font.bold: wsItem.isActive
+                                    visible: wsId > 0
+                                    implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
+                                    width: visible ? implicitWidth : 0
+                                    height: 22
+                                    radius: 4
+                                    color: !isActive && hovered ? Theme.workspaceHover : "transparent"
 
                                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                                }
 
-                                MouseArea {
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onEntered: wsItem.hovered = true
-                                    onExited: wsItem.hovered = false
-                                    onClicked: {
-                                        shell.closePopup();
-                                        wsItem.modelData.activate();
+                                    onIsActiveChanged: if (isActive && visible) wsContainer.activeItem = wsItem
+                                    Component.onCompleted: if (isActive && visible) wsContainer.activeItem = wsItem
+                                    Component.onDestruction: if (wsContainer.activeItem === wsItem) wsContainer.activeItem = null
+
+                                    Text {
+                                        id: wsLabel
+                                        anchors.centerIn: parent
+                                        text: wsItem.label
+                                        color: wsItem.isActive ? Theme.accent : Theme.text
+                                        font.pixelSize: Theme.fontBody
+                                        font.bold: wsItem.isActive
+
+                                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: wsItem.hovered = true
+                                        onExited: wsItem.hovered = false
+                                        onClicked: {
+                                            shell.closePopup();
+                                            wsItem.modelData.activate();
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // === MPRIS media widget (left-aligned) ===
-                Rectangle {
-                    id: mediaArea
-                    property bool hovered: false
+                    // === MPRIS media widget (left-aligned) ===
+                    Rectangle {
+                        id: mediaArea
+                        property bool hovered: false
 
-                    visible: shell.mprisPlayer !== null
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    Layout.leftMargin: 8
-                    implicitWidth: mediaRow.implicitWidth + 16
-                    implicitHeight: 22
-                    radius: 4
-                    color: shell.activePopup === "media" ? Theme.surfaceActive
-                         : hovered ? Theme.buttonHover : "transparent"
+                        visible: shell.mprisPlayer !== null
+                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                        Layout.leftMargin: 8
+                        implicitWidth: mediaRow.implicitWidth + 16
+                        implicitHeight: 22
+                        radius: 4
+                        color: shell.activePopup === "media" ? Theme.surfaceActive
+                             : hovered ? Theme.buttonHover : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
-                    Row {
-                        id: mediaRow
-                        anchors.centerIn: parent
-                        spacing: 6
+                        Row {
+                            id: mediaRow
+                            anchors.centerIn: parent
+                            spacing: 6
 
-                        MediaPlayerIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            iconSize: 14
-                            iconType: !shell.mprisPlayer ? "stopped"
-                                : shell.mprisPlayer.isPlaying ? "playing" : "paused"
-                            animTime: shell.weatherAnimTime
-                        }
-
-                        Text {
-                            id: mediaTitle
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
-                                ? shell.mprisPlayer.trackTitle : ""
-                            color: Theme.text
-                            font.pixelSize: Theme.fontTitle
-                            elide: Text.ElideRight
-                            width: Math.min(implicitWidth, Math.max(0, (barWindow.width / 2) - 220))
-                            visible: text !== ""
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            var pos = mediaArea.mapToItem(null, 0, 0);
-                            shell.mediaIconX = pos.x;
-                            shell.togglePopup("media", barWindow.modelData);
-                        }
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                // === Tray overflow chevron ===
-                BarButton {
-                    id: overflowButton
-                    visible: barWindow.trayOverflow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 26
-                    active: shell.activePopup === "overflow"
-                    onClicked: shell.togglePopup("overflow", barWindow.modelData)
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 2
-
-                        Repeater {
-                            model: 3
-
-                            Rectangle {
-                                width: 3
-                                height: 3
-                                radius: 1.5
-                                color: Theme.iconPrimary
+                            MediaPlayerIcon {
                                 anchors.verticalCenter: parent.verticalCenter
+                                iconSize: 14
+                                iconType: !shell.mprisPlayer ? "stopped"
+                                    : shell.mprisPlayer.isPlaying ? "playing" : "paused"
+                                animTime: shell.weatherAnimTime
+                            }
+
+                            Text {
+                                id: mediaTitle
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
+                                    ? shell.mprisPlayer.trackTitle : ""
+                                color: Theme.text
+                                font.pixelSize: Theme.fontTitle
+                                elide: Text.ElideRight
+                                width: Math.min(implicitWidth, Math.max(0, (barWindow.width / 2) - 220))
+                                visible: text !== ""
                             }
                         }
-                    }
-                }
 
-                // === Battery icon ===
-                BarButton {
-                    id: batteryButton
-                    visible: shell.hasBattery
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 34
-                    active: shell.activePopup === "battery"
-                    onEntered: {
-                        shell.batteryHovered = true;
-                        shell.batteryHoveredScreen = barWindow.modelData;
-                        var pos = batteryButton.mapToItem(null, 0, 0);
-                        shell.batteryIconX = pos.x;
-                        shell.batteryIconWidth = batteryButton.width;
-                    }
-                    onExited: shell.batteryHovered = false
-                    onClicked: shell.togglePopup("battery", barWindow.modelData)
-
-                    BatteryIcon {
-                        anchors.centerIn: parent
-                        percent: shell.batteryPercent
-                        charging: shell.batteryCharging
-                    }
-                }
-
-                // === System monitor sparkline (CPU + RAM) ===
-                BarButton {
-                    id: sysMonButton
-                    visible: !barWindow.trayOverflow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "sysMon"
-                    onClicked: shell.togglePopup("sysMon", barWindow.modelData)
-
-                    SysMonIcon {
-                        anchors.centerIn: parent
-                        cpuHistory: shell.cpuHistory
-                        ramHistory: shell.ramHistory
-                    }
-                }
-
-                // === Brightness icon ===
-                BarButton {
-                    id: brightnessButton
-                    visible: shell.hasBrightness && !barWindow.trayOverflow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "brightness"
-                    onClicked: shell.togglePopup("brightness", barWindow.modelData)
-
-                    BrightnessIcon {
-                        anchors.centerIn: parent
-                        percent: shell.brightnessPercent
-                    }
-                }
-
-                // === Volume icon ===
-                BarButton {
-                    id: volumeButton
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "volume"
-                    onClicked: shell.togglePopup("volume", barWindow.modelData)
-
-                    VolumeIcon {
-                        anchors.centerIn: parent
-                        volume: shell.volumePercent
-                        muted: shell.volumeMuted
-                    }
-                }
-
-                // === Bluetooth icon ===
-                BarButton {
-                    id: btButton
-                    visible: shell.hasBluetooth
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "bt"
-                    onClicked: {
-                        shell.togglePopup("bt", barWindow.modelData);
-                        if (shell.activePopup === "bt") btControllerCheck.running = true;
-                    }
-
-                    BluetoothIcon {
-                        anchors.centerIn: parent
-                        powered: shell.bluetoothPowered
-                    }
-                }
-
-                // === Right: WiFi icon ===
-                BarButton {
-                    id: wifiButton
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "wifi"
-                    onClicked: {
-                        shell.togglePopup("wifi", barWindow.modelData);
-                        if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
-                        shell.selectedNetworkName = "";
-                        shell.passwordInput = "";
-                    }
-
-                    WifiIcon {
-                        anchors.centerIn: parent
-                        visible: !shell.ethernetConnected
-                        enabled: Networking.wifiEnabled
-                    }
-
-                    EthernetIcon {
-                        anchors.centerIn: parent
-                        visible: shell.ethernetConnected
-                        active: Networking.wifiEnabled
-                    }
-                }
-
-                // === Notification bell icon ===
-                BarButton {
-                    id: notifButton
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "notif"
-                    onClicked: shell.togglePopup("notif", barWindow.modelData)
-
-                    BellIcon {
-                        anchors.centerIn: parent
-                        count: shell.notifCount
-                    }
-
-                    // Unread badge
-                    Rectangle {
-                        visible: shell.notifCount > 0
-                        x: parent.width - 10
-                        y: 1
-                        width: Math.max(12, badgeText.implicitWidth + 4)
-                        height: 12
-                        radius: 6
-                        color: Theme.accentDanger
-
-                        Text {
-                            id: badgeText
-                            anchors.centerIn: parent
-                            text: shell.notifCount > 99 ? "99+" : shell.notifCount
-                            color: "#ffffff"
-                            font.pixelSize: 8
-                            font.bold: true
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.hovered = true
+                            onExited: parent.hovered = false
+                            onClicked: {
+                                var pos = mediaArea.mapToItem(null, 0, 0);
+                                shell.mediaIconX = pos.x;
+                                shell.togglePopup("media", barWindow.modelData);
+                            }
                         }
                     }
                 }
             }
 
-            // === Centre: Date / Time + Weather (anchored to true centre, separate widgets) ===
-            Row {
-                id: centreRow
-                anchors.centerIn: parent
-                spacing: 8
+            Rectangle {
+                id: centreIsland
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: 3
+                height: 32
+                width: centreRow.implicitWidth + 32
+                radius: 16
+                color: Theme.barBg
+                border.width: 1
+                border.color: Theme.hairline
 
-                Rectangle {
-                    id: dateArea
-                    property bool hovered: false
+                Row {
+                    id: centreRow
+                    anchors.centerIn: parent
+                    spacing: 8
 
-                    width: dateText.implicitWidth + 20
-                    height: 22
-                    radius: 4
-                    color: hovered ? Theme.buttonHover : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
+                    Rectangle {
+                        id: dateArea
+                        property bool hovered: false
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        width: dateText.implicitWidth + 20
+                        height: 22
+                        radius: 4
+                        color: hovered ? Theme.buttonHover : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
 
-                    Text {
-                        id: dateText
-                        anchors.centerIn: parent
-                        text: shell.showFullDate
-                            ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
-                            : Qt.formatDateTime(clock.date, "h:mm AP")
-                        color: Theme.text
-                        font.pixelSize: Theme.fontTitle
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: shell.showFullDate = !shell.showFullDate
-                    }
-                }
-
-                Rectangle {
-                    id: weatherArea
-                    property bool hovered: false
-
-                    visible: shell.weatherCondition !== ""
-                    width: weatherRow.implicitWidth + 16
-                    height: 22
-                    radius: 4
-                    color: shell.activePopup === "weather" ? Theme.surfaceActive
-                         : hovered ? Theme.buttonHover : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                    Row {
-                        id: weatherRow
-                        anchors.centerIn: parent
-                        spacing: 6
-
-                        WeatherIcon {
-                            id: weatherCanvas
-                            anchors.verticalCenter: parent.verticalCenter
-                            iconSize: 14
-                            iconType: shell.conditionToIconType(shell.weatherCondition)
-                            animTime: shell.weatherAnimTime
-                        }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                         Text {
-                            text: shell.weatherTemp
+                            id: dateText
+                            anchors.centerIn: parent
+                            text: shell.showFullDate
+                                ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
+                                : Qt.formatDateTime(clock.date, "h:mm AP")
                             color: Theme.text
                             font.pixelSize: Theme.fontTitle
-                            anchors.verticalCenter: parent.verticalCenter
                         }
 
-                        Text {
-                            visible: shell.weatherEffectOverride !== ""
-                            text: "(" + (shell.weatherEffectOverride === "none" ? "off" : shell.weatherEffectOverride) + ")"
-                            color: Theme.textDim
-                            font.pixelSize: Theme.fontLabel
-                            anchors.verticalCenter: parent.verticalCenter
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.hovered = true
+                            onExited: parent.hovered = false
+                            onClicked: shell.showFullDate = !shell.showFullDate
                         }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: function(mouse) {
-                            if (mouse.button === Qt.RightButton) {
-                                shell.cycleWeatherEffect();
-                            } else {
-                                shell.togglePopup("weather", barWindow.modelData);
+                    Rectangle {
+                        id: weatherArea
+                        property bool hovered: false
+
+                        visible: shell.weatherCondition !== ""
+                        width: weatherRow.implicitWidth + 16
+                        height: 22
+                        radius: 4
+                        color: shell.activePopup === "weather" ? Theme.surfaceActive
+                             : hovered ? Theme.buttonHover : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                        Row {
+                            id: weatherRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            WeatherIcon {
+                                id: weatherCanvas
+                                anchors.verticalCenter: parent.verticalCenter
+                                iconSize: 14
+                                iconType: shell.conditionToIconType(shell.weatherCondition)
+                                animTime: shell.weatherAnimTime
+                            }
+
+                            Text {
+                                text: shell.weatherTemp
+                                color: Theme.text
+                                font.pixelSize: Theme.fontTitle
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            Text {
+                                visible: shell.weatherEffectOverride !== ""
+                                text: "(" + (shell.weatherEffectOverride === "none" ? "off" : shell.weatherEffectOverride) + ")"
+                                color: Theme.textDim
+                                font.pixelSize: Theme.fontLabel
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.hovered = true
+                            onExited: parent.hovered = false
+                            onClicked: function(mouse) {
+                                if (mouse.button === Qt.RightButton) {
+                                    shell.cycleWeatherEffect();
+                                } else {
+                                    shell.togglePopup("weather", barWindow.modelData);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                id: rightIsland
+                anchors.right: parent.right
+                anchors.rightMargin: 8
+                y: 3
+                height: 32
+                width: rightRow.implicitWidth + 32
+                radius: 16
+                color: Theme.barBg
+                border.width: 1
+                border.color: Theme.hairline
+
+                RowLayout {
+                    id: rightRow
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 0
+
+                    // === Tray overflow chevron ===
+                    BarButton {
+                        id: overflowButton
+                        visible: barWindow.trayOverflow
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 26
+                        active: shell.activePopup === "overflow"
+                        onClicked: shell.togglePopup("overflow", barWindow.modelData)
+
+                        Row {
+                            anchors.centerIn: parent
+                            spacing: 2
+
+                            Repeater {
+                                model: 3
+
+                                Rectangle {
+                                    width: 3
+                                    height: 3
+                                    radius: 1.5
+                                    color: Theme.iconPrimary
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                        }
+                    }
+
+                    // === Battery icon ===
+                    BarButton {
+                        id: batteryButton
+                        visible: shell.hasBattery
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 34
+                        active: shell.activePopup === "battery"
+                        onEntered: {
+                            shell.batteryHovered = true;
+                            shell.batteryHoveredScreen = barWindow.modelData;
+                            var pos = batteryButton.mapToItem(null, 0, 0);
+                            shell.batteryIconX = pos.x;
+                            shell.batteryIconWidth = batteryButton.width;
+                        }
+                        onExited: shell.batteryHovered = false
+                        onClicked: shell.togglePopup("battery", barWindow.modelData)
+
+                        BatteryIcon {
+                            anchors.centerIn: parent
+                            percent: shell.batteryPercent
+                            charging: shell.batteryCharging
+                        }
+                    }
+
+                    // === System monitor sparkline (CPU + RAM) ===
+                    BarButton {
+                        id: sysMonButton
+                        visible: !barWindow.trayOverflow
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 30
+                        active: shell.activePopup === "sysMon"
+                        onClicked: shell.togglePopup("sysMon", barWindow.modelData)
+
+                        SysMonIcon {
+                            anchors.centerIn: parent
+                            cpuHistory: shell.cpuHistory
+                            ramHistory: shell.ramHistory
+                        }
+                    }
+
+                    // === Brightness icon ===
+                    BarButton {
+                        id: brightnessButton
+                        visible: shell.hasBrightness && !barWindow.trayOverflow
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 30
+                        active: shell.activePopup === "brightness"
+                        onClicked: shell.togglePopup("brightness", barWindow.modelData)
+
+                        BrightnessIcon {
+                            anchors.centerIn: parent
+                            percent: shell.brightnessPercent
+                        }
+                    }
+
+                    // === Volume icon ===
+                    BarButton {
+                        id: volumeButton
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 30
+                        active: shell.activePopup === "volume"
+                        onClicked: shell.togglePopup("volume", barWindow.modelData)
+
+                        VolumeIcon {
+                            anchors.centerIn: parent
+                            volume: shell.volumePercent
+                            muted: shell.volumeMuted
+                        }
+                    }
+
+                    // === Bluetooth icon ===
+                    BarButton {
+                        id: btButton
+                        visible: shell.hasBluetooth
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 30
+                        active: shell.activePopup === "bt"
+                        onClicked: {
+                            shell.togglePopup("bt", barWindow.modelData);
+                            if (shell.activePopup === "bt") btControllerCheck.running = true;
+                        }
+
+                        BluetoothIcon {
+                            anchors.centerIn: parent
+                            powered: shell.bluetoothPowered
+                        }
+                    }
+
+                    // === Right: WiFi icon ===
+                    BarButton {
+                        id: wifiButton
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 30
+                        active: shell.activePopup === "wifi"
+                        onClicked: {
+                            shell.togglePopup("wifi", barWindow.modelData);
+                            if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
+                            shell.selectedNetworkName = "";
+                            shell.passwordInput = "";
+                        }
+
+                        WifiIcon {
+                            anchors.centerIn: parent
+                            visible: !shell.ethernetConnected
+                            enabled: Networking.wifiEnabled
+                        }
+
+                        EthernetIcon {
+                            anchors.centerIn: parent
+                            visible: shell.ethernetConnected
+                            active: Networking.wifiEnabled
+                        }
+                    }
+
+                    // === Notification bell icon ===
+                    BarButton {
+                        id: notifButton
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 30
+                        active: shell.activePopup === "notif"
+                        onClicked: shell.togglePopup("notif", barWindow.modelData)
+
+                        BellIcon {
+                            anchors.centerIn: parent
+                            count: shell.notifCount
+                        }
+
+                        // Unread badge
+                        Rectangle {
+                            visible: shell.notifCount > 0
+                            x: parent.width - 10
+                            y: 1
+                            width: Math.max(12, badgeText.implicitWidth + 4)
+                            height: 12
+                            radius: 6
+                            color: Theme.accentDanger
+
+                            Text {
+                                id: badgeText
+                                anchors.centerIn: parent
+                                text: shell.notifCount > 99 ? "99+" : shell.notifCount
+                                color: "#ffffff"
+                                font.pixelSize: 8
+                                font.bold: true
                             }
                         }
                     }

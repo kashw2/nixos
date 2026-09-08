@@ -10,7 +10,7 @@ PanelWindow {
     required property var modelData
 
     property int popupWidth: 280
-    property int marginTop: 38
+    property int marginTop: 41
     property int marginRight: 8
     property int padding: 12
     property int spacing: 8
