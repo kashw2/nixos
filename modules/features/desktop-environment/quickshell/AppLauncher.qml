@@ -508,6 +508,16 @@ Variants {
             onClicked: root.shell.closePopup()
         }
 
+        LauncherInfoCards {
+            shell: root.shell
+            shown: launcherWindow.isOnThisScreen && launcherWindow.searchText === ""
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: launcherBox.top
+            anchors.topMargin: launcherBox.searchHeight + 12
+            width: launcherBox.width
+        }
+
         Item {
             id: launcherBox
             anchors.horizontalCenter: parent.horizontalCenter

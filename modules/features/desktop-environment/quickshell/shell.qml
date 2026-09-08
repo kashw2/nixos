@@ -113,6 +113,30 @@ ShellRoot {
         return "cloudy";
     }
 
+    function weatherCodeToIconType(code) {
+        if (code === 0) return "sunny";
+        if (code === 1 || code === 2) return "partlycloudy";
+        if (code === 3) return "cloudy";
+        if (code === 45 || code === 48) return "fog";
+        if (code === 95 || code === 96 || code === 99) return "thunder";
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "snow";
+        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
+        return "cloudy";
+    }
+
+    function dayNameFor(dateStr) {
+        var parts = dateStr.split("-");
+        var dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        var names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        return names[dt.getDay()];
+    }
+
+    function compassFor(deg) {
+        if (deg === null || deg === undefined) return "";
+        var dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+        return dirs[Math.round(deg / 45) % 8];
+    }
+
     function setWeatherCity(name) {
         var trimmed = (name || "").trim();
         var changed = trimmed !== shell.weatherCustomCity;

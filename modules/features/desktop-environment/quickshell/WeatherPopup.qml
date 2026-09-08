@@ -7,30 +7,6 @@ Variants {
     required property var shell
     model: Quickshell.screens
 
-    function weatherCodeToIconType(code) {
-        if (code === 0) return "sunny";
-        if (code === 1 || code === 2) return "partlycloudy";
-        if (code === 3) return "cloudy";
-        if (code === 45 || code === 48) return "fog";
-        if (code === 95 || code === 96 || code === 99) return "thunder";
-        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "snow";
-        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
-        return "cloudy";
-    }
-
-    function dayNameFor(dateStr) {
-        var parts = dateStr.split("-");
-        var dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        var names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        return names[dt.getDay()];
-    }
-
-    function compassFor(deg) {
-        if (deg === null || deg === undefined) return "";
-        var dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-        return dirs[Math.round(deg / 45) % 8];
-    }
-
     // Tinted backdrop color, derived from the current condition. Subtle so the
     // content still reads cleanly; the alpha keeps it translucent like other popups.
     function backdropFor(iconType) {
@@ -365,7 +341,7 @@ Variants {
                         anchors.top: parent.top
                         anchors.topMargin: 4
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: root.dayNameFor(card.modelData.date)
+                        text: root.shell.dayNameFor(card.modelData.date)
                         color: Theme.text
                         font.pixelSize: Theme.fontBody
                         font.bold: true
@@ -381,7 +357,7 @@ Variants {
                         WeatherIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
                             iconSize: 40
-                            iconType: root.weatherCodeToIconType(card.modelData.weatherCode)
+                            iconType: root.shell.weatherCodeToIconType(card.modelData.weatherCode)
                             animTime: popup.animTime + card.index * 0.37
                         }
 
