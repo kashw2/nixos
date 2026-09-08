@@ -58,6 +58,11 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 
+    Behavior on implicitHeight {
+        enabled: root.shown
+        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+    }
+
     Rectangle {
         id: card
         anchors.fill: parent
