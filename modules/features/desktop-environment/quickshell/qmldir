@@ -15,7 +15,9 @@ BrightnessIcon 1.0 BrightnessIcon.qml
 BrightnessPopup 1.0 BrightnessPopup.qml
 EthernetIcon 1.0 EthernetIcon.qml
 HeaderWithToggle 1.0 HeaderWithToggle.qml
+ActionButton 1.0 ActionButton.qml
 HistoryGraph 1.0 HistoryGraph.qml
+InputField 1.0 InputField.qml
 VectorIcon 1.0 VectorIcon.qml
 LauncherInfoCards 1.0 LauncherInfoCards.qml
 MediaPlayerIcon 1.0 MediaPlayerIcon.qml
