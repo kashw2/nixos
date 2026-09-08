@@ -9,6 +9,9 @@ Rectangle {
     readonly property alias hovered: mouseArea.containsMouse
     default property alias content: contentItem.data
 
+    property var pulseWhen: []
+    onPulseWhenChanged: root.pulse()
+
     property bool pulseArmed: false
 
     signal clicked()
@@ -23,6 +26,7 @@ Rectangle {
     implicitHeight: 22
     radius: 4
     color: mouseArea.containsMouse || active ? Theme.buttonHover : "transparent"
+    Layout.alignment: Qt.AlignRight
 
     transformOrigin: Item.Center
     scale: mouseArea.pressed ? 0.86 : 1.0

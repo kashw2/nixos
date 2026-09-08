@@ -1432,7 +1432,6 @@ ShellRoot {
                     BarButton {
                         id: overflowButton
                         visible: barWindow.trayOverflow
-                        Layout.alignment: Qt.AlignRight
                         implicitWidth: 26
                         active: shell.activePopup === "overflow"
                         onClicked: shell.togglePopupFrom(overflowButton, "overflow", barWindow.modelData)
@@ -1459,7 +1458,7 @@ ShellRoot {
                     BarButton {
                         id: batteryButton
                         visible: shell.hasBattery
-                        Layout.alignment: Qt.AlignRight
+                        pulseWhen: [shell.batteryCharging]
                         implicitWidth: 34
                         active: shell.activePopup === "battery"
                         onEntered: {
@@ -1471,12 +1470,6 @@ ShellRoot {
                         }
                         onExited: shell.batteryHovered = false
                         onClicked: shell.togglePopupFrom(batteryButton, "battery", barWindow.modelData)
-
-                        Connections {
-                            target: shell
-                            function onBatteryChargingChanged() { batteryButton.pulse(); }
-                        }
-
                         BatteryIcon {
                             anchors.centerIn: parent
                             percent: shell.batteryPercent
@@ -1488,7 +1481,6 @@ ShellRoot {
                     BarButton {
                         id: sysMonButton
                         visible: !barWindow.trayOverflow
-                        Layout.alignment: Qt.AlignRight
                         implicitWidth: 30
                         active: shell.activePopup === "sysMon"
                         onClicked: shell.togglePopupFrom(sysMonButton, "sysMon", barWindow.modelData)
@@ -1505,18 +1497,12 @@ ShellRoot {
                     BarButton {
                         id: brightnessButton
                         visible: shell.hasBrightness && !barWindow.trayOverflow
-                        Layout.alignment: Qt.AlignRight
+                        pulseWhen: [shell.brightnessPercent]
                         implicitWidth: 30
                         active: shell.activePopup === "brightness"
                         onClicked: shell.togglePopupFrom(brightnessButton, "brightness", barWindow.modelData)
                         onWheel: delta => shell.setBrightness(Math.max(1, Math.min(100,
                             shell.brightnessPercent + (delta > 0 ? 5 : -5))))
-
-                        Connections {
-                            target: shell
-                            function onBrightnessPercentChanged() { brightnessButton.pulse(); }
-                        }
-
                         BrightnessIcon {
                             anchors.centerIn: parent
                             percent: shell.brightnessPercent
@@ -1526,7 +1512,6 @@ ShellRoot {
                     // === Idle inhibitor toggle ===
                     BarButton {
                         id: idleButton
-                        Layout.alignment: Qt.AlignRight
                         implicitWidth: 26
                         active: shell.idleInhibited
                         onClicked: {
@@ -1545,19 +1530,12 @@ ShellRoot {
                     // === Volume icon ===
                     BarButton {
                         id: volumeButton
-                        Layout.alignment: Qt.AlignRight
+                        pulseWhen: [shell.volumePercent, shell.volumeMuted]
                         implicitWidth: 30
                         active: shell.activePopup === "volume"
                         onClicked: shell.togglePopupFrom(volumeButton, "volume", barWindow.modelData)
                         onWheel: delta => shell.setVolume(Math.max(0, Math.min(100,
                             shell.volumePercent + (delta > 0 ? 5 : -5))))
-
-                        Connections {
-                            target: shell
-                            function onVolumePercentChanged() { volumeButton.pulse(); }
-                            function onVolumeMutedChanged() { volumeButton.pulse(); }
-                        }
-
                         VolumeIcon {
                             anchors.centerIn: parent
                             volume: shell.volumePercent
@@ -1569,19 +1547,13 @@ ShellRoot {
                     BarButton {
                         id: btButton
                         visible: shell.hasBluetooth
-                        Layout.alignment: Qt.AlignRight
+                        pulseWhen: [shell.bluetoothPowered]
                         implicitWidth: 30
                         active: shell.activePopup === "bt"
                         onClicked: {
                             shell.togglePopupFrom(btButton, "bt", barWindow.modelData);
                             if (shell.activePopup === "bt") shell.refreshBluetooth();
                         }
-
-                        Connections {
-                            target: shell
-                            function onBluetoothPoweredChanged() { btButton.pulse(); }
-                        }
-
                         BluetoothIcon {
                             anchors.centerIn: parent
                             powered: shell.bluetoothPowered
@@ -1591,7 +1563,7 @@ ShellRoot {
                     // === Right: WiFi icon ===
                     BarButton {
                         id: wifiButton
-                        Layout.alignment: Qt.AlignRight
+                        pulseWhen: [shell.ethernetConnected, shell.connectedNetwork]
                         implicitWidth: 30
                         active: shell.activePopup === "wifi"
                         onClicked: {
@@ -1600,13 +1572,6 @@ ShellRoot {
                             shell.selectedNetworkName = "";
                             shell.passwordInput = "";
                         }
-
-                        Connections {
-                            target: shell
-                            function onEthernetConnectedChanged() { wifiButton.pulse(); }
-                            function onConnectedNetworkChanged() { wifiButton.pulse(); }
-                        }
-
                         WifiIcon {
                             anchors.centerIn: parent
                             visible: !shell.ethernetConnected
@@ -1623,7 +1588,6 @@ ShellRoot {
                     // === Power menu ===
                     BarButton {
                         id: powerButton
-                        Layout.alignment: Qt.AlignRight
                         implicitWidth: 26
                         active: shell.activePopup === "power"
                         onClicked: shell.togglePopupFrom(powerButton, "power", barWindow.modelData)
@@ -1637,7 +1601,6 @@ ShellRoot {
                     // === Notification bell icon ===
                     BarButton {
                         id: notifButton
-                        Layout.alignment: Qt.AlignRight
                         implicitWidth: 30
                         active: shell.activePopup === "notif"
                         onClicked: shell.togglePopupFrom(notifButton, "notif", barWindow.modelData)
