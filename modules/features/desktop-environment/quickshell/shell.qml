@@ -68,6 +68,17 @@ ShellRoot {
     property int batteryLastNotifiedThreshold: 0
     readonly property var batteryThresholds: [20, 10, 5]
 
+    property bool idleInhibited: false
+
+    Process {
+        id: idleInhibitor
+        command: ["systemd-inhibit", "--what=idle:sleep", "--who=quickshell",
+            "--why=Manually inhibited from the bar", "--mode=block",
+            "cat"]
+        stdinEnabled: true
+        running: shell.idleInhibited
+    }
+
     property bool hasBrightness: false
     property int brightnessPercent: 0
 
@@ -1427,6 +1438,25 @@ ShellRoot {
                         BrightnessIcon {
                             anchors.centerIn: parent
                             percent: shell.brightnessPercent
+                        }
+                    }
+
+                    // === Idle inhibitor toggle ===
+                    BarButton {
+                        id: idleButton
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: 26
+                        active: shell.idleInhibited
+                        onClicked: {
+                            shell.idleInhibited = !shell.idleInhibited;
+                            idleButton.pulse();
+                        }
+
+                        IdleIcon {
+                            anchors.centerIn: parent
+                            inhibited: shell.idleInhibited
+                            iconColor: shell.idleInhibited ? Theme.accent : Theme.iconPrimary
+                            steam: shell.weatherAnimTime
                         }
                     }
 

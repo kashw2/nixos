@@ -33,6 +33,7 @@
           pkgs.fd
           pkgs.chroma
           pkgs.wl-clipboard
+          pkgs.systemd
         ]
         ++ lib.optionals (config.isLaptop) [
           pkgs.brightnessctl
