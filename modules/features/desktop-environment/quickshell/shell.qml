@@ -214,6 +214,41 @@ ShellRoot {
         onTriggered: if (shell.mprisPlayer) shell.mprisPlayer.positionChanged()
     }
 
+    readonly property string frecencyPath: Quickshell.statePath("launcher-frecency.json")
+    property var launchStats: ({})
+
+    FileView {
+        path: shell.frecencyPath
+        preload: true
+        printErrors: false
+        onLoaded: {
+            try {
+                shell.launchStats = JSON.parse(text()) || ({});
+            } catch (e) {
+                shell.launchStats = ({});
+            }
+        }
+    }
+
+    function noteLaunch(id) {
+        if (!id) return;
+        var next = {};
+        for (var k in shell.launchStats) next[k] = shell.launchStats[k];
+        var prev = next[id] || { n: 0, t: 0 };
+        next[id] = { n: prev.n + 1, t: Date.now() };
+        shell.launchStats = next;
+        Quickshell.execDetached(["sh", "-c",
+            "mkdir -p \"$(dirname \"$1\")\" && printf %s \"$2\" > \"$1\"",
+            "sh", shell.frecencyPath, JSON.stringify(next)]);
+    }
+
+    function frecency(id) {
+        var e = shell.launchStats[id];
+        if (!e) return 0;
+        var days = (Date.now() - e.t) / 86400000;
+        return e.n * Math.exp(-days / 14);
+    }
+
     property color baseAccent: "#89b4fa"
 
     readonly property int accentWorkspace: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0

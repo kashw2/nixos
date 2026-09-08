@@ -40,6 +40,9 @@ Variants {
             }
             scored.sort(function(a, b) {
                 if (a.score !== b.score) return a.score - b.score;
+                var fa = root.shell.frecency(a.entry.id);
+                var fb = root.shell.frecency(b.entry.id);
+                if (fa !== fb) return fb - fa;
                 return a.entry.name.localeCompare(b.entry.name);
             });
             return scored.map(function(s) { return s.entry; });
@@ -305,6 +308,7 @@ Variants {
             var row = selected;
             if (!row) return;
             if (row.type === "app") {
+                root.shell.noteLaunch(row.entry.id);
                 row.entry.execute();
             } else if (row.type === "file") {
                 Quickshell.execDetached(["kitty", "nvim", "--", row.path]);
