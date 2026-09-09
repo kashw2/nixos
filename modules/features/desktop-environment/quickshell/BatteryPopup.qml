@@ -112,53 +112,14 @@ Variants {
     }
 
     // Charge history sparkline
-    Canvas {
-        id: historyGraph
+    HistoryGraph {
         visible: root.shell.batteryHistoryCount >= 2
         width: parent.width
         height: 60
-
-        property var history: root.shell.batteryHistory
-        property color gridStroke: Theme.surfaceSubtle
-        property color lineStroke: Theme.textDim
-        onHistoryChanged: requestPaint()
-        onGridStrokeChanged: requestPaint()
-        onLineStrokeChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            var h = history;
-            if (h.length < 2) return;
-
-            var maxPoints = 720;
-            var stepX = width / (maxPoints - 1);
-            var offset = maxPoints - h.length;
-
-            // Grid lines at 25%, 50%, 75%
-            ctx.strokeStyle = gridStroke;
-            ctx.lineWidth = 0.5;
-            for (var g = 1; g <= 3; g++) {
-                var gy = height - (height * g * 25 / 100);
-                ctx.beginPath();
-                ctx.moveTo(0, gy);
-                ctx.lineTo(width, gy);
-                ctx.stroke();
-            }
-
-            // Sparkline
-            ctx.strokeStyle = lineStroke;
-            ctx.lineWidth = 1.5;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            for (var i = 0; i < h.length; i++) {
-                var x = (offset + i) * stepX;
-                var y = height - (height * h[i] / 100);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-        }
+        history: root.shell.batteryHistory
+        maxPoints: 720
+        fillArea: false
+        lineColor: Theme.textDim
     }
     }
 }

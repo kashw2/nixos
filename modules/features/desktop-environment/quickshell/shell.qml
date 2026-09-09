@@ -12,7 +12,7 @@ ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather", "media"
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather", "media", "power"
     property string activePopup: ""
     property var activePopupScreen: null
     property string selectedNetworkName: ""
@@ -46,6 +46,7 @@ ShellRoot {
     property bool bluetoothPowered: false
     property var btPairedDevices: []
     property var btConnectedDevices: []
+    property var btBatteryLevels: ({})
     property var btDiscoveredDevices: []
     property bool btScanning: false
 
@@ -62,9 +63,21 @@ ShellRoot {
     property var batteryHoveredScreen: null
     property real batteryIconX: 0
     property real batteryIconWidth: 0
-    property real mediaIconX: 0
+    property real popupAnchorX: 0
+    property real popupAnchorWidth: 0
     property int batteryLastNotifiedThreshold: 0
     readonly property var batteryThresholds: [20, 10, 5]
+
+    property bool idleInhibited: false
+
+    Process {
+        id: idleInhibitor
+        command: ["systemd-inhibit", "--what=idle:sleep", "--who=quickshell",
+            "--why=Manually inhibited from the bar", "--mode=block",
+            "cat"]
+        stdinEnabled: true
+        running: shell.idleInhibited
+    }
 
     property bool hasBrightness: false
     property int brightnessPercent: 0
@@ -171,6 +184,7 @@ ShellRoot {
 
     // Each entry: { date, weatherCode, tempMax, tempMin, precipChance }
     property var weatherForecast: []
+    property var weatherHourly: []
     property string weatherLocationName: ""
 
     // Shared animation clock for weather icons.
@@ -197,6 +211,76 @@ ShellRoot {
             if (players[j].isPlaying) return players[j];
         }
         return players[0];
+    }
+
+    property color mediaAccent: Theme.accent
+
+    readonly property real mediaProgress: {
+        if (!mprisPlayer || !mprisPlayer.length || mprisPlayer.length <= 0) return 0;
+        return Math.max(0, Math.min(1, mprisPlayer.position / mprisPlayer.length));
+    }
+
+    Timer {
+        interval: 1000
+        running: shell.mprisPlayer !== null
+        repeat: true
+        onTriggered: if (shell.mprisPlayer) shell.mprisPlayer.positionChanged()
+    }
+
+    readonly property string frecencyPath: Quickshell.statePath("launcher-frecency.json")
+    property var launchStats: ({})
+
+    FileView {
+        path: shell.frecencyPath
+        preload: true
+        printErrors: false
+        onLoaded: {
+            try {
+                shell.launchStats = JSON.parse(text()) || ({});
+            } catch (e) {
+                shell.launchStats = ({});
+            }
+        }
+    }
+
+    function noteLaunch(id) {
+        if (!id) return;
+        var next = {};
+        for (var k in shell.launchStats) next[k] = shell.launchStats[k];
+        var prev = next[id] || { n: 0, t: 0 };
+        next[id] = { n: prev.n + 1, t: Date.now() };
+        shell.launchStats = next;
+        Quickshell.execDetached(["sh", "-c",
+            "mkdir -p \"$(dirname \"$1\")\" && printf %s \"$2\" > \"$1\"",
+            "sh", shell.frecencyPath, JSON.stringify(next)]);
+    }
+
+    function frecency(id) {
+        var e = shell.launchStats[id];
+        if (!e) return 0;
+        var days = (Date.now() - e.t) / 86400000;
+        return e.n * Math.exp(-days / 14);
+    }
+
+    property color baseAccent: "#89b4fa"
+
+    readonly property int accentWorkspace: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0
+        ? Hyprland.focusedWorkspace.id : 1
+
+    function shiftHue(c, steps) {
+        if (c.hsvHue < 0 || steps === 0) return c;
+        return Qt.hsva((c.hsvHue + steps / 8) % 1, c.hsvSaturation, c.hsvValue, 1);
+    }
+
+    Binding {
+        target: Theme
+        property: "accent"
+        value: shell.shiftHue(shell.baseAccent, shell.accentWorkspace - 1)
+    }
+
+    readonly property string wallpaperUrl: {
+        var p = Quickshell.env("QS_WALLPAPER");
+        return p ? "file://" + p : "";
     }
 
     property bool toastVisible: false
@@ -229,6 +313,14 @@ ShellRoot {
     property real netTxRate: 0
     property var netRxHistory: []
     property var netTxHistory: []
+
+    readonly property var netTotalHistory: {
+        var rx = netRxHistory, tx = netTxHistory;
+        var n = Math.min(rx.length, tx.length);
+        var out = [];
+        for (var i = 0; i < n; i++) out.push(rx[rx.length - n + i] + tx[tx.length - n + i]);
+        return out;
+    }
     property int netHistoryCount: 0
     property real netRxPeak: 1
 
@@ -334,6 +426,13 @@ ShellRoot {
     function openPopup(name, screen) {
         shell.activePopup = name;
         shell.activePopupScreen = screen;
+    }
+
+    function togglePopupFrom(item, name, screen) {
+        var pos = item.mapToItem(null, 0, 0);
+        shell.popupAnchorX = pos.x;
+        shell.popupAnchorWidth = item.width;
+        shell.togglePopup(name, screen);
     }
 
     function togglePopup(name, screen) {
@@ -663,7 +762,7 @@ ShellRoot {
     // Open-Meteo; otherwise resolve from IP via ipinfo.io.
     Process {
         id: weatherForecastCheck
-        command: ["sh", "-c", "enc=\"$1\"; if [ -n \"$enc\" ]; then geo=$(curl -sf --max-time 5 \"https://geocoding-api.open-meteo.com/v1/search?name=$enc&count=1\"); [ -z \"$geo\" ] && exit 0; lat=$(printf '%s' \"$geo\" | grep -oE '\"latitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); lon=$(printf '%s' \"$geo\" | grep -oE '\"longitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); city=$(printf '%s' \"$geo\" | grep -oE '\"name\":\"[^\"]*\"' | head -1 | sed -E 's/.*\"([^\"]*)\"$/\\1/'); { [ -z \"$lat\" ] || [ -z \"$lon\" ]; } && exit 0; else info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; fi; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\"", "sh", shell.weatherCustomCity !== "" ? encodeURIComponent(shell.weatherCustomCity) : ""]
+        command: ["sh", "-c", "enc=\"$1\"; if [ -n \"$enc\" ]; then geo=$(curl -sf --max-time 5 \"https://geocoding-api.open-meteo.com/v1/search?name=$enc&count=1\"); [ -z \"$geo\" ] && exit 0; lat=$(printf '%s' \"$geo\" | grep -oE '\"latitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); lon=$(printf '%s' \"$geo\" | grep -oE '\"longitude\":[^,}]*' | head -1 | sed 's/.*://' | tr -d ' '); city=$(printf '%s' \"$geo\" | grep -oE '\"name\":\"[^\"]*\"' | head -1 | sed -E 's/.*\"([^\"]*)\"$/\\1/'); { [ -z \"$lat\" ] || [ -z \"$lon\" ]; } && exit 0; else info=$(curl -sf --max-time 5 https://ipinfo.io/json); [ -z \"$info\" ] && exit 0; loc=$(printf '%s' \"$info\" | grep -oE '\"loc\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); city=$(printf '%s' \"$info\" | grep -oE '\"city\": *\"[^\"]*\"' | sed -E 's/.*\"([^\"]*)\"$/\\1/'); [ -z \"$loc\" ] && exit 0; lat=${loc%,*}; lon=${loc#*,}; fi; data=$(curl -sf --max-time 5 \"https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&hourly=relative_humidity_2m,temperature_2m,weather_code&timezone=auto&forecast_days=7\" | tr -d '\\n'); [ -z \"$data\" ] && exit 0; printf '%s|%s\\n' \"$city\" \"$data\"", "sh", shell.weatherCustomCity !== "" ? encodeURIComponent(shell.weatherCustomCity) : ""]
         running: true
         stdout: SplitParser {
             onRead: data => {
@@ -712,6 +811,30 @@ ShellRoot {
                         shell.weatherTemp = Math.round(parsed.current.temperature_2m) + "°C";
                     shell.weatherLocationName = city;
                     shell.weatherForecast = days;
+
+                    // Next 24 hours from now, for the hourly strip.
+                    var hourly = [];
+                    if (h && h.time && h.temperature_2m) {
+                        var n = new Date();
+                        var p2 = function(v) { return (v < 10 ? "0" : "") + v; };
+                        var nowIso = n.getFullYear() + "-" + p2(n.getMonth() + 1) + "-"
+                            + p2(n.getDate()) + "T" + p2(n.getHours());
+                        var start = -1;
+                        for (var si = 0; si < h.time.length; si++) {
+                            if (h.time[si].substring(0, 13) >= nowIso) { start = si; break; }
+                        }
+                        if (start >= 0) {
+                            for (var oi = start; oi < Math.min(start + 24, h.time.length); oi++) {
+                                hourly.push({
+                                    time: h.time[oi],
+                                    hour: parseInt(h.time[oi].substring(11, 13)),
+                                    temp: Math.round(h.temperature_2m[oi]),
+                                    weatherCode: h.weather_code ? h.weather_code[oi] : 0
+                                });
+                            }
+                        }
+                    }
+                    shell.weatherHourly = hourly;
                 } catch(e) {}
             }
         }
@@ -891,394 +1014,624 @@ ShellRoot {
                 left: true
                 right: true
             }
-            implicitHeight: 30
-            color: Theme.barBg
+            implicitHeight: 40
+            color: "transparent"
 
-            RowLayout {
-                anchors.fill: parent
+            AlbumArtColor {
+                source: shell.wallpaperUrl
+                fallback: "#89b4fa"
+                onDominantChanged: shell.baseAccent = dominant
+            }
+
+            AlbumArtColor {
+                source: shell.mprisPlayer && shell.mprisPlayer.trackArtUrl !== "" ? shell.mprisPlayer.trackArtUrl : ""
+                onDominantChanged: shell.mediaAccent = dominant
+            }
+
+            Rectangle {
+                id: leftIsland
+                anchors.left: parent.left
                 anchors.leftMargin: 8
-                anchors.rightMargin: 8
-                spacing: 0
+                property bool entered: false
+                y: entered ? 3 : -height - 4
 
-                // === Left: Workspace indicators ===
-                Row {
-                    spacing: 2
-                    Layout.alignment: Qt.AlignLeft
+                Behavior on y {
+                    NumberAnimation { duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.04 }
+                }
 
-                    Repeater {
-                        model: Hyprland.workspaces.values
+                Timer { interval: 120; running: true; onTriggered: leftIsland.entered = true }
+                height: 32
+                width: leftRow.implicitWidth + 32
+                radius: 16
+                color: Theme.barBg
+                border.width: 1
+                border.color: Theme.hairline
+
+                RowLayout {
+                    id: leftRow
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 0
+
+                    // === Left: Workspace indicators ===
+                    Item {
+                        id: wsContainer
+                        Layout.alignment: Qt.AlignLeft
+                        Layout.preferredWidth: wsRow.implicitWidth
+                        Layout.preferredHeight: 22
+                        implicitWidth: wsRow.implicitWidth
+                        implicitHeight: 22
+
+                        property Item activeItem: null
 
                         Rectangle {
-                            required property var modelData
-                            property int wsId: modelData ? modelData.id : -1
-                            property string wsName: modelData && modelData.name ? modelData.name : ""
-                            property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
-                            property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
-                            property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
-                            property bool hovered: false
-
-                            visible: wsId > 0
-                            implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
-                            width: visible ? implicitWidth : 0
-                            height: 22
+                            id: wsIndicator
+                            visible: wsContainer.activeItem !== null
+                            x: wsContainer.activeItem ? wsContainer.activeItem.x : 0
+                            width: wsContainer.activeItem ? wsContainer.activeItem.width : 0
+                            height: parent.height
                             radius: 4
-                            color: isActive ? Theme.workspaceActive
-                                : hovered ? Theme.workspaceHover
-                                : "transparent"
+                            color: Theme.accentSoft
+                            border.width: 1
+                            border.color: Theme.accentGlow
 
-                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                            Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
+                            Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+                        }
 
-                            Text {
-                                id: wsLabel
-                                anchors.centerIn: parent
-                                text: parent.label
-                                color: Theme.text
-                                font.pixelSize: Theme.fontBody
-                                font.bold: parent.isActive
-                            }
+                        Row {
+                            id: wsRow
+                            spacing: 2
+                            height: parent.height
 
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: parent.hovered = true
-                                onExited: parent.hovered = false
-                                onClicked: {
-                                    shell.closePopup();
-                                    parent.modelData.activate();
+                            Repeater {
+                                model: Hyprland.workspaces.values
+
+                                Rectangle {
+                                    id: wsItem
+                                    required property var modelData
+                                    property int wsId: modelData ? modelData.id : -1
+                                    property string wsName: modelData && modelData.name ? modelData.name : ""
+                                    property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
+                                    property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
+                                    property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
+                                    property bool hovered: false
+                                    readonly property bool urgent: modelData && modelData.urgent === true && !isActive
+
+                                    visible: wsId > 0
+                                    implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
+                                    width: visible ? implicitWidth : 0
+                                    height: 22
+                                    radius: 4
+                                    color: !isActive && hovered ? Theme.workspaceHover : "transparent"
+
+                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                    onIsActiveChanged: if (isActive && visible) wsContainer.activeItem = wsItem
+                                    Component.onCompleted: if (isActive && visible) wsContainer.activeItem = wsItem
+                                    Component.onDestruction: if (wsContainer.activeItem === wsItem) wsContainer.activeItem = null
+
+                                    Rectangle {
+                                        id: urgentOverlay
+                                        anchors.fill: parent
+                                        radius: parent.radius
+                                        color: Theme.accentDanger
+                                        opacity: 0
+
+                                        SequentialAnimation {
+                                            running: wsItem.urgent
+                                            loops: Animation.Infinite
+                                            onRunningChanged: if (!running) urgentOverlay.opacity = 0
+
+                                            NumberAnimation {
+                                                target: urgentOverlay; property: "opacity"
+                                                to: 0.55; duration: 420; easing.type: Easing.OutCubic
+                                            }
+                                            NumberAnimation {
+                                                target: urgentOverlay; property: "opacity"
+                                                to: 0.10; duration: 620; easing.type: Easing.InOutQuad
+                                            }
+                                        }
+                                    }
+
+                                    Text {
+                                        id: wsLabel
+                                        anchors.centerIn: parent
+                                        text: wsItem.label
+                                        color: wsItem.isActive ? Theme.accent : Theme.text
+                                        font.pixelSize: Theme.fontBody
+                                        font.bold: wsItem.isActive
+
+                                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: wsItem.hovered = true
+                                        onExited: wsItem.hovered = false
+                                        onClicked: {
+                                            shell.closePopup();
+                                            wsItem.modelData.activate();
+                                        }
+                                        onWheel: event => {
+                                            shell.closePopup();
+                                            Hyprland.dispatch(event.angleDelta.y > 0 ? "workspace e-1" : "workspace e+1");
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // === MPRIS media widget (left-aligned) ===
-                Rectangle {
-                    id: mediaArea
-                    property bool hovered: false
+                    // === MPRIS media widget (left-aligned) ===
+                    Rectangle {
+                        id: mediaArea
+                        property bool hovered: false
 
-                    visible: shell.mprisPlayer !== null
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    Layout.leftMargin: 8
-                    implicitWidth: mediaRow.implicitWidth + 16
-                    implicitHeight: 22
-                    radius: 4
-                    color: shell.activePopup === "media" ? Theme.surfaceActive
-                         : hovered ? Theme.buttonHover : "transparent"
+                        visible: shell.mprisPlayer !== null
+                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                        Layout.leftMargin: 8
+                        implicitWidth: mediaRow.implicitWidth + 16
+                        implicitHeight: 22
+                        radius: 4
+                        color: shell.activePopup === "media" ? Theme.surfaceActive
+                             : hovered ? Theme.buttonHover : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 1
+                            anchors.left: parent.left
+                            anchors.leftMargin: 8
+                            height: 2
+                            radius: 1
+                            width: Math.max(0, parent.width - 16) * shell.mediaProgress
+                            color: shell.mediaAccent
+                            visible: shell.mediaProgress > 0
 
-                    Row {
-                        id: mediaRow
-                        anchors.centerIn: parent
-                        spacing: 6
-
-                        MediaPlayerIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            iconSize: 14
-                            iconType: !shell.mprisPlayer ? "stopped"
-                                : shell.mprisPlayer.isPlaying ? "playing" : "paused"
-                            animTime: shell.weatherAnimTime
+                            Behavior on width { NumberAnimation { duration: 900; easing.type: Easing.Linear } }
                         }
 
-                        Text {
-                            id: mediaTitle
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
-                                ? shell.mprisPlayer.trackTitle : ""
-                            color: Theme.text
-                            font.pixelSize: Theme.fontTitle
-                            elide: Text.ElideRight
-                            width: Math.min(implicitWidth, Math.max(0, (barWindow.width / 2) - 220))
-                            visible: text !== ""
-                        }
-                    }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: {
-                            var pos = mediaArea.mapToItem(null, 0, 0);
-                            shell.mediaIconX = pos.x;
-                            shell.togglePopup("media", barWindow.modelData);
-                        }
-                    }
-                }
+                        Row {
+                            id: mediaRow
+                            anchors.centerIn: parent
+                            spacing: 6
 
-                Item { Layout.fillWidth: true }
-
-                // === Tray overflow chevron ===
-                BarButton {
-                    id: overflowButton
-                    visible: barWindow.trayOverflow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 26
-                    active: shell.activePopup === "overflow"
-                    onClicked: shell.togglePopup("overflow", barWindow.modelData)
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 2
-
-                        Repeater {
-                            model: 3
-
-                            Rectangle {
-                                width: 3
-                                height: 3
-                                radius: 1.5
-                                color: Theme.iconPrimary
+                            MediaPlayerIcon {
                                 anchors.verticalCenter: parent.verticalCenter
+                                iconSize: 14
+                                iconColor: shell.mediaAccent
+                                iconType: !shell.mprisPlayer ? "stopped"
+                                    : shell.mprisPlayer.isPlaying ? "playing" : "paused"
+                                animTime: shell.weatherAnimTime
+                            }
+
+                            Item {
+                                id: mediaTitleClip
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                readonly property real maxWidth: Math.max(0, (barWindow.width / 2) - 220)
+                                readonly property real overflow: Math.max(0, mediaTitle.implicitWidth - maxWidth)
+
+                                width: Math.min(mediaTitle.implicitWidth, maxWidth)
+                                height: mediaTitle.implicitHeight
+                                visible: mediaTitle.text !== ""
+                                clip: true
+
+                                Text {
+                                    id: mediaTitle
+                                    text: shell.mprisPlayer && shell.mprisPlayer.trackTitle !== ""
+                                        ? shell.mprisPlayer.trackTitle : ""
+                                    color: Theme.text
+                                    font.pixelSize: Theme.fontTitle
+                                }
+
+                                SequentialAnimation {
+                                    id: marquee
+                                    running: mediaTitleClip.overflow > 0 && mediaArea.hovered
+                                    loops: Animation.Infinite
+                                    onRunningChanged: if (!running) mediaTitle.x = 0
+
+                                    PauseAnimation { duration: 700 }
+                                    NumberAnimation {
+                                        target: mediaTitle; property: "x"
+                                        from: 0; to: -mediaTitleClip.overflow
+                                        duration: mediaTitleClip.overflow * 26
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                    PauseAnimation { duration: 1200 }
+                                    NumberAnimation {
+                                        target: mediaTitle; property: "x"
+                                        from: -mediaTitleClip.overflow; to: 0
+                                        duration: mediaTitleClip.overflow * 26
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                }
+
+                                Rectangle {
+                                    anchors.right: parent.right
+                                    anchors.top: parent.top
+                                    anchors.bottom: parent.bottom
+                                    width: 18
+                                    visible: mediaTitleClip.overflow > 0 && !marquee.running
+                                    gradient: Gradient {
+                                        orientation: Gradient.Horizontal
+                                        GradientStop { position: 0.0; color: "transparent" }
+                                        GradientStop { position: 1.0; color: Theme.barBg }
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                // === Battery icon ===
-                BarButton {
-                    id: batteryButton
-                    visible: shell.hasBattery
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 34
-                    active: shell.activePopup === "battery"
-                    onEntered: {
-                        shell.batteryHovered = true;
-                        shell.batteryHoveredScreen = barWindow.modelData;
-                        var pos = batteryButton.mapToItem(null, 0, 0);
-                        shell.batteryIconX = pos.x;
-                        shell.batteryIconWidth = batteryButton.width;
-                    }
-                    onExited: shell.batteryHovered = false
-                    onClicked: shell.togglePopup("battery", barWindow.modelData)
-
-                    BatteryIcon {
-                        anchors.centerIn: parent
-                        percent: shell.batteryPercent
-                        charging: shell.batteryCharging
-                    }
-                }
-
-                // === System monitor sparkline (CPU + RAM) ===
-                BarButton {
-                    id: sysMonButton
-                    visible: !barWindow.trayOverflow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "sysMon"
-                    onClicked: shell.togglePopup("sysMon", barWindow.modelData)
-
-                    SysMonIcon {
-                        anchors.centerIn: parent
-                        cpuHistory: shell.cpuHistory
-                        ramHistory: shell.ramHistory
-                    }
-                }
-
-                // === Brightness icon ===
-                BarButton {
-                    id: brightnessButton
-                    visible: shell.hasBrightness && !barWindow.trayOverflow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "brightness"
-                    onClicked: shell.togglePopup("brightness", barWindow.modelData)
-
-                    BrightnessIcon {
-                        anchors.centerIn: parent
-                        percent: shell.brightnessPercent
-                    }
-                }
-
-                // === Volume icon ===
-                BarButton {
-                    id: volumeButton
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "volume"
-                    onClicked: shell.togglePopup("volume", barWindow.modelData)
-
-                    VolumeIcon {
-                        anchors.centerIn: parent
-                        volume: shell.volumePercent
-                        muted: shell.volumeMuted
-                    }
-                }
-
-                // === Bluetooth icon ===
-                BarButton {
-                    id: btButton
-                    visible: shell.hasBluetooth
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "bt"
-                    onClicked: {
-                        shell.togglePopup("bt", barWindow.modelData);
-                        if (shell.activePopup === "bt") btControllerCheck.running = true;
-                    }
-
-                    BluetoothIcon {
-                        anchors.centerIn: parent
-                        powered: shell.bluetoothPowered
-                    }
-                }
-
-                // === Right: WiFi icon ===
-                BarButton {
-                    id: wifiButton
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "wifi"
-                    onClicked: {
-                        shell.togglePopup("wifi", barWindow.modelData);
-                        if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
-                        shell.selectedNetworkName = "";
-                        shell.passwordInput = "";
-                    }
-
-                    WifiIcon {
-                        anchors.centerIn: parent
-                        visible: !shell.ethernetConnected
-                        enabled: Networking.wifiEnabled
-                    }
-
-                    EthernetIcon {
-                        anchors.centerIn: parent
-                        visible: shell.ethernetConnected
-                        active: Networking.wifiEnabled
-                    }
-                }
-
-                // === Notification bell icon ===
-                BarButton {
-                    id: notifButton
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: 30
-                    active: shell.activePopup === "notif"
-                    onClicked: shell.togglePopup("notif", barWindow.modelData)
-
-                    BellIcon {
-                        anchors.centerIn: parent
-                        count: shell.notifCount
-                    }
-
-                    // Unread badge
-                    Rectangle {
-                        visible: shell.notifCount > 0
-                        x: parent.width - 10
-                        y: 1
-                        width: Math.max(12, badgeText.implicitWidth + 4)
-                        height: 12
-                        radius: 6
-                        color: Theme.accentDanger
-
-                        Text {
-                            id: badgeText
-                            anchors.centerIn: parent
-                            text: shell.notifCount > 99 ? "99+" : shell.notifCount
-                            color: "#ffffff"
-                            font.pixelSize: 8
-                            font.bold: true
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.hovered = true
+                            onExited: parent.hovered = false
+                            onClicked: shell.togglePopupFrom(mediaArea, "media", barWindow.modelData)
+                            onWheel: event => {
+                                var p = shell.mprisPlayer;
+                                if (!p || !p.canSeek || !p.length || p.length <= 0) return;
+                                var step = event.angleDelta.y > 0 ? 5 : -5;
+                                p.position = Math.max(0, Math.min(p.length, p.position + step));
+                            }
                         }
                     }
                 }
             }
 
-            // === Centre: Date / Time + Weather (anchored to true centre, separate widgets) ===
-            Row {
-                id: centreRow
-                anchors.centerIn: parent
-                spacing: 8
+            Rectangle {
+                id: centreIsland
+                anchors.horizontalCenter: parent.horizontalCenter
+                property bool entered: false
+                y: entered ? 3 : -height - 4
 
-                Rectangle {
-                    id: dateArea
-                    property bool hovered: false
-
-                    width: dateText.implicitWidth + 20
-                    height: 22
-                    radius: 4
-                    color: hovered ? Theme.buttonHover : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                    Text {
-                        id: dateText
-                        anchors.centerIn: parent
-                        text: shell.showFullDate
-                            ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
-                            : Qt.formatDateTime(clock.date, "h:mm AP")
-                        color: Theme.text
-                        font.pixelSize: Theme.fontTitle
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: shell.showFullDate = !shell.showFullDate
-                    }
+                Behavior on y {
+                    NumberAnimation { duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.04 }
                 }
 
-                Rectangle {
-                    id: weatherArea
-                    property bool hovered: false
+                Timer { interval: 210; running: true; onTriggered: centreIsland.entered = true }
+                height: 32
+                width: centreRow.implicitWidth + 32
+                radius: 16
+                color: Theme.barBg
+                border.width: 1
+                border.color: Theme.hairline
 
-                    visible: shell.weatherCondition !== ""
-                    width: weatherRow.implicitWidth + 16
-                    height: 22
-                    radius: 4
-                    color: shell.activePopup === "weather" ? Theme.surfaceActive
-                         : hovered ? Theme.buttonHover : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
+                Row {
+                    id: centreRow
+                    anchors.centerIn: parent
+                    spacing: 8
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Rectangle {
+                        id: dateArea
+                        property bool hovered: false
 
-                    Row {
-                        id: weatherRow
-                        anchors.centerIn: parent
-                        spacing: 6
+                        width: dateText.implicitWidth + 20
+                        height: 22
+                        radius: 4
+                        color: hovered ? Theme.buttonHover : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
 
-                        WeatherIcon {
-                            id: weatherCanvas
-                            anchors.verticalCenter: parent.verticalCenter
-                            iconSize: 14
-                            iconType: shell.conditionToIconType(shell.weatherCondition)
-                            animTime: shell.weatherAnimTime
-                        }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                         Text {
-                            text: shell.weatherTemp
+                            id: dateText
+                            anchors.centerIn: parent
+                            text: shell.showFullDate
+                                ? Qt.formatDateTime(clock.date, "dd/MM/yy h:mm AP")
+                                : Qt.formatDateTime(clock.date, "h:mm AP")
                             color: Theme.text
                             font.pixelSize: Theme.fontTitle
-                            anchors.verticalCenter: parent.verticalCenter
                         }
 
-                        Text {
-                            visible: shell.weatherEffectOverride !== ""
-                            text: "(" + (shell.weatherEffectOverride === "none" ? "off" : shell.weatherEffectOverride) + ")"
-                            color: Theme.textDim
-                            font.pixelSize: Theme.fontLabel
-                            anchors.verticalCenter: parent.verticalCenter
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.hovered = true
+                            onExited: parent.hovered = false
+                            onClicked: shell.showFullDate = !shell.showFullDate
                         }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: parent.hovered = true
-                        onExited: parent.hovered = false
-                        onClicked: function(mouse) {
-                            if (mouse.button === Qt.RightButton) {
-                                shell.cycleWeatherEffect();
-                            } else {
-                                shell.togglePopup("weather", barWindow.modelData);
+                    Rectangle {
+                        id: weatherArea
+                        property bool hovered: false
+
+                        visible: shell.weatherCondition !== ""
+                        width: weatherRow.implicitWidth + 16
+                        height: 22
+                        radius: 4
+                        color: shell.activePopup === "weather" ? Theme.surfaceActive
+                             : hovered ? Theme.buttonHover : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                        Row {
+                            id: weatherRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            WeatherIcon {
+                                id: weatherCanvas
+                                anchors.verticalCenter: parent.verticalCenter
+                                iconSize: 14
+                                iconType: shell.conditionToIconType(shell.weatherCondition)
+                                animTime: shell.weatherAnimTime
+                            }
+
+                            Text {
+                                text: shell.weatherTemp
+                                color: Theme.text
+                                font.pixelSize: Theme.fontTitle
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            Text {
+                                visible: shell.weatherEffectOverride !== ""
+                                text: "(" + (shell.weatherEffectOverride === "none" ? "off" : shell.weatherEffectOverride) + ")"
+                                color: Theme.textDim
+                                font.pixelSize: Theme.fontLabel
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.hovered = true
+                            onExited: parent.hovered = false
+                            onClicked: function(mouse) {
+                                if (mouse.button === Qt.RightButton) {
+                                    shell.cycleWeatherEffect();
+                                } else {
+                                    shell.togglePopup("weather", barWindow.modelData);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                id: rightIsland
+                anchors.right: parent.right
+                anchors.rightMargin: 8
+                property bool entered: false
+                y: entered ? 3 : -height - 4
+
+                Behavior on y {
+                    NumberAnimation { duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.04 }
+                }
+
+                Timer { interval: 300; running: true; onTriggered: rightIsland.entered = true }
+                height: 32
+                width: rightRow.implicitWidth + 32
+                radius: 16
+                color: Theme.barBg
+                border.width: 1
+                border.color: Theme.hairline
+
+                RowLayout {
+                    id: rightRow
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 0
+
+                    // === Tray overflow chevron ===
+                    BarButton {
+                        id: overflowButton
+                        visible: barWindow.trayOverflow
+                        implicitWidth: 26
+                        active: shell.activePopup === "overflow"
+                        onClicked: shell.togglePopupFrom(overflowButton, "overflow", barWindow.modelData)
+
+                        Row {
+                            anchors.centerIn: parent
+                            spacing: 2
+
+                            Repeater {
+                                model: 3
+
+                                Rectangle {
+                                    width: 3
+                                    height: 3
+                                    radius: 1.5
+                                    color: Theme.iconPrimary
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                        }
+                    }
+
+                    // === Battery icon ===
+                    BarButton {
+                        id: batteryButton
+                        visible: shell.hasBattery
+                        pulseWhen: [shell.batteryCharging]
+                        implicitWidth: 34
+                        active: shell.activePopup === "battery"
+                        onEntered: {
+                            shell.batteryHovered = true;
+                            shell.batteryHoveredScreen = barWindow.modelData;
+                            var pos = batteryButton.mapToItem(null, 0, 0);
+                            shell.batteryIconX = pos.x;
+                            shell.batteryIconWidth = batteryButton.width;
+                        }
+                        onExited: shell.batteryHovered = false
+                        onClicked: shell.togglePopupFrom(batteryButton, "battery", barWindow.modelData)
+                        BatteryIcon {
+                            anchors.centerIn: parent
+                            percent: shell.batteryPercent
+                            charging: shell.batteryCharging
+                        }
+                    }
+
+                    // === System monitor sparkline (CPU + RAM) ===
+                    BarButton {
+                        id: sysMonButton
+                        visible: !barWindow.trayOverflow
+                        implicitWidth: 30
+                        active: shell.activePopup === "sysMon"
+                        onClicked: shell.togglePopupFrom(sysMonButton, "sysMon", barWindow.modelData)
+
+                        SysMonIcon {
+                            anchors.centerIn: parent
+                            cpuHistory: shell.cpuHistory
+                            ramHistory: shell.ramHistory
+                            netHistory: shell.netTotalHistory
+                        }
+                    }
+
+                    // === Brightness icon ===
+                    BarButton {
+                        id: brightnessButton
+                        visible: shell.hasBrightness && !barWindow.trayOverflow
+                        pulseWhen: [shell.brightnessPercent]
+                        implicitWidth: 30
+                        active: shell.activePopup === "brightness"
+                        onClicked: shell.togglePopupFrom(brightnessButton, "brightness", barWindow.modelData)
+                        onWheel: delta => shell.setBrightness(Math.max(1, Math.min(100,
+                            shell.brightnessPercent + (delta > 0 ? 5 : -5))))
+                        BrightnessIcon {
+                            anchors.centerIn: parent
+                            percent: shell.brightnessPercent
+                        }
+                    }
+
+                    // === Idle inhibitor toggle ===
+                    BarButton {
+                        id: idleButton
+                        implicitWidth: 26
+                        active: shell.idleInhibited
+                        onClicked: {
+                            shell.idleInhibited = !shell.idleInhibited;
+                            idleButton.pulse();
+                        }
+
+                        IdleIcon {
+                            anchors.centerIn: parent
+                            inhibited: shell.idleInhibited
+                            iconColor: shell.idleInhibited ? Theme.accent : Theme.iconPrimary
+                            steam: shell.weatherAnimTime
+                        }
+                    }
+
+                    // === Volume icon ===
+                    BarButton {
+                        id: volumeButton
+                        pulseWhen: [shell.volumePercent, shell.volumeMuted]
+                        implicitWidth: 30
+                        active: shell.activePopup === "volume"
+                        onClicked: shell.togglePopupFrom(volumeButton, "volume", barWindow.modelData)
+                        onWheel: delta => shell.setVolume(Math.max(0, Math.min(100,
+                            shell.volumePercent + (delta > 0 ? 5 : -5))))
+                        VolumeIcon {
+                            anchors.centerIn: parent
+                            volume: shell.volumePercent
+                            muted: shell.volumeMuted
+                        }
+                    }
+
+                    // === Bluetooth icon ===
+                    BarButton {
+                        id: btButton
+                        visible: shell.hasBluetooth
+                        pulseWhen: [shell.bluetoothPowered]
+                        implicitWidth: 30
+                        active: shell.activePopup === "bt"
+                        onClicked: {
+                            shell.togglePopupFrom(btButton, "bt", barWindow.modelData);
+                            if (shell.activePopup === "bt") shell.refreshBluetooth();
+                        }
+                        BluetoothIcon {
+                            anchors.centerIn: parent
+                            powered: shell.bluetoothPowered
+                        }
+                    }
+
+                    // === Right: WiFi icon ===
+                    BarButton {
+                        id: wifiButton
+                        pulseWhen: [shell.ethernetConnected, shell.connectedNetwork]
+                        implicitWidth: 30
+                        active: shell.activePopup === "wifi"
+                        onClicked: {
+                            shell.togglePopupFrom(wifiButton, "wifi", barWindow.modelData);
+                            if (shell.activePopup === "wifi" && shell.wifiDev) shell.wifiDev.scannerEnabled = true;
+                            shell.selectedNetworkName = "";
+                            shell.passwordInput = "";
+                        }
+                        WifiIcon {
+                            anchors.centerIn: parent
+                            visible: !shell.ethernetConnected
+                            enabled: Networking.wifiEnabled
+                        }
+
+                        EthernetIcon {
+                            anchors.centerIn: parent
+                            visible: shell.ethernetConnected
+                            active: Networking.wifiEnabled
+                        }
+                    }
+
+                    // === Power menu ===
+                    BarButton {
+                        id: powerButton
+                        implicitWidth: 26
+                        active: shell.activePopup === "power"
+                        onClicked: shell.togglePopupFrom(powerButton, "power", barWindow.modelData)
+
+                        PowerIcon {
+                            anchors.centerIn: parent
+                            iconColor: powerButton.active ? Theme.accent : Theme.iconPrimary
+                        }
+                    }
+
+                    // === Notification bell icon ===
+                    BarButton {
+                        id: notifButton
+                        implicitWidth: 30
+                        active: shell.activePopup === "notif"
+                        onClicked: shell.togglePopupFrom(notifButton, "notif", barWindow.modelData)
+
+                        Connections {
+                            target: shell
+                            function onNotifCountChanged() { if (shell.notifCount > 0) notifButton.pulse(); }
+                        }
+
+                        BellIcon {
+                            anchors.centerIn: parent
+                            count: shell.notifCount
+                        }
+
+                        // Unread badge
+                        Rectangle {
+                            visible: shell.notifCount > 0
+                            x: parent.width - 10
+                            y: 1
+                            width: Math.max(12, badgeText.implicitWidth + 4)
+                            height: 12
+                            radius: 6
+                            color: Theme.accentDanger
+
+                            Text {
+                                id: badgeText
+                                anchors.centerIn: parent
+                                text: shell.notifCount > 99 ? "99+" : shell.notifCount
+                                color: "#ffffff"
+                                font.pixelSize: 8
+                                font.bold: true
                             }
                         }
                     }
@@ -1310,6 +1663,9 @@ ShellRoot {
 
     // System monitor popup - one per screen
     SystemMonitorPopup { shell: shell }
+
+    // Power menu popup - one per screen
+    PowerPopup { shell: shell }
 
     // Notification center popup - one per screen
     NotificationCenter { shell: shell }

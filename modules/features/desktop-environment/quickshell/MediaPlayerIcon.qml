@@ -1,29 +1,18 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property string iconType: "paused"
     property color iconColor: Theme.iconPrimary
-    property real iconSize: 24
     property real animTime: 0
 
-    width: iconSize
-    height: iconSize
+    iconSize: 24
+    designSize: 14
+    repaintOn: [iconType, iconColor, iconSize, iconType === "playing" ? animTime : 0]
 
-    onAvailableChanged: if (available) requestPaint()
-    onIconTypeChanged: if (available) requestPaint()
-    onIconColorChanged: if (available) requestPaint()
-    onIconSizeChanged: if (available) requestPaint()
-    onAnimTimeChanged: if (available && iconType === "playing") requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-        var s = width / 14;
-        ctx.save();
-        ctx.scale(s, s);
+    function draw(ctx) {
         ctx.fillStyle = iconColor;
         ctx.strokeStyle = iconColor;
         ctx.lineCap = "round";
@@ -74,6 +63,5 @@ Canvas {
             ctx.quadraticCurveTo(11, 3.6, 10.4, 6.4);
             ctx.stroke();
         }
-        ctx.restore();
     }
 }

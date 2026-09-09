@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "."
 
 Variants {
@@ -70,6 +71,7 @@ Variants {
 
     // Notification list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: root.shell.notifCount > 0
         width: parent.width
         height: Math.min(contentHeight, 360)

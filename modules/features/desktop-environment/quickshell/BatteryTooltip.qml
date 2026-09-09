@@ -20,7 +20,7 @@ Variants {
             left: true
         }
         margins {
-            top: 34
+            top: 39
             left: root.shell.batteryIconX + root.shell.batteryIconWidth / 2 - (batteryTooltipText.implicitWidth + 16) / 2
         }
         implicitWidth: batteryTooltipText.implicitWidth + 16

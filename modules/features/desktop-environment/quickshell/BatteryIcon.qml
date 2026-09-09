@@ -1,7 +1,7 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property int percent: 0
@@ -9,14 +9,9 @@ Canvas {
 
     width: 24
     height: 12
+    repaintOn: [percent, charging]
 
-    onPercentChanged: requestPaint()
-    onChargingChanged: requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-
+    function draw(ctx) {
         ctx.strokeStyle = Theme.iconPrimary;
         ctx.lineWidth = 1.4;
         ctx.lineJoin = "round";

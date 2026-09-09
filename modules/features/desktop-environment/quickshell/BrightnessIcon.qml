@@ -1,24 +1,15 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property int percent: 0
     property color iconColor: Theme.iconPrimary
 
-    width: 14
-    height: 14
+    repaintOn: [percent, iconColor]
 
-    onPercentChanged: requestPaint()
-    onIconColorChanged: requestPaint()
-    onVisibleChanged: if (visible) requestPaint()
-    Component.onCompleted: requestPaint()
-
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
-
+    function draw(ctx) {
         var cx = 7;
         var cy = 7;
         var r = 3;

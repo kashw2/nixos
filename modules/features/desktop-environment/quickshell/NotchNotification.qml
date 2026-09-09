@@ -25,7 +25,7 @@ Variants {
             top: true
         }
         margins {
-            top: 44
+            top: 41
         }
         implicitWidth: 320
         implicitHeight: 240

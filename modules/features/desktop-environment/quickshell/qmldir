@@ -15,6 +15,10 @@ BrightnessIcon 1.0 BrightnessIcon.qml
 BrightnessPopup 1.0 BrightnessPopup.qml
 EthernetIcon 1.0 EthernetIcon.qml
 HeaderWithToggle 1.0 HeaderWithToggle.qml
+ActionButton 1.0 ActionButton.qml
+HistoryGraph 1.0 HistoryGraph.qml
+InputField 1.0 InputField.qml
+VectorIcon 1.0 VectorIcon.qml
 LauncherInfoCards 1.0 LauncherInfoCards.qml
 MediaPlayerIcon 1.0 MediaPlayerIcon.qml
 MediaPlayerPopup 1.0 MediaPlayerPopup.qml
@@ -34,3 +38,9 @@ WifiIcon 1.0 WifiIcon.qml
 WeatherOverlay 1.0 WeatherOverlay.qml
 WeatherPopup 1.0 WeatherPopup.qml
 WifiPopup 1.0 WifiPopup.qml
+AlbumArtColor 1.0 AlbumArtColor.qml
+WeatherBackdrop 1.0 WeatherBackdrop.qml
+IdleIcon 1.0 IdleIcon.qml
+PowerIcon 1.0 PowerIcon.qml
+PowerPopup 1.0 PowerPopup.qml
+ThinScrollBar 1.0 ThinScrollBar.qml

@@ -114,6 +114,10 @@
       url = "github:anthropics/skills";
       flake = false;
     };
+    i-have-adhd = {
+      url = "github:ayghri/i-have-adhd";
+      flake = false;
+    };
   };
 
   outputs =

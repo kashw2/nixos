@@ -7,6 +7,7 @@ Item {
     required property var shell
 
     function refresh() {
+        batteryCheck.running = true;
         controllerCheck.running = true;
     }
 
@@ -77,6 +78,26 @@ Item {
         }
     }
 
+
+    Process {
+        id: batteryCheck
+        property var levels: ({})
+        command: ["sh", "-c",
+            "bluetoothctl devices Connected | awk '{print $2}' | while IFS= read -r m; do "
+            + "p=$(bluetoothctl info \"$m\" | sed -n 's/.*Battery Percentage:.*(\\([0-9]\\+\\)).*/\\1/p'); "
+            + "[ -n \"$p\" ] && printf '%s|%s\\n' \"$m\" \"$p\"; done"]
+        stdout: SplitParser {
+            onRead: data => {
+                var parts = data.toString().trim().split("|");
+                if (parts.length !== 2) return;
+                batteryCheck.levels[parts[0]] = parseInt(parts[1]);
+            }
+        }
+        onExited: {
+            root.shell.btBatteryLevels = batteryCheck.levels;
+            batteryCheck.levels = ({});
+        }
+    }
     Process {
         id: connectedCheck
         command: ["bluetoothctl", "devices", "Connected"]

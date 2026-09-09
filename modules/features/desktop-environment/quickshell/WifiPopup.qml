@@ -2,12 +2,30 @@ import Quickshell
 import Quickshell.Networking
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "."
 
 Variants {
     id: root
     required property var shell
     model: Quickshell.screens
+
+    function connectPsk(network) {
+        if (root.shell.passwordInput.length === 0) return;
+        network.connectWithPsk(root.shell.passwordInput);
+        root.shell.selectedNetworkName = "";
+        root.shell.passwordInput = "";
+        root.shell.closePopup();
+    }
+
+    function connectEap(network) {
+        if (root.shell.eapIdentityInput.length === 0
+            || root.shell.eapPasswordInput.length === 0
+            || root.shell.eapConnecting) return;
+        root.shell.eapConnecting = true;
+        root.shell.eapError = "";
+        root.shell.startEapConnection(network.name, root.shell.eapIdentityInput, root.shell.eapPasswordInput);
+    }
 
     BasePopup {
         shell: root.shell
@@ -143,6 +161,7 @@ Variants {
 
     // Network list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: Networking.wifiEnabled
         width: parent.width
         height: Math.min(contentHeight, 250)
@@ -244,63 +263,16 @@ Variants {
                             anchors.rightMargin: 10
                             spacing: 6
 
-                            Rectangle {
+                            InputField {
                                 Layout.fillWidth: true
-                                height: 24
-                                radius: 4
-                                color: Theme.surfaceInner
-
-                                TextInput {
-                                    id: pskField
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 6
-                                    anchors.rightMargin: 6
-                                    verticalAlignment: TextInput.AlignVCenter
-                                    color: Theme.text
-                                    font.pixelSize: Theme.fontBody
-                                    echoMode: TextInput.Password
-                                    clip: true
-                                    onTextChanged: root.shell.passwordInput = text
-                                    Keys.onReturnPressed: {
-                                        if (root.shell.passwordInput.length > 0) {
-                                            modelData.connectWithPsk(root.shell.passwordInput);
-                                            root.shell.selectedNetworkName = "";
-                                            root.shell.passwordInput = "";
-                                            root.shell.closePopup();
-                                        }
-                                    }
-                                }
+                                echoMode: TextInput.Password
+                                onTextChanged: root.shell.passwordInput = text
+                                onAccepted: root.connectPsk(modelData)
                             }
 
-                            Rectangle {
-                                width: 56
-                                height: 24
-                                radius: 4
-                                color: connectHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
-
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Connect"
-                                    color: Theme.text
-                                    font.pixelSize: Theme.fontLabel
-                                }
-
-                                MouseArea {
-                                    id: connectHover
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (root.shell.passwordInput.length > 0) {
-                                            modelData.connectWithPsk(root.shell.passwordInput);
-                                            root.shell.selectedNetworkName = "";
-                                            root.shell.passwordInput = "";
-                                            root.shell.closePopup();
-                                        }
-                                    }
-                                }
+                            ActionButton {
+                                label: "Connect"
+                                onClicked: root.connectPsk(modelData)
                             }
                         }
                     }
@@ -325,72 +297,21 @@ Variants {
                             spacing: 6
 
                             // Identity/username field
-                            Rectangle {
+                            InputField {
                                 width: parent.width
-                                height: 24
-                                radius: 4
-                                color: Theme.surfaceInner
-
-                                TextInput {
-                                    id: eapIdentityField
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 6
-                                    anchors.rightMargin: 6
-                                    verticalAlignment: TextInput.AlignVCenter
-                                    color: Theme.text
-                                    font.pixelSize: Theme.fontBody
-                                    clip: true
-                                    onTextChanged: root.shell.eapIdentityInput = text
-
-                                    Text {
-                                        anchors.fill: parent
-                                        verticalAlignment: Text.AlignVCenter
-                                        text: "Identity"
-                                        color: Theme.textDim
-                                        font.pixelSize: Theme.fontBody
-                                        visible: !eapIdentityField.text && !eapIdentityField.activeFocus
-                                    }
-
-                                    Keys.onReturnPressed: eapPasswordField.forceActiveFocus()
-                                }
+                                placeholder: "Identity"
+                                onTextChanged: root.shell.eapIdentityInput = text
+                                onAccepted: eapPasswordField.focusInput()
                             }
 
                             // Password field
-                            Rectangle {
+                            InputField {
+                                id: eapPasswordField
                                 width: parent.width
-                                height: 24
-                                radius: 4
-                                color: Theme.surfaceInner
-
-                                TextInput {
-                                    id: eapPasswordField
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 6
-                                    anchors.rightMargin: 6
-                                    verticalAlignment: TextInput.AlignVCenter
-                                    color: Theme.text
-                                    font.pixelSize: Theme.fontBody
-                                    echoMode: TextInput.Password
-                                    clip: true
-                                    onTextChanged: root.shell.eapPasswordInput = text
-
-                                    Text {
-                                        anchors.fill: parent
-                                        verticalAlignment: Text.AlignVCenter
-                                        text: "Password"
-                                        color: Theme.textDim
-                                        font.pixelSize: Theme.fontBody
-                                        visible: !eapPasswordField.text && !eapPasswordField.activeFocus
-                                    }
-
-                                    Keys.onReturnPressed: {
-                                        if (root.shell.eapIdentityInput.length > 0 && root.shell.eapPasswordInput.length > 0 && !root.shell.eapConnecting) {
-                                            root.shell.eapConnecting = true;
-                                            root.shell.eapError = "";
-                                            root.shell.startEapConnection(modelData.name, root.shell.eapIdentityInput, root.shell.eapPasswordInput);
-                                        }
-                                    }
-                                }
+                                echoMode: TextInput.Password
+                                placeholder: "Password"
+                                onTextChanged: root.shell.eapPasswordInput = text
+                                onAccepted: root.connectEap(modelData)
                             }
 
                             // Connect button and status row
@@ -419,35 +340,10 @@ Variants {
                                     Layout.fillWidth: true
                                 }
 
-                                Rectangle {
-                                    width: 56
-                                    height: 24
-                                    radius: 4
-                                    color: eapConnectHover.containsMouse ? Theme.surfaceActive : Theme.surfaceBg
-                                    opacity: root.shell.eapConnecting ? 0.5 : 1.0
-
-                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Connect"
-                                        color: Theme.text
-                                        font.pixelSize: Theme.fontLabel
-                                    }
-
-                                    MouseArea {
-                                        id: eapConnectHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: root.shell.eapConnecting ? Qt.BusyCursor : Qt.PointingHandCursor
-                                        onClicked: {
-                                            if (root.shell.eapIdentityInput.length > 0 && root.shell.eapPasswordInput.length > 0 && !root.shell.eapConnecting) {
-                                                root.shell.eapConnecting = true;
-                                                root.shell.eapError = "";
-                                                root.shell.startEapConnection(modelData.name, root.shell.eapIdentityInput, root.shell.eapPasswordInput);
-                                            }
-                                        }
-                                    }
+                                ActionButton {
+                                    label: "Connect"
+                                    busy: root.shell.eapConnecting
+                                    onClicked: root.connectEap(modelData)
                                 }
                             }
                         }

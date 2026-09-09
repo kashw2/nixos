@@ -1,11 +1,12 @@
 import QtQuick
 import "."
 
-Canvas {
+VectorIcon {
     id: root
 
     property var cpuHistory: []
     property var ramHistory: []
+    property var netHistory: []
 
     readonly property int maxPoints: 60
     readonly property real xMin: 1.5
@@ -13,13 +14,29 @@ Canvas {
     readonly property real yMin: 1.5
     readonly property real yMax: 8.5
 
-    width: 14
-    height: 14
+    repaintOn: [cpuHistory, ramHistory, netHistory]
 
-    onCpuHistoryChanged: requestPaint()
-    onRamHistoryChanged: requestPaint()
-    Component.onCompleted: requestPaint()
-    onVisibleChanged: if (visible) requestPaint()
+    function drawArea(ctx, h, color) {
+        if (!h || h.length < 2) return;
+        var peak = 0;
+        for (var p = 0; p < h.length; p++) peak = Math.max(peak, h[p]);
+        if (peak <= 0) return;
+
+        var usableW = xMax - xMin;
+        var usableH = yMax - yMin;
+        var stepX = usableW / (maxPoints - 1);
+        var offset = maxPoints - h.length;
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(xMin + offset * stepX, yMax);
+        for (var i = 0; i < h.length; i++) {
+            ctx.lineTo(xMin + (offset + i) * stepX, yMax - usableH * (h[i] / peak));
+        }
+        ctx.lineTo(xMin + (offset + h.length - 1) * stepX, yMax);
+        ctx.closePath();
+        ctx.fill();
+    }
 
     function drawSeries(ctx, h, color, lw) {
         if (!h || h.length < 2) return;
@@ -42,9 +59,7 @@ Canvas {
         ctx.stroke();
     }
 
-    onPaint: {
-        var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
+    function draw(ctx) {
         ctx.strokeStyle = Theme.iconPrimary;
         ctx.fillStyle = Theme.iconPrimary;
         ctx.lineWidth = 1.4;
@@ -64,7 +79,8 @@ Canvas {
 
         var haveCpu = cpuHistory && cpuHistory.length >= 2;
         var haveRam = ramHistory && ramHistory.length >= 2;
-        if (!haveCpu && !haveRam) {
+        var haveNet = netHistory && netHistory.length >= 2;
+        if (!haveCpu && !haveRam && !haveNet) {
             ctx.strokeStyle = Theme.iconDim;
             ctx.lineWidth = 0.8;
             ctx.beginPath();
@@ -73,6 +89,7 @@ Canvas {
             ctx.stroke();
             return;
         }
+        drawArea(ctx, netHistory, Theme.accentSoft);
         drawSeries(ctx, ramHistory, Theme.graphRam, 0.8);
         drawSeries(ctx, cpuHistory, Theme.graphCpu, 1.0);
     }

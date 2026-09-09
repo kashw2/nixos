@@ -21,7 +21,7 @@ Rectangle {
         width: parent.width * root.fraction
         height: parent.height
         radius: 3
-        color: root.dimmed ? Theme.surfaceBg : Theme.textDim
+        color: root.dimmed ? Theme.surfaceBg : Theme.accent
 
         Behavior on width { NumberAnimation { duration: 100 } }
     }

@@ -33,11 +33,14 @@
           pkgs.fd
           pkgs.chroma
           pkgs.wl-clipboard
+          pkgs.systemd
         ]
         ++ lib.optionals (config.isLaptop) [
           pkgs.brightnessctl
         ];
         flags."-p" = ./quickshell;
+        env.QS_WALLPAPER = "${./Background.jpg}";
+        env.QS_LOCK_CMD = lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
       };
     };
 }

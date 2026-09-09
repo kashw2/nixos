@@ -11,7 +11,7 @@ Rectangle {
     property int trackHeight: 20
     property int knobSize: 16
     property int knobPadding: 2
-    property color activeColor: Theme.toggleGreen
+    property color activeColor: Theme.accent
     property color inactiveColor: Theme.surfaceBg
 
     implicitWidth: trackWidth

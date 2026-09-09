@@ -25,12 +25,18 @@ Variants {
         popupName: "weather"
         popupWidth: 560
 
-        anchors.right: false
-        anchors.left: true
-        margins.right: 0
+        followAnchor: false
         margins.left: popup.screen ? Math.max(8, (popup.screen.width - popup.popupWidth) / 2) : 8
 
         backgroundColor: root.backdropFor(root.shell.conditionToIconType(root.shell.weatherCondition))
+
+        backdrop: Component {
+            WeatherBackdrop {
+                iconType: root.shell.conditionToIconType(root.shell.weatherCondition)
+                phase: root.shell.weatherAnimTime
+                cornerRadius: 12
+            }
+        }
 
         property bool editingCity: false
         onCleared: editingCity = false
@@ -299,6 +305,88 @@ Variants {
                     font.pixelSize: Theme.fontTitle
                 }
 
+            }
+        }
+
+        // Next 24 hours: temperature line with hour ticks.
+        Item {
+            id: hourlyStrip
+            visible: root.shell.weatherHourly.length > 1
+            width: parent.width
+            height: 62
+
+            readonly property var hours: root.shell.weatherHourly
+            readonly property real minTemp: {
+                var m = 1e9;
+                for (var i = 0; i < hours.length; i++) m = Math.min(m, hours[i].temp);
+                return m;
+            }
+            readonly property real maxTemp: {
+                var m = -1e9;
+                for (var i = 0; i < hours.length; i++) m = Math.max(m, hours[i].temp);
+                return m;
+            }
+
+            Canvas {
+                id: hourlyCanvas
+                anchors.fill: parent
+
+                property var series: hourlyStrip.hours
+                property real lo: hourlyStrip.minTemp
+                property real hi: hourlyStrip.maxTemp
+                property color lineColor: Theme.accent
+
+                onSeriesChanged: if (available) requestPaint()
+                onLineColorChanged: if (available) requestPaint()
+                onWidthChanged: if (available) requestPaint()
+                onAvailableChanged: if (available) requestPaint()
+
+                onPaint: {
+                    var ctx = getContext("2d");
+                    ctx.clearRect(0, 0, width, height);
+                    var n = series.length;
+                    if (n < 2 || width <= 0) return;
+
+                    var span = Math.max(1, hi - lo);
+                    var top = 16;
+                    var bottom = height - 20;
+                    var stepX = width / (n - 1);
+
+                    function px(i) { return i * stepX; }
+                    function py(i) { return bottom - (bottom - top) * ((series[i].temp - lo) / span); }
+
+                    ctx.beginPath();
+                    ctx.moveTo(px(0), bottom);
+                    for (var i = 0; i < n; i++) ctx.lineTo(px(i), py(i));
+                    ctx.lineTo(px(n - 1), bottom);
+                    ctx.closePath();
+                    ctx.fillStyle = Theme.accentSoft;
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    for (var j = 0; j < n; j++) {
+                        if (j === 0) ctx.moveTo(px(j), py(j));
+                        else ctx.lineTo(px(j), py(j));
+                    }
+                    ctx.strokeStyle = lineColor;
+                    ctx.lineWidth = 1.6;
+                    ctx.lineJoin = "round";
+                    ctx.lineCap = "round";
+                    ctx.stroke();
+
+                    ctx.fillStyle = Theme.textDim;
+                    ctx.font = "9px sans-serif";
+                    ctx.textAlign = "center";
+                    for (var k = 0; k < n; k += 3) {
+                        ctx.fillText(series[k].hour + "h", px(k), height - 6);
+                    }
+
+                    ctx.fillStyle = Theme.text;
+                    ctx.font = "9px sans-serif";
+                    for (var m = 0; m < n; m += 6) {
+                        ctx.fillText(series[m].temp + "°", px(m), py(m) - 6);
+                    }
+                }
             }
         }
 

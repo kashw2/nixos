@@ -87,6 +87,9 @@
         home-manager.users.keanu = {
           home = {
             stateVersion = config.system.stateVersion;
+            file = lib.optionalAttrs (!config.isServer) {
+              ".claude/.i-have-adhd-always".text = "";
+            };
           }
           // lib.optionalAttrs usingImpermanence {
             # /home/keanu is wiped on boot
@@ -172,7 +175,9 @@
               enable = !config.isServer;
               package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
               enableMcpIntegration = true;
-              plugins = [ inputs.superpowers ];
+              plugins = {
+                inherit (inputs) superpowers i-have-adhd;
+              };
               skills = builtins.mapAttrs (name: _: "${inputs.anthropic-skills}/skills/${name}") (
                 builtins.readDir "${inputs.anthropic-skills}/skills"
               );

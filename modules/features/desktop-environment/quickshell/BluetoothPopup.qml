@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "."
 
 Variants {
@@ -61,8 +62,9 @@ Variants {
                 }
 
                 Text {
-                    text: "Connected"
-                    color: Theme.textDim
+                    readonly property var level: root.shell.btBatteryLevels[modelData.mac]
+                    text: level !== undefined ? level + "%" : "Connected"
+                    color: level !== undefined && level <= 20 ? Theme.accentDanger : Theme.textDim
                     font.pixelSize: Theme.fontLabel
                 }
             }
@@ -94,6 +96,7 @@ Variants {
 
     // Paired devices list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: root.shell.bluetoothPowered
         width: parent.width
         height: Math.min(contentHeight, 250)
@@ -183,6 +186,7 @@ Variants {
 
     // Available (discovered, unpaired) devices list
     Flickable {
+        ScrollBar.vertical: ThinScrollBar {}
         visible: root.shell.bluetoothPowered
         width: parent.width
         height: Math.min(contentHeight, 180)
