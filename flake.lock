@@ -1943,11 +1943,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1787679101,
-        "narHash": "sha256-AnLLEOI3QaWZLMy339nJeyfCXt4NZpnzsYhZXTEagkU=",
+        "lastModified": 1788370327,
+        "narHash": "sha256-nbjvSRrbJ4LQrn8l0FJ8R5PNpq7gcQR8m78agL59zqs=",
         "owner": "agavra",
         "repo": "tuicr",
-        "rev": "2793274e62db966004b888914f856d325dc4ecdf",
+        "rev": "b55e218f6d38a87ca4a6d9924a4c50b5f601dd07",
         "type": "github"
       },
       "original": {
