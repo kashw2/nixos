@@ -1508,11 +1508,11 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1788368353,
-        "narHash": "sha256-x+S11rFbzjcZ8E95JPy/UT4TcA8yBObTkvELy4Og03c=",
+        "lastModified": 1789085497,
+        "narHash": "sha256-YIumRXO/AawuReivaNvtcIvSf6I0mmO7TYcNoB3lE3k=",
         "owner": "nixos",
         "repo": "nixfmt",
-        "rev": "e48bc70ca033067266122da43d823202d43f5ad7",
+        "rev": "3ada88408156ca4893acc1f7c7bc85cd82129f53",
         "type": "github"
       },
       "original": {
