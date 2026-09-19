@@ -5,7 +5,7 @@ on:
     paths:
       - '*.nix'
       - flake.lock
-      - modules/**
+      - nix/**
       - secrets/**
       - tests/**
   schedule:

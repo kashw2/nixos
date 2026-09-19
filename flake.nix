@@ -130,7 +130,7 @@
         systems = [ "x86_64-linux" ];
         imports = [
           (inputs.import-tree [
-            ./modules
+            ./nix
             ./tests
           ])
           inputs.wrapper-modules.flakeModules.default

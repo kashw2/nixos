@@ -8,7 +8,7 @@
 #     Activation script snippet 'setupSecretsForUsers' failed
 #     warning: password file '/run/secrets-for-users/keanu_password' does not exist
 #
-# because modules/features/sops.nix reads its age key and ed25519 SSH
+# because nix/features/sops.nix reads its age key and ed25519 SSH
 # host key directly from /persist (to avoid a stage-2 race with the
 # impermanence bind mounts), and /persist is empty on a fresh install.
 #
@@ -17,7 +17,7 @@
 # the target's root. Two non-obvious details this wrapper handles:
 #
 #   1. The staging tree must use the `persist/` prefix. /persist is a
-#      separate btrfs subvolume (modules/hosts/<host>/disko.nix) that
+#      separate btrfs subvolume (nix/hosts/<host>/disko.nix) that
 #      survives the rollback-root initrd wipe; files placed at plain
 #      /etc/ssh/... would land in the root subvolume and get wiped on
 #      first boot.
@@ -28,7 +28,7 @@
 #      files. Restrictive modes are preserved; on-target ownership is
 #      set by nixos-anywhere.
 #
-# The USB layout matches modules/installer.nix's install-host so the
+# The USB layout matches nix/installer.nix's install-host so the
 # same stick works for both ISO-based and over-the-network installs.
 {
   self,
@@ -78,7 +78,7 @@ in
             --path <usb-root>  path to the mounted key USB root. Defaults to the
                                first directory under /run/media/\$USER.
 
-          Expected USB layout (matches install-host in modules/installer.nix):
+          Expected USB layout (matches install-host in nix/installer.nix):
             <usb-root>/sops/admin/keys.txt
             <usb-root>/sops/<host>/ssh_host_ed25519_key
             <usb-root>/sops/<host>/ssh_host_ed25519_key.pub

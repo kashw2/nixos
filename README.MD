@@ -37,7 +37,7 @@ nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'
 
 # Nixos Anywhere
 
-Because hosts use sops-nix (most with impermanence), `/persist` needs the sops age key and ed25519 host key seeded prior to first activation — otherwise sops can't decrypt and `keanu_password` never materialises. `deploy-host` (defined in `modules/deploy.nix`) stages those files from the key USB and invokes `nixos-anywhere --extra-files` in one step.
+Because hosts use sops-nix (most with impermanence), `/persist` needs the sops age key and ed25519 host key seeded prior to first activation — otherwise sops can't decrypt and `keanu_password` never materialises. `deploy-host` (defined in `nix/deploy.nix`) stages those files from the key USB and invokes `nixos-anywhere --extra-files` in one step.
 
 ## Usage
 

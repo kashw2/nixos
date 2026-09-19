@@ -8,7 +8,7 @@
       ...
     }:
     let
-      # LAN address per host under modules/hosts/. Keep in sync when adding hosts.
+      # LAN address per host under nix/hosts/. Keep in sync when adding hosts.
       hostAddresses = {
         home = "192.168.1.5";
         laptop = "192.168.1.6";

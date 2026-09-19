@@ -5,21 +5,21 @@ on:
     paths:
       - flake.nix
       - flake.lock
-      - modules/features/nushell.nix
-      - modules/features/kitty.nix
-      - modules/features/tmux.nix
-      - modules/features/fastfetch/**
-      - modules/features/act.nix
-      - modules/features/floci-cli.nix
-      - modules/features/desktop-environment/sddm-sugar-candy.nix
-      - modules/features/desktop-environment/hyprland.nix
-      - modules/features/desktop-environment/hypridle.nix
-      - modules/features/desktop-environment/hyprlock.nix
-      - modules/features/desktop-environment/hyprpaper.nix
-      - modules/features/desktop-environment/quickshell.nix
-      - modules/features/desktop-environment/quickshell/**
-      - modules/deploy.nix
-      - modules/features/nixvim/**
+      - nix/features/nushell.nix
+      - nix/features/kitty.nix
+      - nix/features/tmux.nix
+      - nix/features/fastfetch/**
+      - nix/features/act.nix
+      - nix/features/floci-cli.nix
+      - nix/features/desktop-environment/sddm-sugar-candy.nix
+      - nix/features/desktop-environment/hyprland.nix
+      - nix/features/desktop-environment/hypridle.nix
+      - nix/features/desktop-environment/hyprlock.nix
+      - nix/features/desktop-environment/hyprpaper.nix
+      - nix/features/desktop-environment/quickshell.nix
+      - nix/features/desktop-environment/quickshell/**
+      - nix/deploy.nix
+      - nix/features/nixvim/**
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -39,26 +39,26 @@ jobs:
             flake:
               - 'flake.nix'
               - 'flake.lock'
-            nushell: 'modules/features/nushell.nix'
-            kitty: 'modules/features/kitty.nix'
-            tmux: 'modules/features/tmux.nix'
-            fastfetch: 'modules/features/fastfetch/**'
-            act: 'modules/features/act.nix'
-            floci-cli: 'modules/features/floci-cli.nix'
-            sddm-sugar-candy: 'modules/features/desktop-environment/sddm-sugar-candy.nix'
-            hyprland: 'modules/features/desktop-environment/hyprland.nix'
-            hypridle: 'modules/features/desktop-environment/hypridle.nix'
-            hyprlock: 'modules/features/desktop-environment/hyprlock.nix'
-            hyprpaper: 'modules/features/desktop-environment/hyprpaper.nix'
-            atone-nvim: 'modules/features/nixvim/atone-nvim.nix'
-            codestats: 'modules/features/nixvim/codestats.nix'
-            bruno-nvim: 'modules/features/nixvim/tree-sitter-bruno.nix'
-            tree-sitter-bruno: 'modules/features/nixvim/tree-sitter-bruno.nix'
-            neovim: 'modules/features/nixvim/**'
+            nushell: 'nix/features/nushell.nix'
+            kitty: 'nix/features/kitty.nix'
+            tmux: 'nix/features/tmux.nix'
+            fastfetch: 'nix/features/fastfetch/**'
+            act: 'nix/features/act.nix'
+            floci-cli: 'nix/features/floci-cli.nix'
+            sddm-sugar-candy: 'nix/features/desktop-environment/sddm-sugar-candy.nix'
+            hyprland: 'nix/features/desktop-environment/hyprland.nix'
+            hypridle: 'nix/features/desktop-environment/hypridle.nix'
+            hyprlock: 'nix/features/desktop-environment/hyprlock.nix'
+            hyprpaper: 'nix/features/desktop-environment/hyprpaper.nix'
+            atone-nvim: 'nix/features/nixvim/atone-nvim.nix'
+            codestats: 'nix/features/nixvim/codestats.nix'
+            bruno-nvim: 'nix/features/nixvim/tree-sitter-bruno.nix'
+            tree-sitter-bruno: 'nix/features/nixvim/tree-sitter-bruno.nix'
+            neovim: 'nix/features/nixvim/**'
             quickshell:
-              - 'modules/features/desktop-environment/quickshell.nix'
-              - 'modules/features/desktop-environment/quickshell/**'
-            deploy-host: 'modules/deploy.nix'
+              - 'nix/features/desktop-environment/quickshell.nix'
+              - 'nix/features/desktop-environment/quickshell/**'
+            deploy-host: 'nix/deploy.nix'
       - id: classify
         env:
           EVENT: ${{ github.event_name }}

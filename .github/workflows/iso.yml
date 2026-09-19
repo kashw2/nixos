@@ -4,9 +4,9 @@ on:
   pull_request:
     paths:
       - .github/workflows/iso.yml
-      - modules/installer.nix
-      - modules/features/impermanence.nix
-      - modules/features/sops.nix
+      - nix/installer.nix
+      - nix/features/impermanence.nix
+      - nix/features/sops.nix
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
