@@ -17,7 +17,7 @@
         self.nixosModules.keanu
       ];
 
-      # Values consumed by nix/features/impermanence.nix. The unit
+      # Values consumed by nix/modules/impermanence.nix. The unit
       # name is systemd-escaped: `/` → `-`, and each original `-` in the
       # path becomes `\x2d` (double-backslashed here to survive the
       # nix string parser).

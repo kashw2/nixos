@@ -48,21 +48,24 @@ This repo follows the [dendritic pattern](https://github.com/mightyiam/dendritic
 - **nix-wrapper-modules** (`wrapper-modules` input) defines wrapped packages with embedded config files
 - Single system target: `x86_64-linux`
 
-### Module Layout (`nix/`)
+### Layout (`nix/`)
 
 - **`hosts/`** — Per-machine configs (hardware, disko partitions, GPU drivers). Each host imports the same ordered set of feature modules.
 - **`desktop.nix`**, **`laptop.nix`**, **`server.nix`** — Host templates (`desktopTemplate`, `laptopTemplate`, `serverTemplate`) that compose feature modules for each host class. Desktop enables display manager, audio, etc.; laptop adds laptop-specific tweaks; server is minimal with no desktop environment.
-- **`features/`** — Reusable NixOS modules: `environment.nix`, `nix/`, `security.nix`, `networking.nix`, `audio.nix`, `virtualisation.nix`, `sops.nix`
-- **`features/desktop-environment/`** — Hyprland WM, SDDM display manager (with custom Sugar Candy theme), hyprlock, hypridle, hyprpaper, quickshell. Most are **wrapper** modules.
-- **`features/nixvim/`** — Neovim config split across: `default.nix` (core), `plugins.nix`, `lsp.nix`, `keymaps.nix`, `colorschemes.nix`, `highlights.nix`, `atone-nvim.nix` (custom plugin)
-- **`features/telemetry/`** — LGTP observability stack: Grafana, Prometheus, Loki, Tempo, Alloy. Role-based (`features.telemetry.role` = `"host"` or `"client"`).
+- **`modules/`** — Reusable NixOS modules: `environment.nix`, `nix/`, `security.nix`, `networking.nix`, `audio.nix`, `virtualisation.nix`, `sops.nix`, `impermanence.nix`, `attic.nix`, `jellyfin.nix`
+- **`modules/desktop-environment/`** — Hyprland session module wiring the desktop packages and SDDM together
+- **`modules/nixvim/`** — Neovim config split across: `default.nix` (core), `plugins.nix`, `lsp.nix`, `keymaps.nix`, `colorschemes.nix`, `highlights.nix`, `options.nix`
+- **`modules/telemetry/`** — LGTP observability stack: Grafana, Prometheus, Loki, Tempo, Alloy. Role-based (`features.telemetry.role` = `"host"` or `"client"`).
+- **`packages/`** — Package definitions: **wrapper** packages (`nushell.nix`, `kitty.nix`, `tmux.nix`, `act.nix`, `fastfetch/`) and plain derivations (`floci-cli.nix`). `wrappers.nix` holds the shared wrapper `pkgs` instance.
+- **`packages/desktop-environment/`** — hyprland, hyprlock, hypridle, hyprpaper and quickshell wrappers, plus the custom SDDM Sugar Candy theme
+- **`packages/nixvim/`** — `package.nix` (the `neovim` package) and custom plugins: `atone-nvim.nix`, `codestats.nix`, `tree-sitter-bruno.nix`
 - **`users/keanu/`** — User config, home-manager programs, system packages, SSH authorized keys
 - **`colmena.nix`** — Deployment targets for all five hosts (home.local, laptop.local, thinkpad.local, media.local, homelab.local)
 - **`secrets/`** — SSH host keys per machine; SOPS-encrypted secrets in `secrets/secrets.yaml` (at repo root)
 
 ### Wrapper Modules Pattern
 
-Desktop/shell programs use `flake.wrappers.<name>` from nix-wrapper-modules to create packages with baked-in configuration files. These are defined in their respective feature files (e.g., `nushell.nix`, `kitty.nix`, `hyprland.nix`, `fastfetch.nix`, `quickshell.nix`) and exposed as `self.packages.${system}.<name>`.
+Desktop/shell programs use `flake.wrappers.<name>` from nix-wrapper-modules to create packages with baked-in configuration files. These are defined in their respective files under `packages/` (e.g., `nushell.nix`, `kitty.nix`, `desktop-environment/hyprland.nix`, `fastfetch/`, `desktop-environment/quickshell.nix`) and exposed as `self.packages.${system}.<name>`.
 
 ### Host Differences
 

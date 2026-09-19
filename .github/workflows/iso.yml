@@ -5,8 +5,8 @@ on:
     paths:
       - .github/workflows/iso.yml
       - nix/installer.nix
-      - nix/features/impermanence.nix
-      - nix/features/sops.nix
+      - nix/modules/impermanence.nix
+      - nix/modules/sops.nix
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

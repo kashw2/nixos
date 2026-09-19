@@ -189,8 +189,8 @@ in
           # Write to /mnt/persist/... — /mnt/var and /mnt/etc live on the
           # `root` btrfs subvolume, which the rollback-root initrd service
           # wipes on first boot. Impermanence then bind-mounts these paths
-          # from /persist at runtime (see nix/features/impermanence.nix
-          # and nix/features/sops.nix).
+          # from /persist at runtime (see nix/modules/impermanence.nix
+          # and nix/modules/sops.nix).
           mkdir -p /mnt/persist/var/lib/sops-nix
           cp "$KEY_DEST" /mnt/persist/var/lib/sops-nix/key.txt
           chmod 0400 /mnt/persist/var/lib/sops-nix/key.txt

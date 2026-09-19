@@ -5,21 +5,22 @@ on:
     paths:
       - flake.nix
       - flake.lock
-      - nix/features/nushell.nix
-      - nix/features/kitty.nix
-      - nix/features/tmux.nix
-      - nix/features/fastfetch/**
-      - nix/features/act.nix
-      - nix/features/floci-cli.nix
-      - nix/features/desktop-environment/sddm-sugar-candy.nix
-      - nix/features/desktop-environment/hyprland.nix
-      - nix/features/desktop-environment/hypridle.nix
-      - nix/features/desktop-environment/hyprlock.nix
-      - nix/features/desktop-environment/hyprpaper.nix
-      - nix/features/desktop-environment/quickshell.nix
-      - nix/features/desktop-environment/quickshell/**
+      - nix/packages/nushell.nix
+      - nix/packages/kitty.nix
+      - nix/packages/tmux.nix
+      - nix/packages/fastfetch/**
+      - nix/packages/act.nix
+      - nix/packages/floci-cli.nix
+      - nix/packages/desktop-environment/sddm-sugar-candy.nix
+      - nix/packages/desktop-environment/hyprland.nix
+      - nix/packages/desktop-environment/hypridle.nix
+      - nix/packages/desktop-environment/hyprlock.nix
+      - nix/packages/desktop-environment/hyprpaper.nix
+      - nix/packages/desktop-environment/quickshell.nix
+      - nix/packages/desktop-environment/quickshell/**
       - nix/deploy.nix
-      - nix/features/nixvim/**
+      - nix/packages/nixvim/**
+      - nix/modules/nixvim/**
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -39,25 +40,27 @@ jobs:
             flake:
               - 'flake.nix'
               - 'flake.lock'
-            nushell: 'nix/features/nushell.nix'
-            kitty: 'nix/features/kitty.nix'
-            tmux: 'nix/features/tmux.nix'
-            fastfetch: 'nix/features/fastfetch/**'
-            act: 'nix/features/act.nix'
-            floci-cli: 'nix/features/floci-cli.nix'
-            sddm-sugar-candy: 'nix/features/desktop-environment/sddm-sugar-candy.nix'
-            hyprland: 'nix/features/desktop-environment/hyprland.nix'
-            hypridle: 'nix/features/desktop-environment/hypridle.nix'
-            hyprlock: 'nix/features/desktop-environment/hyprlock.nix'
-            hyprpaper: 'nix/features/desktop-environment/hyprpaper.nix'
-            atone-nvim: 'nix/features/nixvim/atone-nvim.nix'
-            codestats: 'nix/features/nixvim/codestats.nix'
-            bruno-nvim: 'nix/features/nixvim/tree-sitter-bruno.nix'
-            tree-sitter-bruno: 'nix/features/nixvim/tree-sitter-bruno.nix'
-            neovim: 'nix/features/nixvim/**'
+            nushell: 'nix/packages/nushell.nix'
+            kitty: 'nix/packages/kitty.nix'
+            tmux: 'nix/packages/tmux.nix'
+            fastfetch: 'nix/packages/fastfetch/**'
+            act: 'nix/packages/act.nix'
+            floci-cli: 'nix/packages/floci-cli.nix'
+            sddm-sugar-candy: 'nix/packages/desktop-environment/sddm-sugar-candy.nix'
+            hyprland: 'nix/packages/desktop-environment/hyprland.nix'
+            hypridle: 'nix/packages/desktop-environment/hypridle.nix'
+            hyprlock: 'nix/packages/desktop-environment/hyprlock.nix'
+            hyprpaper: 'nix/packages/desktop-environment/hyprpaper.nix'
+            atone-nvim: 'nix/packages/nixvim/atone-nvim.nix'
+            codestats: 'nix/packages/nixvim/codestats.nix'
+            bruno-nvim: 'nix/packages/nixvim/tree-sitter-bruno.nix'
+            tree-sitter-bruno: 'nix/packages/nixvim/tree-sitter-bruno.nix'
+            neovim:
+              - 'nix/packages/nixvim/**'
+              - 'nix/modules/nixvim/**'
             quickshell:
-              - 'nix/features/desktop-environment/quickshell.nix'
-              - 'nix/features/desktop-environment/quickshell/**'
+              - 'nix/packages/desktop-environment/quickshell.nix'
+              - 'nix/packages/desktop-environment/quickshell/**'
             deploy-host: 'nix/deploy.nix'
       - id: classify
         env:

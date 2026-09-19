@@ -8,7 +8,7 @@
 #     Activation script snippet 'setupSecretsForUsers' failed
 #     warning: password file '/run/secrets-for-users/keanu_password' does not exist
 #
-# because nix/features/sops.nix reads its age key and ed25519 SSH
+# because nix/modules/sops.nix reads its age key and ed25519 SSH
 # host key directly from /persist (to avoid a stage-2 race with the
 # impermanence bind mounts), and /persist is empty on a fresh install.
 #
