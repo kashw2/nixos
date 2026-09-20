@@ -128,13 +128,12 @@
       }
       {
         systems = [ "x86_64-linux" ];
-        imports =
+        imports = [
           (inputs.import-tree [
             ./modules
             ./tests
-          ]).imports
-          ++ [
-            inputs.wrapper-modules.flakeModules.default
-          ];
+          ])
+          inputs.wrapper-modules.flakeModules.default
+        ];
       };
 }
