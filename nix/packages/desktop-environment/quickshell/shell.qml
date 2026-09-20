@@ -264,8 +264,12 @@ ShellRoot {
 
     property color baseAccent: "#89b4fa"
 
-    readonly property int accentWorkspace: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0
-        ? Hyprland.focusedWorkspace.id : 1
+    readonly property int accentWorkspace: {
+        var w = Hyprland.focusedWorkspace;
+        if (!w || !w.name) return 1;
+        var n = parseInt(w.name, 10);
+        return isNaN(n) || n < 1 ? 1 : n;
+    }
 
     function shiftHue(c, steps) {
         if (c.hsvHue < 0 || steps === 0) return c;
@@ -1086,20 +1090,34 @@ ShellRoot {
                             height: parent.height
 
                             Repeater {
-                                model: Hyprland.workspaces.values
+                                model: {
+                                    var ws = Hyprland.workspaces.values.slice();
+                                    ws.sort(function (a, b) {
+                                        var an = parseInt(a.name, 10);
+                                        var bn = parseInt(b.name, 10);
+                                        if (isNaN(an) && isNaN(bn)) return a.name < b.name ? -1 : 1;
+                                        if (isNaN(an)) return 1;
+                                        if (isNaN(bn)) return -1;
+                                        return an - bn;
+                                    });
+                                    return ws;
+                                }
 
                                 Rectangle {
                                     id: wsItem
                                     required property var modelData
-                                    property int wsId: modelData ? modelData.id : -1
                                     property string wsName: modelData && modelData.name ? modelData.name : ""
-                                    property bool hasCustomName: wsName !== "" && wsName !== String(wsId)
-                                    property string label: hasCustomName ? wsName.substring(0, 3) : String(wsId)
-                                    property bool isActive: Hyprland.focusedWorkspace !== null && Hyprland.focusedWorkspace.id === wsId
+                                    readonly property int wsNum: {
+                                        var n = parseInt(wsName, 10);
+                                        return isNaN(n) ? -1 : n;
+                                    }
+                                    property bool hasCustomName: wsNum < 1
+                                    property string label: hasCustomName ? wsName.substring(0, 3) : String(wsNum)
+                                    property bool isActive: modelData !== null && Hyprland.focusedWorkspace === modelData
                                     property bool hovered: false
                                     readonly property bool urgent: modelData && modelData.urgent === true && !isActive
 
-                                    visible: wsId > 0
+                                    visible: wsName !== "" && !wsName.startsWith("special")
                                     implicitWidth: Math.max(24, wsLabel.implicitWidth + 10)
                                     width: visible ? implicitWidth : 0
                                     height: 22
@@ -1158,7 +1176,9 @@ ShellRoot {
                                         }
                                         onWheel: event => {
                                             shell.closePopup();
-                                            Hyprland.dispatch(event.angleDelta.y > 0 ? "workspace e-1" : "workspace e+1");
+                                            Hyprland.dispatch(event.angleDelta.y > 0
+                                                ? 'hl.dsp.focus({ workspace = "e-1" })'
+                                                : 'hl.dsp.focus({ workspace = "e+1" })');
                                         }
                                     }
                                 }
