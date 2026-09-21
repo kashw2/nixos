@@ -273,6 +273,8 @@ in
           name = "installer-${hostName}";
           value = inputs.nixos-generators.nixosGenerate {
             inherit system;
+            inherit (inputs.nixpkgs) lib;
+            inherit (inputs.nixpkgs.lib) nixosSystem;
             format = "install-iso";
             specialArgs = {
               inherit self inputs hostName;
