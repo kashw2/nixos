@@ -63,7 +63,7 @@
       inputs.flake-parts.follows = "flake-parts";
     };
     nixcord = {
-      url = "github:KaylorBen/nixcord";
+      url = "github:4evy/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-nixcord.follows = "nixpkgs";
     };
