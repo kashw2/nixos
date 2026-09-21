@@ -3,109 +3,40 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
-    nix = {
-      url = "github:nixos/nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nixpkgs-23-11.follows = "nixpkgs";
-      inputs.nixpkgs-regression.follows = "nixpkgs";
-    };
+    nix.url = "github:nixos/nix";
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    colmena = {
-      url = "github:zhaofengli/colmena";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.stable.follows = "nixpkgs";
-    };
-    wrapper-modules = {
-      url = "github:birdeehub/nix-wrapper-modules";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hyprpaper = {
-      url = "github:hyprwm/hyprpaper";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hypridle = {
-      url = "github:hyprwm/hypridle";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nixvim = {
-      url = "github:nix-community/nixvim";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    colmena.url = "github:zhaofengli/colmena";
+    wrapper-modules.url = "github:birdeehub/nix-wrapper-modules";
+    hyprland.url = "github:hyprwm/Hyprland";
+    hyprpaper.url = "github:hyprwm/hyprpaper";
+    hypridle.url = "github:hyprwm/hypridle";
+    nixvim.url = "github:nix-community/nixvim";
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    mcp-servers-nix = {
-      url = "github:natsukium/mcp-servers-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    home-manager.url = "github:nix-community/home-manager";
+    mcp-servers-nix.url = "github:natsukium/mcp-servers-nix";
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    attic = {
-      url = "github:zhaofengli/attic";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nixpkgs-stable.follows = "nixpkgs";
-      inputs.flake-parts.follows = "flake-parts";
-    };
-    nixcord = {
-      url = "github:4evy/nixcord";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nixpkgs-nixcord.follows = "nixpkgs";
-    };
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nixlib.follows = "nixpkgs";
-    };
-    impermanence = {
-      url = "github:nix-community/impermanence";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
-    quickshell = {
-      url = "github:quickshell-mirror/quickshell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nixfmt = {
-      url = "github:nixos/nixfmt";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nixd = {
-      url = "github:nix-community/nixd";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-parts.follows = "flake-parts";
-    };
-    llm-agents = {
-      url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nautilus-my-computer = {
-      url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    tuicr = {
-      url = "github:agavra/tuicr";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    workmux = {
-      url = "github:raine/workmux";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    attic.url = "github:zhaofengli/attic";
+    nixcord.url = "github:4evy/nixcord";
+    nixos-generators.url = "github:nix-community/nixos-generators";
+    impermanence.url = "github:nix-community/impermanence";
+    quickshell.url = "github:quickshell-mirror/quickshell";
+    nixfmt.url = "github:nixos/nixfmt";
+    nixd.url = "github:nix-community/nixd";
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    nautilus-my-computer.url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
+    tuicr.url = "github:agavra/tuicr";
+    workmux.url = "github:raine/workmux";
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
