@@ -1418,15 +1418,15 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1790327782,
-        "narHash": "sha256-OlGjHgk8rIAltSoig7wgh/X0I+FMQHTpyHLl9kLkJ9w=",
-        "owner": "KaylorBen",
+        "lastModified": 1789896938,
+        "narHash": "sha256-JXKCB8B74Na5YvLgv0zcCpco8K2y2J97ytB0Nf6E8Lg=",
+        "owner": "4evy",
         "repo": "nixcord",
-        "rev": "5977d21803af13924a04b73eb90b674aa1a01303",
+        "rev": "55c88e495a359787f127b96efca941be64136aad",
         "type": "github"
       },
       "original": {
-        "owner": "KaylorBen",
+        "owner": "4evy",
         "repo": "nixcord",
         "type": "github"
       }
