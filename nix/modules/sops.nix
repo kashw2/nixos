@@ -92,9 +92,24 @@
                 "/home/keanu/.ssh/id_ed25519.pub";
           };
           "tailscale" = { };
-          "grafana_secret_key" = lib.mkIf (config.services.grafana.enable) {
-            owner = "grafana";
-            group = "grafana";
+          "oneuptime/secret" = lib.mkIf config.oneuptime.enable { };
+          "oneuptime/encryption_secret" = lib.mkIf config.oneuptime.enable { };
+          "oneuptime/register_probe_key" = lib.mkIf config.oneuptime.enable { };
+          "oneuptime/probe_key" = lib.mkIf (config.oneuptime.probe.enable || !config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+          "oneuptime/runner_key" = lib.mkIf (config.oneuptime.runner.enable || !config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+          "oneuptime/agent_key/${config.networking.hostName}" = lib.mkIf config.telemetry.agent.enable { };
+          "oneuptime/ingestion_token" = lib.mkIf config.services.alloy.enable {
+            restartUnits = [ "alloy.service" ];
+          };
+          "oneuptime/mcp_api_key" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
           };
           "github_kashw2_pat" = { };
           "github_tablogs_pat" = { };
@@ -114,6 +129,39 @@
             owner = "keanu";
             group = "keanu";
           };
+          "terraform_state_passphrase" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+        };
+
+        templates."oneuptime.env" = lib.mkIf config.oneuptime.enable {
+          content = ''
+            ONEUPTIME_SECRET=${config.sops.placeholder."oneuptime/secret"}
+            ENCRYPTION_SECRET=${config.sops.placeholder."oneuptime/encryption_secret"}
+            REGISTER_PROBE_KEY=${config.sops.placeholder."oneuptime/register_probe_key"}
+          '';
+          owner = "oneuptime";
+          group = "oneuptime";
+          mode = "0400";
+        };
+
+        templates."oneuptime-probe.env" = lib.mkIf config.oneuptime.probe.enable {
+          content = ''
+            PROBE_KEY=${config.sops.placeholder."oneuptime/probe_key"}
+          '';
+          owner = "oneuptime";
+          group = "oneuptime";
+          mode = "0400";
+        };
+
+        templates."oneuptime-runner.env" = lib.mkIf config.oneuptime.runner.enable {
+          content = ''
+            ONEUPTIME_RUNNER_KEY=${config.sops.placeholder."oneuptime/runner_key"}
+          '';
+          owner = "oneuptime";
+          group = "oneuptime";
+          mode = "0400";
         };
 
         templates."nix-access-tokens" = {
