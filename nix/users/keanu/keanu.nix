@@ -75,6 +75,9 @@
             ++ [
               inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
               inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default
+              (inputs.witr.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs {
+                doCheck = false;
+              })
               self.packages.${pkgs.stdenv.hostPlatform.system}.tmux
               pkgs.nix-update
               pkgs.hydra-check

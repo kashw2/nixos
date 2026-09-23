@@ -1667,6 +1667,7 @@
         "sops-nix": "sops-nix",
         "superpowers": "superpowers",
         "tuicr": "tuicr",
+        "witr": "witr",
         "workmux": "workmux",
         "wrapper-modules": "wrapper-modules"
       }
@@ -1983,6 +1984,26 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "witr": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786160034,
+        "narHash": "sha256-fkj3Usg1YsoBa+K/kPDdEIjr8si8GX8qjIq8aRE8Kgc=",
+        "owner": "pranshuparmar",
+        "repo": "witr",
+        "rev": "dc4fa1da82d3e266fcbd928641b4f30b3077c64f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pranshuparmar",
+        "repo": "witr",
         "type": "github"
       }
     },

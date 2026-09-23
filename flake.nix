@@ -102,6 +102,10 @@
       url = "github:agavra/tuicr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    witr = {
+      url = "github:pranshuparmar/witr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     workmux = {
       url = "github:raine/workmux";
       inputs.nixpkgs.follows = "nixpkgs";
