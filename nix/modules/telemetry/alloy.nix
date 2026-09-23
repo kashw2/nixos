@@ -23,7 +23,7 @@
     {
 
       services.alloy = {
-        enable = config.features.telemetry.role == "host";
+        enable = config.telemetry.role == "host";
         configPath = pkgs.writeText "config.alloy" (
           ''
             logging {
@@ -33,7 +33,7 @@
               enabled = true
             }
           ''
-          + lib.optionalString config.services.tempo.enable ''
+          + ''
             otelcol.receiver.otlp "default" {
               grpc {
                 endpoint = "127.0.0.1:4317"
@@ -42,51 +42,67 @@
                 endpoint = "127.0.0.1:4318"
               }
               output {
-                ${lib.optionalString config.services.mimir.enable ''
-                  metrics = [otelcol.processor.batch.batch.input]
-                ''}
-                ${lib.optionalString config.services.loki.enable ''
-                  logs = [otelcol.processor.batch.batch.input]
-                ''}
-                traces = [otelcol.processor.batch.batch.input]
+                metrics = [otelcol.processor.batch.batch.input]
+                logs    = [otelcol.processor.batch.batch.input]
+                traces  = [otelcol.processor.batch.batch.input]
               }
             }
             otelcol.processor.batch "batch" {
               output {
-                ${lib.optionalString config.services.mimir.enable ''
-                  metrics = [
-                    otelcol.exporter.otlphttp.mimir.input,
-                  ]
-                ''}
-                ${lib.optionalString config.services.loki.enable ''
-                  logs = [
-                    otelcol.exporter.loki.default.input,
-                  ]
-                ''}
-                traces = [
-                  otelcol.exporter.otlphttp.tempo.input,
+                metrics = [otelcol.processor.resourcedetection.host.input]
+                logs    = [otelcol.processor.resourcedetection.host.input]
+                traces  = [otelcol.processor.resourcedetection.host.input]
+              }
+            }
+            otelcol.processor.resourcedetection "host" {
+              detectors = ["system"]
+              system {
+                hostname_sources = ["os"]
+              }
+              output {
+                metrics = [otelcol.processor.transform.entities.input]
+                logs    = [otelcol.processor.transform.entities.input]
+                traces  = [otelcol.processor.transform.entities.input]
+              }
+            }
+            otelcol.processor.transform "entities" {
+              error_mode = "ignore"
+              log_statements {
+                context = "log"
+                statements = [
+                  `set(resource.attributes["service.name"], attributes["job"]) where resource.attributes["service.name"] == nil and attributes["job"] != nil`,
+                  `set(resource.attributes["host.name"], attributes["hostname"]) where resource.attributes["host.name"] == nil and attributes["hostname"] != nil`,
                 ]
               }
+              output {
+                metrics = [otelcol.exporter.otlphttp.oneuptime.input]
+                logs    = [otelcol.exporter.otlphttp.oneuptime.input]
+                traces  = [otelcol.exporter.otlphttp.oneuptime.input]
+              }
             }
-            otelcol.exporter.otlphttp "tempo" {
+            local.file "oneuptime_token" {
+              filename  = "/run/credentials/alloy.service/oneuptime-token"
+              is_secret = true
+            }
+            otelcol.auth.headers "oneuptime" {
+              header {
+                key   = "x-oneuptime-token"
+                value = local.file.oneuptime_token.content
+              }
+            }
+            otelcol.exporter.otlphttp "oneuptime" {
               client {
-                endpoint = "http://127.0.0.1:5318"
+                endpoint = "${config.telemetry.agent.url}/otlp"
+                auth     = otelcol.auth.headers.oneuptime.handler
               }
             }
-            ${lib.optionalString config.services.mimir.enable ''
-              otelcol.exporter.otlphttp "mimir" {
-                client {
-                  endpoint = "http://127.0.0.1:${toString config.services.mimir.configuration.server.http_listen_port}/otlp"
-                }
+            otelcol.receiver.loki "default" {
+              output {
+                logs = [otelcol.processor.batch.batch.input]
               }
-            ''}
-            ${lib.optionalString config.services.loki.enable ''
-              otelcol.exporter.loki "default" {
-                forward_to = [loki.write.writer.receiver]
-              }
-            ''}
+            }
           ''
-          + lib.optionalString config.services.mimir.enable ''
+          + ''
             otelcol.receiver.prometheus "default" {
               output {
                 metrics = [otelcol.processor.batch.batch.input]
@@ -123,12 +139,7 @@
               ]
             }
           ''
-          + lib.optionalString config.services.loki.enable ''
-            loki.write "writer" {
-              endpoint {
-                url = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}/loki/api/v1/push"
-              }
-            }
+          + ''
              ${lib.optionalString config.services.nginx.enable ''
                loki.source.file "nginx_log" {
                  targets = [
@@ -146,7 +157,7 @@
                    },
                  ]
                  forward_to = [
-                   loki.write.writer.receiver,
+                   otelcol.receiver.loki.default.receiver,
                  ]
                }
              ''}
@@ -161,7 +172,7 @@
                   },
                 ]
                 forward_to = [
-                  loki.write.writer.receiver,
+                  otelcol.receiver.loki.default.receiver,
                 ]
               }
             ''}
@@ -218,7 +229,7 @@
                   },
                 ]
                 forward_to = [
-                  loki.write.writer.receiver,
+                  otelcol.receiver.loki.default.receiver,
                 ]
               }
             ''}
@@ -226,6 +237,12 @@
         );
         extraFlags = [
           "--server.http.listen-addr=127.0.0.1:12345"
+        ];
+      };
+
+      systemd.services.alloy = lib.mkIf config.services.alloy.enable {
+        serviceConfig.LoadCredential = [
+          "oneuptime-token:${config.sops.secrets."oneuptime/ingestion_token".path}"
         ];
       };
     };
