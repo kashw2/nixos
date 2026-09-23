@@ -52,8 +52,10 @@
               pkgs.slack
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
+              self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
               pkgs.gh
               pkgs.infracost
+              pkgs.opentofu
               pkgs.prettier
               pkgs.nodejs_24
               pkgs.go
