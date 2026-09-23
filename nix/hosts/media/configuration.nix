@@ -18,7 +18,32 @@
         self.nixosModules.keanu
       ];
 
-      features.telemetry.role = "host";
+      telemetry.role = "host";
+
+      oneuptime = {
+        enable = true;
+        runner.enable = true;
+
+        settings = {
+          PROVISION_SSL = "false";
+          DATABASE_HOST = "127.0.0.1";
+          DATABASE_NAME = "oneuptime";
+          DATABASE_USERNAME = "oneuptime";
+          DATABASE_SSL_REJECT_UNAUTHORIZED = "false";
+          CLICKHOUSE_USER = "default";
+          CLICKHOUSE_DATABASE = "oneuptime";
+          REDIS_USERNAME = "default";
+          REDIS_DB = "0";
+        };
+
+        probe.settings = {
+          PROBE_ID = "e1a57509-9539-4e1e-ad60-f1378ae1a105";
+          PROBE_NAME = "Probe-1";
+          PROBE_DESCRIPTION = "Private probe to monitor oneuptime resources";
+        };
+
+        runner.settings.ONEUPTIME_RUNNER_ID = "3ac93117-92ed-4874-a9bb-0b4c6b594b2d";
+      };
 
       # `/mnt/torrents` is owned `rtorrent:rtorrent`; group members can read the
       # tree. Jellyfin and the *arr stack join the `rtorrent` group (the shared
@@ -51,10 +76,14 @@
           ++ lib.optionals config.services.radarr.enable [ "/var/lib/radarr" ]
           ++ lib.optionals config.services.bazarr.enable [ "/var/lib/bazarr" ]
           ++ lib.optionals config.services.flood.enable [ "/var/lib/private/flood" ]
-          ++ lib.optionals config.services.grafana.enable [ "/var/lib/grafana" ]
-          ++ lib.optionals config.services.loki.enable [ "/var/lib/loki" ]
-          ++ lib.optionals config.services.mimir.enable [ "/var/lib/private/mimir" ]
-          ++ lib.optionals config.services.tempo.enable [ "/var/lib/private/tempo" ];
+          ++ lib.optionals config.services.postgresql.enable [ "/var/lib/postgresql" ]
+          ++ lib.optionals config.services.clickhouse.enable [ "/var/lib/clickhouse" ]
+          ++ lib.optionals config.oneuptime.enable [
+            "/var/lib/redis-oneuptime"
+            "/var/lib/oneuptime"
+          ]
+          ++ lib.optionals config.oneuptime.probe.enable [ "/var/lib/oneuptime-probe" ]
+          ++ lib.optionals config.oneuptime.runner.enable [ "/var/lib/oneuptime-runner" ];
       };
 
       networking = {
@@ -116,6 +145,7 @@
               Host = "media";
               MACAddress = "e0:51:d8:1c:eb:c8";
             };
+            domains = [ "~local" ];
             networkConfig = {
               DHCP = "no";
               IPv6PrivacyExtensions = "kernel";
@@ -156,6 +186,7 @@
                 locations = {
                   "/" = {
                     proxyPass = "http://127.0.0.1:${toString port}/";
+                    proxyWebsockets = true;
                     extraConfig = ''
                       proxy_set_header Host $host;
                       proxy_set_header X-Real-IP $remote_addr;
@@ -168,6 +199,19 @@
                 };
               };
             };
+            mkOneUptimeRewrite = pattern: {
+              proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
+              proxyWebsockets = true;
+              extraConfig = ''
+                rewrite ${pattern} break;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header Cookie $http_cookie;
+                proxy_set_header Authorization $http_authorization;
+              '';
+            };
           in
           {
             enable = true;
@@ -175,16 +219,30 @@
             virtualHosts =
               mkVirtualHost "jellyfin" 8096
               // mkVirtualHost "alloy" 12345
+              // lib.recursiveUpdate (mkVirtualHost "oneuptime" config.oneuptime.port) {
+                oneuptime.locations = {
+                  "/identity" = mkOneUptimeRewrite "^/identity(.*)$ /api/identity$1";
+                  "/notification" = mkOneUptimeRewrite "^/notification(.*)$ /api/notification$1";
+                  "/file" = mkOneUptimeRewrite "^/file(.*)$ /api/file$1";
+                  "/workers" = mkOneUptimeRewrite "^/workers(.*)$ /api/workers$1";
+                  "/heartbeat" = mkOneUptimeRewrite "^/heartbeat(.*)$ /incoming-request$1";
+                  "/l/" = mkOneUptimeRewrite "^/l/(.*)$ /api/short-link/redirect-to-shortlink/$1";
+                  "/status-page-api/" = mkOneUptimeRewrite "^/status-page-api/(.*)$ /api/status-page/$1";
+                  "/status-page-identity-api/" =
+                    mkOneUptimeRewrite "^/status-page-identity-api/(.*)$ /api/identity/status-page/$1";
+                  "/status-page-sso-api/" =
+                    mkOneUptimeRewrite "^/status-page-sso-api/(.*)$ /api/identity/status-page-sso/$1";
+                  "/status-page-oidc-api/" =
+                    mkOneUptimeRewrite "^/status-page-oidc-api/(.*)$ /api/identity/status-page-oidc/$1";
+                  "/public-dashboard-api/" = mkOneUptimeRewrite "^/public-dashboard-api/(.*)$ /api/dashboard/$1";
+                };
+              }
               // mkVirtualHost "prowlarr" config.services.prowlarr.settings.server.port
               // mkVirtualHost "sonarr" config.services.sonarr.settings.server.port
               // mkVirtualHost "radarr" config.services.radarr.settings.server.port
               // mkVirtualHost "bazarr" config.services.bazarr.listenPort
               // mkVirtualHost "flaresolverr" config.services.flaresolverr.port
               // mkVirtualHost "flood" config.services.flood.port
-              // mkVirtualHost "mimir" config.services.mimir.configuration.server.http_listen_port
-              // mkVirtualHost "grafana" config.services.grafana.settings.server.http_port
-              // mkVirtualHost "loki" config.services.loki.configuration.server.http_listen_port
-              // mkVirtualHost "tempo" config.services.tempo.settings.server.http_listen_port
               // {
                 "rtorrent-rpc" = {
                   listen = [
@@ -247,6 +305,129 @@
             trackers.numwant.set = 100
             pieces.memory.max.set = 2000M
             network.max_open_sockets.set = 8000
+          '';
+        };
+
+        postgresql = lib.mkIf config.oneuptime.enable {
+          enable = true;
+          authentication = "host oneuptime oneuptime 127.0.0.1/32 trust";
+          ensureDatabases = [ config.oneuptime.settings.DATABASE_NAME ];
+          ensureUsers = [
+            {
+              name = config.oneuptime.settings.DATABASE_USERNAME;
+              ensureDBOwnership = true;
+            }
+          ];
+        };
+
+        redis.servers.oneuptime = lib.mkIf config.oneuptime.enable {
+          enable = true;
+          bind = "127.0.0.1";
+          port = 6379;
+          save = [ ];
+          appendOnly = false;
+        };
+
+        clickhouse = lib.mkIf config.oneuptime.enable {
+          enable = true;
+          serverConfig = {
+            listen_host = "127.0.0.1";
+            http_port = 8123;
+            tcp_port = 9000;
+            max_server_memory_usage_to_ram_ratio = 0.5;
+            keeper_server = {
+              tcp_port = 9181;
+              server_id = 1;
+              log_storage_path = "/var/lib/clickhouse/coordination/log";
+              snapshot_storage_path = "/var/lib/clickhouse/coordination/snapshots";
+              coordination_settings = {
+                operation_timeout_ms = 10000;
+                session_timeout_ms = 30000;
+                raft_logs_level = "warning";
+              };
+              raft_configuration.server = {
+                id = 1;
+                hostname = "127.0.0.1";
+                port = 9234;
+              };
+            };
+            zookeeper.node = {
+              host = "127.0.0.1";
+              port = 9181;
+            };
+            macros = {
+              shard = "01";
+              replica = "replica-1";
+              cluster = "oneuptime";
+            };
+            remote_servers.oneuptime.shard = {
+              internal_replication = true;
+              replica = {
+                host = "127.0.0.1";
+                port = 9000;
+              };
+            };
+          };
+          extraUsersConfig = ''
+            <clickhouse>
+              <users>
+                <default>
+                  <password remove="1"/>
+                  <no_password/>
+                  <networks>
+                    <ip>127.0.0.1</ip>
+                  </networks>
+                  <access_management>1</access_management>
+                </default>
+              </users>
+            </clickhouse>
+          '';
+          extraServerConfig = ''
+            <clickhouse>
+                <query_log>
+                    <database>system</database>
+                    <table>query_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </query_log>
+                <trace_log>
+                    <database>system</database>
+                    <table>trace_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </trace_log>
+                <text_log>
+                    <database>system</database>
+                    <table>text_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </text_log>
+                <part_log>
+                    <database>system</database>
+                    <table>part_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </part_log>
+                <metric_log>
+                    <database>system</database>
+                    <table>metric_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </metric_log>
+                <asynchronous_metric_log>
+                    <database>system</database>
+                    <table>asynchronous_metric_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </asynchronous_metric_log>
+                <processors_profile_log remove="1" />
+            </clickhouse>
           '';
         };
 
