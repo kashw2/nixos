@@ -70,6 +70,7 @@
               log_statements {
                 context = "log"
                 statements = [
+                  `set(resource.attributes["service.name"], "Auditd") where attributes["transport"] == "audit"`,
                   `set(resource.attributes["service.name"], attributes["unit"]) where resource.attributes["service.name"] == nil and attributes["unit"] != nil`,
                   `set(resource.attributes["service.name"], attributes["job"]) where resource.attributes["service.name"] == nil and attributes["job"] != nil`,
                   `set(resource.attributes["host.name"], attributes["hostname"]) where resource.attributes["host.name"] == nil and attributes["hostname"] != nil`,
@@ -168,23 +169,12 @@
                  ]
                }
              ''}
-            ${lib.optionalString config.security.auditd.enable ''
-              loki.source.file "audit_log" {
-                targets = [
-                  {
-                  "__path__" = "/var/log/audit/audit.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Auditd",
-                  "labels" = {},
-                  },
-                ]
-                forward_to = [
-                  otelcol.receiver.loki.default.receiver,
-                ]
-              }
-            ''}
             loki.relabel "journal" {
               forward_to = []
+              rule {
+                source_labels = ["__journal__transport"]
+                target_label  = "transport"
+              }
               rule {
                 source_labels = ["__journal__systemd_unit"]
                 target_label  = "unit"
