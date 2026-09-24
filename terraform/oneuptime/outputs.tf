@@ -15,3 +15,7 @@ output "ingestion_token" {
 output "probe_id" {
   value = oneuptime_probe.media.id
 }
+
+output "vhost_status_page_id" {
+  value = oneuptime_status_page.vhosts.id
+}
