@@ -32,4 +32,5 @@ module "status_page" {
   source = "./modules/status_page"
 
   vhost_monitors = module.monitors.vhost_ids
+  host_monitors  = module.monitors.agent_ids
 }
