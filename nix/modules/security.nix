@@ -39,6 +39,9 @@
           enable = true;
           backlogLimit = 16384;
           rules = [
+            "-a always,exclude -F msgtype=PATH"
+            "-a always,exclude -F msgtype=CWD"
+            "-a always,exclude -F msgtype=BPF"
             "-a exit,always -F arch=b64 -S execve -F auid>=1000 -F auid!=unset -k commands"
             "-a exit,always -F arch=b32 -S execve -F auid>=1000 -F auid!=unset -k commands"
           ];
@@ -80,6 +83,16 @@
                   /etc/ssl/certs/** r,
                   /var/log/nginx/** rw,
                   /var/spool/nginx/** rwk,
+                  /tmp/nginx_client_body/ rw,
+                  /tmp/nginx_client_body/** rwk,
+                  /tmp/nginx_proxy/ rw,
+                  /tmp/nginx_proxy/** rwk,
+                  /tmp/nginx_fastcgi/ rw,
+                  /tmp/nginx_fastcgi/** rwk,
+                  /tmp/nginx_scgi/ rw,
+                  /tmp/nginx_scgi/** rwk,
+                  /tmp/nginx_uwsgi/ rw,
+                  /tmp/nginx_uwsgi/** rwk,
                   /run/nginx/*.pid rw,
                   /run/nginx.pid rw,
                   /run/nginx/** rw,
