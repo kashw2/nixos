@@ -4,6 +4,37 @@ resource "oneuptime_monitor" "agent" {
   name         = each.key
   monitor_type = "Server"
   description  = "Infrastructure agent metrics for ${each.key}"
+
+  monitor_steps = [
+    {
+      criteria = [
+        {
+          name                  = "Online"
+          filter_condition      = "All"
+          change_monitor_status = true
+          monitor_status_id     = data.oneuptime_monitor_status.operational.id
+          filters = [
+            {
+              check_on    = "Is Online"
+              filter_type = "True"
+            }
+          ]
+        },
+        {
+          name                  = "Offline"
+          filter_condition      = "All"
+          change_monitor_status = true
+          monitor_status_id     = data.oneuptime_monitor_status.offline.id
+          filters = [
+            {
+              check_on    = "Is Online"
+              filter_type = "False"
+            }
+          ]
+        },
+      ]
+    }
+  ]
 }
 
 resource "oneuptime_monitor" "vhost" {
@@ -20,14 +51,29 @@ resource "oneuptime_monitor" "vhost" {
       request_type             = "GET"
       criteria = [
         {
-          name             = "Check if online"
-          filter_condition = "All"
+          name                  = "Online"
+          filter_condition      = "All"
+          change_monitor_status = true
+          monitor_status_id     = data.oneuptime_monitor_status.operational.id
           filters = [
             {
-              check_on = "Is Online"
+              check_on    = "Is Online"
+              filter_type = "True"
             }
           ]
-        }
+        },
+        {
+          name                  = "Offline"
+          filter_condition      = "All"
+          change_monitor_status = true
+          monitor_status_id     = data.oneuptime_monitor_status.offline.id
+          filters = [
+            {
+              check_on    = "Is Online"
+              filter_type = "False"
+            }
+          ]
+        },
       ]
     }
   ]
