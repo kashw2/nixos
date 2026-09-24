@@ -180,6 +180,12 @@
                 target_label  = "unit"
               }
               rule {
+                source_labels = ["unit"]
+                regex         = "session-\\d+\\.scope"
+                target_label  = "unit"
+                replacement   = "user-session.scope"
+              }
+              rule {
                 source_labels = ["__journal_priority_keyword"]
                 target_label  = "level"
               }
