@@ -1,11 +1,35 @@
-resource "oneuptime_status_page_resource" "vhost" {
-  for_each = var.vhosts
+module "monitors" {
+  source = "./modules/monitors"
 
-  status_page_id = oneuptime_status_page.vhosts.id
-  monitor_id     = oneuptime_monitor.vhost[each.key].id
-  display_name   = each.key
+  hosts  = var.hosts
+  vhosts = var.vhosts
+}
 
-  show_current_status       = true
-  show_uptime_percent       = true
-  show_status_history_chart = true
+module "probe" {
+  source = "./modules/probe"
+
+  key           = var.ONEUPTIME_PROBE_KEY
+  name          = "Probe-1"
+  description   = "Private probe on media"
+  probe_version = "13.0.0"
+}
+
+module "runner" {
+  source = "./modules/runner"
+
+  key  = var.ONEUPTIME_RUNNER_KEY
+  name = "Runner"
+}
+
+module "telemetry" {
+  source = "./modules/telemetry"
+
+  name        = "OneUptime"
+  description = "Ingestion Key for OneUptime"
+}
+
+module "status_page" {
+  source = "./modules/status_page"
+
+  vhost_monitors = module.monitors.vhost_ids
 }
