@@ -12,7 +12,7 @@
             {
               imports = [ self.nixosModules.telemetry ];
 
-              features.telemetry.role = "client";
+              telemetry.role = "client";
               telemetry.agent.enable = false;
             };
           testScript = ''

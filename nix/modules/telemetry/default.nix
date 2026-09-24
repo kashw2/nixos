@@ -13,7 +13,7 @@
         self.nixosModules.oneuptimeInfrastructureAgent
       ];
 
-      options.features.telemetry.role = lib.mkOption {
+      options.telemetry.role = lib.mkOption {
         type = lib.types.enum [
           "host"
           "client"

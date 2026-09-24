@@ -15,7 +15,7 @@
                 inputs.sops-nix.nixosModules.sops
               ];
 
-              features.telemetry.role = "host";
+              telemetry.role = "host";
               telemetry.agent.enable = false;
               virtualisation.memorySize = 4096;
               virtualisation.diskSize = 4096;
