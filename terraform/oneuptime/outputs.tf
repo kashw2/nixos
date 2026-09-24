@@ -11,3 +11,7 @@ output "ingestion_token" {
   value     = oneuptime_telemetry_ingestion_key.alloy.secret_key
   sensitive = true
 }
+
+output "probe_id" {
+  value = oneuptime_probe.media.id
+}

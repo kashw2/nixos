@@ -18,3 +18,8 @@ variable "NIXOS_STATE_PASSPHRASE" {
   type      = string
   sensitive = true
 }
+
+variable "ONEUPTIME_PROBE_KEY" {
+  type      = string
+  sensitive = true
+}
