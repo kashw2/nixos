@@ -80,6 +80,10 @@
                   `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["level"] == "warning" or attributes["level"] == "warn"`,
                   `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["level"] == "notice" or attributes["level"] == "info"`,
                   `set(severity_number, SEVERITY_NUMBER_DEBUG) where attributes["level"] == "debug"`,
+                  `set(severity_text, "Warning") where attributes["transport"] == "audit" and IsMatch(body, "^AVC ")`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["transport"] == "audit" and IsMatch(body, "^AVC ")`,
+                  `set(severity_text, "Information") where attributes["transport"] == "audit" and severity_text == ""`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["transport"] == "audit" and severity_number == 0`,
                 ]
               }
               output {
