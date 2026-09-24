@@ -1,5 +1,6 @@
 resource "oneuptime_telemetry_ingestion_key" "alloy" {
-  name        = "alloy"
-  description = "OTLP ingest for Grafana Alloy on media"
+  name        = "OneUptime"
+  description = "Ingestion Key for OneUptime"
   key_type    = "Server"
+  is_enabled  = true
 }

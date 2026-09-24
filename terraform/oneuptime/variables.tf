@@ -13,3 +13,8 @@ variable "ONEUPTIME_RUNNER_KEY" {
   type      = string
   sensitive = true
 }
+
+variable "NIXOS_STATE_PASSPHRASE" {
+  type      = string
+  sensitive = true
+}
