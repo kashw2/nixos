@@ -70,8 +70,15 @@
               log_statements {
                 context = "log"
                 statements = [
+                  `set(resource.attributes["service.name"], attributes["unit"]) where resource.attributes["service.name"] == nil and attributes["unit"] != nil`,
                   `set(resource.attributes["service.name"], attributes["job"]) where resource.attributes["service.name"] == nil and attributes["job"] != nil`,
                   `set(resource.attributes["host.name"], attributes["hostname"]) where resource.attributes["host.name"] == nil and attributes["hostname"] != nil`,
+                  `set(severity_text, attributes["level"]) where attributes["level"] != nil`,
+                  `set(severity_number, SEVERITY_NUMBER_FATAL) where attributes["level"] == "emerg" or attributes["level"] == "alert" or attributes["level"] == "crit"`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["level"] == "error" or attributes["level"] == "err"`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["level"] == "warning" or attributes["level"] == "warn"`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["level"] == "notice" or attributes["level"] == "info"`,
+                  `set(severity_number, SEVERITY_NUMBER_DEBUG) where attributes["level"] == "debug"`,
                 ]
               }
               output {
@@ -176,63 +183,25 @@
                 ]
               }
             ''}
-            ${lib.optionalString config.services.rsyslogd.enable ''
-              loki.source.file "syslog_log" {
-                targets = [
-                  {
-                  "__path__" = "/var/log/warn",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/messages",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/mail",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/dhcpd",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/auth.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Authentication",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/kernel.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Kernel",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/cron.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Cron",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/user.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Auditd",
-                  "labels" = {},
-                  },
-                ]
-                forward_to = [
-                  otelcol.receiver.loki.default.receiver,
-                ]
+            loki.relabel "journal" {
+              forward_to = []
+              rule {
+                source_labels = ["__journal__systemd_unit"]
+                target_label  = "unit"
               }
-            ''}
+              rule {
+                source_labels = ["__journal_priority_keyword"]
+                target_label  = "level"
+              }
+            }
+            loki.source.journal "journal" {
+              forward_to    = [otelcol.receiver.loki.default.receiver]
+              relabel_rules = loki.relabel.journal.rules
+              labels = {
+                hostname = "${config.networking.hostName}",
+                job      = "Systemd",
+              }
+            }
           ''
         );
         extraFlags = [
