@@ -66,3 +66,9 @@ Expected USB layout (same as the `install-host` ISO installer):
 <usb-root>/sops/<host>/ssh_host_ed25519_key
 <usb-root>/sops/<host>/ssh_host_ed25519_key.pub
 ```
+
+# Terraform
+
+Some state lives outside the NixOS closure — resources that hosts need credentials for before their services will start. These are managed with [OpenTofu](https://opentofu.org), with state encrypted in-repo using OpenTofu's native state encryption.
+
+See [`terraform/README.MD`](./terraform/README.MD).
