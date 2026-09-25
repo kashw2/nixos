@@ -335,6 +335,14 @@
             http_port = 8123;
             tcp_port = 9000;
             max_server_memory_usage_to_ram_ratio = 0.5;
+            prometheus = {
+              endpoint = "/metrics";
+              port = 9363;
+              metrics = true;
+              events = true;
+              asynchronous_metrics = true;
+              errors = true;
+            };
             keeper_server = {
               tcp_port = 9181;
               server_id = 1;

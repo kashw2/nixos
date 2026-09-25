@@ -44,6 +44,10 @@
           matches = map unitIs [ "prometheus-node-exporter.service" ];
         }
         {
+          name = "ClickHouse";
+          matches = map unitIs [ "clickhouse.service" ];
+        }
+        {
           name = "Auditd";
           matches = map unitIs [
             "auditd.service"
@@ -122,6 +126,7 @@
       metricGroups = {
         "alloy" = "Alloy";
         "prometheus.scrape.nixosConfiguration" = "Node Exporter";
+        "prometheus.scrape.clickhouse" = "ClickHouse";
       };
       metricStatements = lib.concatStringsSep "\n      " (
         lib.mapAttrsToList (
@@ -246,6 +251,16 @@
                 job         = "alloy",
                 __address__ = "127.0.0.1:12345",
               }]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+            prometheus.scrape "clickhouse" {
+              scrape_interval = "30s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:9363"},
+              ]
               forward_to = [
                 otelcol.receiver.prometheus.default.receiver,
               ]
