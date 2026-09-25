@@ -277,6 +277,7 @@
                      "labels" = {},
                    },
                  ]
+                 tail_from_end = true
                  forward_to = [
                    otelcol.receiver.loki.default.receiver,
                  ]
@@ -319,9 +320,14 @@
       };
 
       systemd.services.alloy = lib.mkIf config.services.alloy.enable {
-        serviceConfig.LoadCredential = [
-          "oneuptime-token:${config.sops.secrets."oneuptime/ingestion_token".path}"
-        ];
+        serviceConfig = {
+          LoadCredential = [
+            "oneuptime-token:${config.sops.secrets."oneuptime/ingestion_token".path}"
+          ];
+          SupplementaryGroups = lib.optionals config.services.nginx.enable [
+            config.services.nginx.group
+          ];
+        };
       };
     };
 }
