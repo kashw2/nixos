@@ -108,8 +108,18 @@
             restartUnits = [ "alloy.service" ];
           };
           "snmp/v3_username" = lib.mkIf config.services.snmpd.enable { };
-          "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable { };
-          "snmp/v3_priv_key" = lib.mkIf config.services.snmpd.enable { };
+          "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable (
+            lib.optionalAttrs (!config.isServer) {
+              owner = "keanu";
+              group = "keanu";
+            }
+          );
+          "snmp/v3_priv_key" = lib.mkIf config.services.snmpd.enable (
+            lib.optionalAttrs (!config.isServer) {
+              owner = "keanu";
+              group = "keanu";
+            }
+          );
           "oneuptime/mcp_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
             group = "keanu";
