@@ -38,3 +38,18 @@ variable "vhosts" {
     "sonarr.media.local",
   ]
 }
+
+variable "SNMP_V3_USERNAME" {
+  type    = string
+  default = "oneuptime"
+}
+
+variable "SNMP_V3_AUTH_KEY" {
+  type      = string
+  sensitive = true
+}
+
+variable "SNMP_V3_PRIV_KEY" {
+  type      = string
+  sensitive = true
+}

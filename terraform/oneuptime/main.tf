@@ -34,3 +34,15 @@ module "status_page" {
   vhost_monitors = module.monitors.vhost_ids
   host_monitors  = module.monitors.agent_ids
 }
+
+module "network" {
+  source = "./modules/network"
+
+  probe_id         = module.probe.id
+  gateway          = "192.168.1.1"
+  scan_cidr        = "192.168.1.0/24"
+  import_cidr      = "192.168.1.0/27"
+  snmp_v3_username = var.SNMP_V3_USERNAME
+  snmp_v3_auth_key = var.SNMP_V3_AUTH_KEY
+  snmp_v3_priv_key = var.SNMP_V3_PRIV_KEY
+}
