@@ -74,6 +74,11 @@
                 enabledCollectors = [ "systemd" ];
                 port = 9002;
               };
+              postgres = {
+                enable = config.services.postgresql.enable;
+                runAsLocalSuperUser = true;
+                port = 9187;
+              };
               nvidia-gpu = {
                 enable = builtins.elem "nvidia" config.services.xserver.videoDrivers;
                 port = 9835;
