@@ -16,9 +16,122 @@
         thinkpad = "192.168.1.9";
         media = "192.168.1.12";
       };
+      scrapeAddresses = hostAddresses // {
+        ${config.networking.hostName} = "127.0.0.1";
+      };
       scrapeTargets = lib.concatMapStringsSep "\n            " (
         addr: ''{"__address__" = "${addr}:${toString config.services.prometheus.exporters.node.port}"},''
-      ) (lib.attrValues hostAddresses);
+      ) (lib.attrValues scrapeAddresses);
+      arrUnits = map (name: "${name}.service") (
+        lib.filter (name: config.services.${name}.enable or false) [
+          "prowlarr"
+          "sonarr"
+          "radarr"
+          "bazarr"
+          "flaresolverr"
+        ]
+      );
+      unitIs = unit: ''attributes["unit"] == "${unit}"'';
+      unitMatches = pattern: ''IsMatch(attributes["unit"], "${pattern}")'';
+      serviceGroups = [
+        {
+          name = "Alloy";
+          matches = map unitIs [ "alloy.service" ];
+        }
+        {
+          name = "Node Exporter";
+          matches = map unitIs [ "prometheus-node-exporter.service" ];
+        }
+        {
+          name = "Auditd";
+          matches = map unitIs [
+            "auditd.service"
+            "audit-rules-nixos.service"
+          ];
+        }
+        {
+          name = "Systemd";
+          matches =
+            map unitIs [
+              "init.scope"
+              "user-session.scope"
+              "dbus-broker.service"
+              "nscd.service"
+              "apparmor.service"
+              "fstrim.service"
+            ]
+            ++ map unitMatches [
+              "^systemd-"
+              "^user@"
+            ];
+        }
+        {
+          name = "OneUptime";
+          matches = map unitIs [
+            "oneuptime-app.service"
+            "oneuptime-probe.service"
+            "oneuptime-runner.service"
+          ];
+        }
+        {
+          name = "PostgreSQL";
+          matches = map unitIs [
+            "postgresql.service"
+            "postgresql-setup.service"
+          ];
+        }
+        {
+          name = "Tailscale";
+          matches = map unitIs [
+            "tailscaled.service"
+            "tailscaled-autoconnect.service"
+          ];
+        }
+        {
+          name = "Nix";
+          matches = map unitIs [
+            "nix-daemon.service"
+            "nix-gc.service"
+          ];
+        }
+        {
+          name = "Logrotate";
+          matches = map unitIs [
+            "logrotate.service"
+            "logrotate-checkconf.service"
+          ];
+        }
+        {
+          name = "Media";
+          matches = map unitIs (
+            [
+              "jellyfin.service"
+              "flood.service"
+            ]
+            ++ arrUnits
+          );
+        }
+      ];
+      groupStatements = lib.concatMapStringsSep "\n      " (
+        group:
+        "`set(resource.attributes[\"service.name\"], \"${group.name}\") where (${lib.concatStringsSep " or " group.matches})${
+          lib.concatMapStrings (unit: " and attributes[\"unit\"] != \"${unit}\"") (group.exclude or [ ])
+        }`,"
+      ) (lib.filter (group: group.matches != [ ]) serviceGroups);
+      metricGroups = {
+        "alloy" = "Alloy";
+        "prometheus.scrape.nixosConfiguration" = "Node Exporter";
+      };
+      metricStatements = lib.concatStringsSep "\n      " (
+        lib.mapAttrsToList (
+          from: to:
+          "`set(attributes[\"service.name\"], \"${to}\") where attributes[\"service.name\"] == \"${from}\"`,"
+        ) metricGroups
+        ++ lib.mapAttrsToList (
+          name: addr:
+          "`set(attributes[\"host.name\"], \"${name}\") where attributes[\"server.address\"] == \"${addr}\"`,"
+        ) scrapeAddresses
+      );
     in
     {
 
@@ -71,6 +184,7 @@
                 context = "log"
                 statements = [
                   `set(resource.attributes["service.name"], "Auditd") where attributes["transport"] == "audit"`,
+                  ${groupStatements}
                   `set(resource.attributes["service.name"], attributes["unit"]) where resource.attributes["service.name"] == nil and attributes["unit"] != nil`,
                   `set(resource.attributes["service.name"], attributes["job"]) where resource.attributes["service.name"] == nil and attributes["job"] != nil`,
                   `set(resource.attributes["host.name"], attributes["hostname"]) where resource.attributes["host.name"] == nil and attributes["hostname"] != nil`,
@@ -84,6 +198,12 @@
                   `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["transport"] == "audit" and IsMatch(body, "^AVC ")`,
                   `set(severity_text, "Information") where attributes["transport"] == "audit" and severity_text == ""`,
                   `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["transport"] == "audit" and severity_number == 0`,
+                ]
+              }
+              metric_statements {
+                context = "resource"
+                statements = [
+                  ${metricStatements}
                 ]
               }
               output {
@@ -134,17 +254,6 @@
               scrape_timeout  = "5s"
               targets = [
                 ${scrapeTargets}
-              ]
-              forward_to = [
-                otelcol.receiver.prometheus.default.receiver,
-              ]
-            }
-            prometheus.scrape "openwrt" {
-              scrape_interval = "5s"
-              scrape_timeout  = "5s"
-              honor_labels = true
-              targets = [
-                {"__address__" = "${config.networking.defaultGateway.address}:9100"},
               ]
               forward_to = [
                 otelcol.receiver.prometheus.default.receiver,
