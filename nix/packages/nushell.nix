@@ -81,6 +81,14 @@
             $env.TF_VAR_ONEUPTIME_PROBE_KEY = (open /run/secrets/oneuptime/probe_key | str trim)
           }
 
+          if ("/run/secrets/snmp/v3_auth_key" | path exists) {
+            try { $env.TF_VAR_SNMP_V3_AUTH_KEY = (open /run/secrets/snmp/v3_auth_key | str trim) }
+          }
+
+          if ("/run/secrets/snmp/v3_priv_key" | path exists) {
+            try { $env.TF_VAR_SNMP_V3_PRIV_KEY = (open /run/secrets/snmp/v3_priv_key | str trim) }
+          }
+
           if ("/run/secrets/terraform_state_passphrase" | path exists) {
             $env.TF_VAR_NIXOS_STATE_PASSPHRASE = (open /run/secrets/terraform_state_passphrase | str trim)
           }
