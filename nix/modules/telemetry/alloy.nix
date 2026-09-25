@@ -18,6 +18,7 @@
       };
       scrapeAddresses = hostAddresses // {
         ${config.networking.hostName} = "127.0.0.1";
+        openwrt = config.networking.defaultGateway.address;
       };
       scrapeTargets = lib.concatMapStringsSep "\n            " (
         addr: ''{"__address__" = "${addr}:${toString config.services.prometheus.exporters.node.port}"},''
