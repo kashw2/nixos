@@ -45,6 +45,16 @@
             default = 3874;
             description = "Loopback port the probe listens on.";
           };
+          netflowPort = lib.mkOption {
+            type = lib.types.port;
+            default = 2055;
+            description = "UDP port the probe accepts NetFlow v5 records from network devices on.";
+          };
+          syslogPort = lib.mkOption {
+            type = lib.types.port;
+            default = 514;
+            description = "UDP port the probe accepts syslog from network devices on.";
+          };
           settings = lib.mkOption {
             type = lib.types.attrsOf lib.types.str;
             default = { };
