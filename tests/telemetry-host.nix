@@ -33,6 +33,7 @@
                 secrets = {
                   "oneuptime/ingestion_token" = { };
                 };
+                templates."snmpd.conf".content = "rouser test priv";
               };
               system.activationScripts.setupSecrets = lib.mkForce "";
               systemd.tmpfiles.rules = [

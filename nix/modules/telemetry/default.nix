@@ -10,6 +10,7 @@
 
       imports = [
         self.nixosModules.alloy
+        self.nixosModules.snmpd
         self.nixosModules.oneuptimeInfrastructureAgent
       ];
 

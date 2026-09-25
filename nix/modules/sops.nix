@@ -107,6 +107,9 @@
           "oneuptime/ingestion_token" = lib.mkIf config.services.alloy.enable {
             restartUnits = [ "alloy.service" ];
           };
+          "snmp/v3_username" = lib.mkIf config.services.snmpd.enable { };
+          "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable { };
+          "snmp/v3_priv_key" = lib.mkIf config.services.snmpd.enable { };
           "oneuptime/mcp_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
             group = "keanu";
@@ -162,6 +165,20 @@
           owner = "oneuptime";
           group = "oneuptime";
           mode = "0400";
+        };
+
+        templates."snmpd.conf" = lib.mkIf config.services.snmpd.enable {
+          content = ''
+            createUser ${config.sops.placeholder."snmp/v3_username"} SHA-256 "${
+              config.sops.placeholder."snmp/v3_auth_key"
+            }" AES "${config.sops.placeholder."snmp/v3_priv_key"}"
+            rouser ${config.sops.placeholder."snmp/v3_username"} priv
+            sysName ${config.networking.hostName}
+            sysLocation home
+            sysContact keanu
+          '';
+          mode = "0400";
+          restartUnits = [ "snmpd.service" ];
         };
 
         templates."nix-access-tokens" = {

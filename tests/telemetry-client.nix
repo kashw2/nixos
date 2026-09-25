@@ -8,12 +8,24 @@
           hostPkgs = pkgs;
           name = "telemetry-client";
           nodes.machine =
-            { ... }:
+            { lib, pkgs, ... }:
             {
-              imports = [ self.nixosModules.telemetry ];
+              imports = [
+                self.nixosModules.telemetry
+                inputs.sops-nix.nixosModules.sops
+              ];
 
               telemetry.role = "client";
               telemetry.agent.enable = false;
+
+              sops = {
+                age.keyFile = "/dev/null";
+                defaultSopsFile = pkgs.writeText "fake.yaml" "{}";
+                validateSopsFiles = false;
+                useSystemdActivation = false;
+                templates."snmpd.conf".content = "rouser test priv";
+              };
+              system.activationScripts.setupSecrets = lib.mkForce "";
             };
           testScript = ''
             machine.wait_for_unit("prometheus-node-exporter.service")
