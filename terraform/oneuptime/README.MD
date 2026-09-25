@@ -10,9 +10,11 @@ The `Server` monitor type cannot be created from the dashboard. It is absent fro
 | --- | --- |
 | `ONEUPTIME_API_KEY` | `oneuptime/mcp_api_key` |
 | `TF_VAR_ONEUPTIME_RUNNER_KEY` | `oneuptime/runner_key` |
+| `TF_VAR_SNMP_V3_AUTH_KEY` | `snmp/v3_auth_key` |
+| `TF_VAR_SNMP_V3_PRIV_KEY` | `snmp/v3_priv_key` |
 | `TF_VAR_NIXOS_STATE_PASSPHRASE` | `terraform_state_passphrase` |
 
-All three are exported automatically by the nushell wrapper on non-server hosts, from secrets placed by sops-nix. Servers do not receive `terraform_state_passphrase`, so run OpenTofu from a workstation.
+All of these are exported automatically by the nushell wrapper on non-server hosts, from secrets placed by sops-nix. Servers do not receive `terraform_state_passphrase`, so run OpenTofu from a workstation.
 
 ## State
 
