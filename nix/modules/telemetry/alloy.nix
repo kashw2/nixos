@@ -127,6 +127,7 @@
         "alloy" = "Alloy";
         "prometheus.scrape.nixosConfiguration" = "Node Exporter";
         "prometheus.scrape.clickhouse" = "ClickHouse";
+        "prometheus.scrape.postgres" = "PostgreSQL";
       };
       metricStatements = lib.concatStringsSep "\n      " (
         lib.mapAttrsToList (
@@ -251,6 +252,16 @@
                 job         = "alloy",
                 __address__ = "127.0.0.1:12345",
               }]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+            prometheus.scrape "postgres" {
+              scrape_interval = "30s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:9187"},
+              ]
               forward_to = [
                 otelcol.receiver.prometheus.default.receiver,
               ]
