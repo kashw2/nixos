@@ -446,6 +446,10 @@
         "d /mnt/torrents/Downloads 2775 rtorrent rtorrent -"
       ];
 
+      systemd.services.postgresql.postStart = lib.mkIf config.oneuptime.enable (
+        lib.mkAfter "psql -tAc 'GRANT pg_monitor TO \"${config.oneuptime.settings.DATABASE_USERNAME}\"'\n"
+      );
+
       systemd.services.rtorrent.serviceConfig.LimitNOFILE = 32768;
 
       systemd.services.flood.serviceConfig.SupplementaryGroups = [ "rtorrent" ];
