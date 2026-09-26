@@ -301,8 +301,8 @@
               ]
             }
             prometheus.scrape "nixosConfiguration" {
-              scrape_interval = "5s"
-              scrape_timeout  = "5s"
+              scrape_interval = "30s"
+              scrape_timeout  = "10s"
               targets = [
                 ${scrapeTargets}
               ]
