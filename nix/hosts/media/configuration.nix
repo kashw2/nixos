@@ -236,6 +236,16 @@
               // mkVirtualHost "alloy" 12345
               // lib.recursiveUpdate (mkVirtualHost "oneuptime" config.oneuptime.port) {
                 oneuptime.locations = {
+                  "/otlp" = {
+                    proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
+                    extraConfig = ''
+                      access_log off;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $scheme;
+                    '';
+                  };
                   "/identity" = mkOneUptimeRewrite "^/identity(.*)$ /api/identity$1";
                   "/notification" = mkOneUptimeRewrite "^/notification(.*)$ /api/notification$1";
                   "/file" = mkOneUptimeRewrite "^/file(.*)$ /api/file$1";

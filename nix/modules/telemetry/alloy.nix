@@ -148,6 +148,7 @@
           ''
             logging {
               level = "warn"
+              format = "json"
             }
             livedebugging {
               enabled = true
@@ -205,6 +206,29 @@
                   `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["transport"] == "audit" and IsMatch(body, "^AVC ")`,
                   `set(severity_text, "Information") where attributes["transport"] == "audit" and severity_text == ""`,
                   `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["transport"] == "audit" and severity_number == 0`,
+                  `set(cache, ParseJSON(body)) where attributes["job"] == "Nginx" and IsMatch(body, "^\\{")`,
+                  `set(attributes["http.request.method"], cache["method"]) where cache["method"] != nil`,
+                  `set(attributes["http.response.status_code"], cache["status"]) where cache["status"] != nil`,
+                  `set(attributes["url.path"], cache["path"]) where cache["path"] != nil`,
+                  `set(attributes["server.address"], cache["vhost"]) where cache["vhost"] != nil`,
+                  `set(attributes["client.address"], cache["remote_addr"]) where cache["remote_addr"] != nil`,
+                  `set(attributes["http.server.request.duration"], cache["duration"]) where cache["duration"] != nil`,
+                  `set(severity_text, "Information") where cache["status"] != nil and cache["status"] < 400`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where cache["status"] != nil and cache["status"] < 400`,
+                  `set(severity_text, "Warning") where cache["status"] != nil and cache["status"] >= 400 and cache["status"] < 500`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where cache["status"] != nil and cache["status"] >= 400 and cache["status"] < 500`,
+                  `set(severity_text, "Error") where cache["status"] != nil and cache["status"] >= 500`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where cache["status"] != nil and cache["status"] >= 500`,
+                  `set(severity_text, "Error") where attributes["job"] == "Nginx" and IsMatch(body, "\\[error\\]")`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["job"] == "Nginx" and IsMatch(body, "\\[error\\]")`,
+                  `set(severity_text, "Warning") where attributes["job"] == "Nginx" and IsMatch(body, "\\[warn\\]")`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["job"] == "Nginx" and IsMatch(body, "\\[warn\\]")`,
+                  `set(cache, ParseJSON(body)) where attributes["unit"] == "alloy.service" and IsMatch(body, "^\\{")`,
+                  `set(severity_text, cache["level"]) where attributes["unit"] == "alloy.service" and cache["level"] != nil`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["unit"] == "alloy.service" and cache["level"] == "error"`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["unit"] == "alloy.service" and cache["level"] == "warn"`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["unit"] == "alloy.service" and cache["level"] == "info"`,
+                  `set(severity_number, SEVERITY_NUMBER_DEBUG) where attributes["unit"] == "alloy.service" and cache["level"] == "debug"`,
                 ]
               }
               metric_statements {
