@@ -10,11 +10,11 @@
     let
       # LAN address per host under nix/hosts/. Keep in sync when adding hosts.
       hostAddresses = {
-        home = "192.168.1.5";
-        laptop = "192.168.1.6";
-        homelab = "192.168.1.7";
-        thinkpad = "192.168.1.9";
-        media = "192.168.1.12";
+        home = "home.tailscale";
+        laptop = "laptop.tailscale";
+        homelab = "homelab.tailscale";
+        thinkpad = "thinkpad.tailscale";
+        media = "media.tailscale";
       };
       scrapeAddresses = hostAddresses // {
         ${config.networking.hostName} = "127.0.0.1";
