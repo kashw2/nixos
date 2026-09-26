@@ -216,11 +216,36 @@
           {
             enable = true;
             statusPage = true;
+            commonHttpConfig = ''
+              log_format json escape=json '{'
+                '"time":"$time_iso8601",'
+                '"remote_addr":"$remote_addr",'
+                '"method":"$request_method",'
+                '"path":"$uri",'
+                '"status":$status,'
+                '"bytes":$body_bytes_sent,'
+                '"duration":$request_time,'
+                '"referer":"$http_referer",'
+                '"user_agent":"$http_user_agent",'
+                '"vhost":"$host"'
+              '}';
+              access_log /var/log/nginx/access.log json;
+            '';
             virtualHosts =
               mkVirtualHost "jellyfin" 8096
               // mkVirtualHost "alloy" 12345
               // lib.recursiveUpdate (mkVirtualHost "oneuptime" config.oneuptime.port) {
                 oneuptime.locations = {
+                  "/otlp" = {
+                    proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
+                    extraConfig = ''
+                      access_log off;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $scheme;
+                    '';
+                  };
                   "/identity" = mkOneUptimeRewrite "^/identity(.*)$ /api/identity$1";
                   "/notification" = mkOneUptimeRewrite "^/notification(.*)$ /api/notification$1";
                   "/file" = mkOneUptimeRewrite "^/file(.*)$ /api/file$1";
