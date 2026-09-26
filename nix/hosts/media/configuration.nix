@@ -18,7 +18,7 @@
         self.nixosModules.keanu
       ];
 
-      features.telemetry.role = "host";
+      telemetry.role = "host";
 
       # `/mnt/torrents` is owned `rtorrent:rtorrent`; group members can read the
       # tree. Jellyfin and the *arr stack join the `rtorrent` group (the shared

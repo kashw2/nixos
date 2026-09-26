@@ -23,7 +23,7 @@
     {
 
       services.alloy = {
-        enable = config.features.telemetry.role == "host";
+        enable = config.telemetry.role == "host";
         configPath = pkgs.writeText "config.alloy" (
           ''
             logging {

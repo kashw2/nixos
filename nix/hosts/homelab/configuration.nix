@@ -17,7 +17,7 @@
         self.nixosModules.keanu
       ];
 
-      features.telemetry.role = "client";
+      telemetry.role = "client";
 
       # For some reason the homelab host doesn't like systemd-boot which is provided by the serverTemplate module
       # We force it to use grub here

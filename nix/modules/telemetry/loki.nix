@@ -9,7 +9,7 @@
     }:
     {
 
-      config = lib.mkIf (config.features.telemetry.role == "host") {
+      config = lib.mkIf (config.telemetry.role == "host") {
 
         networking.firewall.allowedTCPPorts = [
           config.services.loki.configuration.server.http_listen_port
