@@ -67,6 +67,32 @@
             $env.INFRACOST_API_KEY = (open /run/secrets/infracost_api_key | str trim)
           }
 
+          if ("/run/secrets/oneuptime/mcp_api_key" | path exists) {
+            let oneuptime_api_key = (open /run/secrets/oneuptime/mcp_api_key | str trim)
+            $env.ONEUPTIME_MCP_API_KEY = $oneuptime_api_key
+            $env.ONEUPTIME_API_KEY = $oneuptime_api_key
+          }
+
+          if ("/run/secrets/oneuptime/runner_key" | path exists) {
+            $env.TF_VAR_ONEUPTIME_RUNNER_KEY = (open /run/secrets/oneuptime/runner_key | str trim)
+          }
+
+          if ("/run/secrets/oneuptime/probe_key" | path exists) {
+            $env.TF_VAR_ONEUPTIME_PROBE_KEY = (open /run/secrets/oneuptime/probe_key | str trim)
+          }
+
+          if ("/run/secrets/snmp/v3_auth_key" | path exists) {
+            try { $env.TF_VAR_SNMP_V3_AUTH_KEY = (open /run/secrets/snmp/v3_auth_key | str trim) }
+          }
+
+          if ("/run/secrets/snmp/v3_priv_key" | path exists) {
+            try { $env.TF_VAR_SNMP_V3_PRIV_KEY = (open /run/secrets/snmp/v3_priv_key | str trim) }
+          }
+
+          if ("/run/secrets/terraform_state_passphrase" | path exists) {
+            $env.TF_VAR_NIXOS_STATE_PASSPHRASE = (open /run/secrets/terraform_state_passphrase | str trim)
+          }
+
           alias ".." = cd ..
           alias "cd" = z
           alias "cls" = ${lib.getExe' pkgs.ncurses "clear"}

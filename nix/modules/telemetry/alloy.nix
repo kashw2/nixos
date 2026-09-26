@@ -10,30 +10,151 @@
     let
       # LAN address per host under nix/hosts/. Keep in sync when adding hosts.
       hostAddresses = {
-        home = "192.168.1.5";
-        laptop = "192.168.1.6";
-        homelab = "192.168.1.7";
-        thinkpad = "192.168.1.9";
-        media = "192.168.1.12";
+        home = "home.tailscale";
+        laptop = "laptop.tailscale";
+        homelab = "homelab.tailscale";
+        thinkpad = "thinkpad.tailscale";
+        media = "media.tailscale";
+      };
+      scrapeAddresses = hostAddresses // {
+        ${config.networking.hostName} = "127.0.0.1";
+        openwrt = config.networking.defaultGateway.address;
       };
       scrapeTargets = lib.concatMapStringsSep "\n            " (
         addr: ''{"__address__" = "${addr}:${toString config.services.prometheus.exporters.node.port}"},''
-      ) (lib.attrValues hostAddresses);
+      ) (lib.attrValues scrapeAddresses);
+      arrUnits = map (name: "${name}.service") (
+        lib.filter (name: config.services.${name}.enable or false) [
+          "prowlarr"
+          "sonarr"
+          "radarr"
+          "bazarr"
+          "flaresolverr"
+        ]
+      );
+      unitIs = unit: ''attributes["unit"] == "${unit}"'';
+      unitMatches = pattern: ''IsMatch(attributes["unit"], "${pattern}")'';
+      serviceGroups = [
+        {
+          name = "Alloy";
+          matches = map unitIs [ "alloy.service" ];
+        }
+        {
+          name = "Node Exporter";
+          matches = map unitIs [ "prometheus-node-exporter.service" ];
+        }
+        {
+          name = "ClickHouse";
+          matches = map unitIs [ "clickhouse.service" ];
+        }
+        {
+          name = "Auditd";
+          matches = map unitIs [
+            "auditd.service"
+            "audit-rules-nixos.service"
+          ];
+        }
+        {
+          name = "Systemd";
+          matches =
+            map unitIs [
+              "init.scope"
+              "user-session.scope"
+              "dbus-broker.service"
+              "nscd.service"
+              "apparmor.service"
+              "fstrim.service"
+            ]
+            ++ map unitMatches [
+              "^systemd-"
+              "^user@"
+            ];
+        }
+        {
+          name = "OneUptime";
+          matches = map unitIs [
+            "oneuptime-app.service"
+            "oneuptime-probe.service"
+            "oneuptime-runner.service"
+          ];
+        }
+        {
+          name = "PostgreSQL";
+          matches = map unitIs [
+            "postgresql.service"
+            "postgresql-setup.service"
+          ];
+        }
+        {
+          name = "Tailscale";
+          matches = map unitIs [
+            "tailscaled.service"
+            "tailscaled-autoconnect.service"
+          ];
+        }
+        {
+          name = "Nix";
+          matches = map unitIs [
+            "nix-daemon.service"
+            "nix-gc.service"
+          ];
+        }
+        {
+          name = "Logrotate";
+          matches = map unitIs [
+            "logrotate.service"
+            "logrotate-checkconf.service"
+          ];
+        }
+        {
+          name = "Media";
+          matches = map unitIs (
+            [
+              "jellyfin.service"
+              "flood.service"
+            ]
+            ++ arrUnits
+          );
+        }
+      ];
+      groupStatements = lib.concatMapStringsSep "\n      " (
+        group:
+        "`set(resource.attributes[\"service.name\"], \"${group.name}\") where (${lib.concatStringsSep " or " group.matches})${
+          lib.concatMapStrings (unit: " and attributes[\"unit\"] != \"${unit}\"") (group.exclude or [ ])
+        }`,"
+      ) (lib.filter (group: group.matches != [ ]) serviceGroups);
+      metricGroups = {
+        "alloy" = "Alloy";
+        "prometheus.scrape.nixosConfiguration" = "Node Exporter";
+        "prometheus.scrape.clickhouse" = "ClickHouse";
+        "prometheus.scrape.postgres" = "PostgreSQL";
+      };
+      metricStatements = lib.concatStringsSep "\n      " (
+        lib.mapAttrsToList (
+          from: to:
+          "`set(attributes[\"service.name\"], \"${to}\") where attributes[\"service.name\"] == \"${from}\"`,"
+        ) metricGroups
+        ++ lib.mapAttrsToList (
+          name: addr:
+          "`set(attributes[\"host.name\"], \"${name}\") where attributes[\"server.address\"] == \"${addr}\"`,"
+        ) scrapeAddresses
+      );
     in
     {
 
       services.alloy = {
-        enable = config.features.telemetry.role == "host";
+        enable = config.telemetry.role == "host";
         configPath = pkgs.writeText "config.alloy" (
           ''
             logging {
               level = "warn"
+              format = "json"
             }
             livedebugging {
               enabled = true
             }
           ''
-          + lib.optionalString config.services.tempo.enable ''
+          + ''
             otelcol.receiver.otlp "default" {
               grpc {
                 endpoint = "127.0.0.1:4317"
@@ -42,51 +163,109 @@
                 endpoint = "127.0.0.1:4318"
               }
               output {
-                ${lib.optionalString config.services.mimir.enable ''
-                  metrics = [otelcol.processor.batch.batch.input]
-                ''}
-                ${lib.optionalString config.services.loki.enable ''
-                  logs = [otelcol.processor.batch.batch.input]
-                ''}
-                traces = [otelcol.processor.batch.batch.input]
+                metrics = [otelcol.processor.batch.batch.input]
+                logs    = [otelcol.processor.batch.batch.input]
+                traces  = [otelcol.processor.batch.batch.input]
               }
             }
             otelcol.processor.batch "batch" {
               output {
-                ${lib.optionalString config.services.mimir.enable ''
-                  metrics = [
-                    otelcol.exporter.otlphttp.mimir.input,
-                  ]
-                ''}
-                ${lib.optionalString config.services.loki.enable ''
-                  logs = [
-                    otelcol.exporter.loki.default.input,
-                  ]
-                ''}
-                traces = [
-                  otelcol.exporter.otlphttp.tempo.input,
+                metrics = [otelcol.processor.resourcedetection.host.input]
+                logs    = [otelcol.processor.resourcedetection.host.input]
+                traces  = [otelcol.processor.resourcedetection.host.input]
+              }
+            }
+            otelcol.processor.resourcedetection "host" {
+              detectors = ["system"]
+              system {
+                hostname_sources = ["os"]
+              }
+              output {
+                metrics = [otelcol.processor.transform.entities.input]
+                logs    = [otelcol.processor.transform.entities.input]
+                traces  = [otelcol.processor.transform.entities.input]
+              }
+            }
+            otelcol.processor.transform "entities" {
+              error_mode = "ignore"
+              log_statements {
+                context = "log"
+                statements = [
+                  `set(resource.attributes["service.name"], "Auditd") where attributes["transport"] == "audit"`,
+                  ${groupStatements}
+                  `set(resource.attributes["service.name"], attributes["unit"]) where resource.attributes["service.name"] == nil and attributes["unit"] != nil`,
+                  `set(resource.attributes["service.name"], attributes["job"]) where resource.attributes["service.name"] == nil and attributes["job"] != nil`,
+                  `set(resource.attributes["host.name"], attributes["hostname"]) where resource.attributes["host.name"] == nil and attributes["hostname"] != nil`,
+                  `set(severity_text, attributes["level"]) where attributes["level"] != nil`,
+                  `set(severity_number, SEVERITY_NUMBER_FATAL) where attributes["level"] == "emerg" or attributes["level"] == "alert" or attributes["level"] == "crit"`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["level"] == "error" or attributes["level"] == "err"`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["level"] == "warning" or attributes["level"] == "warn"`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["level"] == "notice" or attributes["level"] == "info"`,
+                  `set(severity_number, SEVERITY_NUMBER_DEBUG) where attributes["level"] == "debug"`,
+                  `set(severity_text, "Warning") where attributes["transport"] == "audit" and IsMatch(body, "^AVC ")`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["transport"] == "audit" and IsMatch(body, "^AVC ")`,
+                  `set(severity_text, "Information") where attributes["transport"] == "audit" and severity_text == ""`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["transport"] == "audit" and severity_number == 0`,
+                  `set(cache, ParseJSON(body)) where attributes["job"] == "Nginx" and IsMatch(body, "^\\{")`,
+                  `set(attributes["http.request.method"], cache["method"]) where cache["method"] != nil`,
+                  `set(attributes["http.response.status_code"], cache["status"]) where cache["status"] != nil`,
+                  `set(attributes["url.path"], cache["path"]) where cache["path"] != nil`,
+                  `set(attributes["server.address"], cache["vhost"]) where cache["vhost"] != nil`,
+                  `set(attributes["client.address"], cache["remote_addr"]) where cache["remote_addr"] != nil`,
+                  `set(attributes["http.server.request.duration"], cache["duration"]) where cache["duration"] != nil`,
+                  `set(severity_text, "Information") where cache["status"] != nil and cache["status"] < 400`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where cache["status"] != nil and cache["status"] < 400`,
+                  `set(severity_text, "Warning") where cache["status"] != nil and cache["status"] >= 400 and cache["status"] < 500`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where cache["status"] != nil and cache["status"] >= 400 and cache["status"] < 500`,
+                  `set(severity_text, "Error") where cache["status"] != nil and cache["status"] >= 500`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where cache["status"] != nil and cache["status"] >= 500`,
+                  `set(severity_text, "Error") where attributes["job"] == "Nginx" and IsMatch(body, "\\[error\\]")`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["job"] == "Nginx" and IsMatch(body, "\\[error\\]")`,
+                  `set(severity_text, "Warning") where attributes["job"] == "Nginx" and IsMatch(body, "\\[warn\\]")`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["job"] == "Nginx" and IsMatch(body, "\\[warn\\]")`,
+                  `set(cache, ParseJSON(body)) where attributes["unit"] == "alloy.service" and IsMatch(body, "^\\{")`,
+                  `set(severity_text, cache["level"]) where attributes["unit"] == "alloy.service" and cache["level"] != nil`,
+                  `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["unit"] == "alloy.service" and cache["level"] == "error"`,
+                  `set(severity_number, SEVERITY_NUMBER_WARN) where attributes["unit"] == "alloy.service" and cache["level"] == "warn"`,
+                  `set(severity_number, SEVERITY_NUMBER_INFO) where attributes["unit"] == "alloy.service" and cache["level"] == "info"`,
+                  `set(severity_number, SEVERITY_NUMBER_DEBUG) where attributes["unit"] == "alloy.service" and cache["level"] == "debug"`,
                 ]
               }
+              metric_statements {
+                context = "resource"
+                statements = [
+                  ${metricStatements}
+                ]
+              }
+              output {
+                metrics = [otelcol.exporter.otlphttp.oneuptime.input]
+                logs    = [otelcol.exporter.otlphttp.oneuptime.input]
+                traces  = [otelcol.exporter.otlphttp.oneuptime.input]
+              }
             }
-            otelcol.exporter.otlphttp "tempo" {
+            local.file "oneuptime_token" {
+              filename  = "/run/credentials/alloy.service/oneuptime-token"
+              is_secret = true
+            }
+            otelcol.auth.headers "oneuptime" {
+              header {
+                key   = "x-oneuptime-token"
+                value = local.file.oneuptime_token.content
+              }
+            }
+            otelcol.exporter.otlphttp "oneuptime" {
               client {
-                endpoint = "http://127.0.0.1:5318"
+                endpoint = "${config.telemetry.agent.url}/otlp"
+                auth     = otelcol.auth.headers.oneuptime.handler
               }
             }
-            ${lib.optionalString config.services.mimir.enable ''
-              otelcol.exporter.otlphttp "mimir" {
-                client {
-                  endpoint = "http://127.0.0.1:${toString config.services.mimir.configuration.server.http_listen_port}/otlp"
-                }
+            otelcol.receiver.loki "default" {
+              output {
+                logs = [otelcol.processor.batch.batch.input]
               }
-            ''}
-            ${lib.optionalString config.services.loki.enable ''
-              otelcol.exporter.loki "default" {
-                forward_to = [loki.write.writer.receiver]
-              }
-            ''}
+            }
           ''
-          + lib.optionalString config.services.mimir.enable ''
+          + ''
             otelcol.receiver.prometheus "default" {
               output {
                 metrics = [otelcol.processor.batch.batch.input]
@@ -101,9 +280,29 @@
                 otelcol.receiver.prometheus.default.receiver,
               ]
             }
+            prometheus.scrape "postgres" {
+              scrape_interval = "30s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:9187"},
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+            prometheus.scrape "clickhouse" {
+              scrape_interval = "30s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:9363"},
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
             prometheus.scrape "nixosConfiguration" {
-              scrape_interval = "5s"
-              scrape_timeout  = "5s"
+              scrape_interval = "30s"
+              scrape_timeout  = "10s"
               targets = [
                 ${scrapeTargets}
               ]
@@ -111,24 +310,8 @@
                 otelcol.receiver.prometheus.default.receiver,
               ]
             }
-            prometheus.scrape "openwrt" {
-              scrape_interval = "5s"
-              scrape_timeout  = "5s"
-              honor_labels = true
-              targets = [
-                {"__address__" = "${config.networking.defaultGateway.address}:9100"},
-              ]
-              forward_to = [
-                otelcol.receiver.prometheus.default.receiver,
-              ]
-            }
           ''
-          + lib.optionalString config.services.loki.enable ''
-            loki.write "writer" {
-              endpoint {
-                url = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}/loki/api/v1/push"
-              }
-            }
+          + ''
              ${lib.optionalString config.services.nginx.enable ''
                loki.source.file "nginx_log" {
                  targets = [
@@ -145,88 +328,57 @@
                      "labels" = {},
                    },
                  ]
+                 tail_from_end = true
                  forward_to = [
-                   loki.write.writer.receiver,
+                   otelcol.receiver.loki.default.receiver,
                  ]
                }
              ''}
-            ${lib.optionalString config.security.auditd.enable ''
-              loki.source.file "audit_log" {
-                targets = [
-                  {
-                  "__path__" = "/var/log/audit/audit.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Auditd",
-                  "labels" = {},
-                  },
-                ]
-                forward_to = [
-                  loki.write.writer.receiver,
-                ]
+            loki.relabel "journal" {
+              forward_to = []
+              rule {
+                source_labels = ["__journal__transport"]
+                target_label  = "transport"
               }
-            ''}
-            ${lib.optionalString config.services.rsyslogd.enable ''
-              loki.source.file "syslog_log" {
-                targets = [
-                  {
-                  "__path__" = "/var/log/warn",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/messages",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/mail",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/dhcpd",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Syslog",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/auth.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Authentication",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/kernel.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Kernel",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/cron.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Cron",
-                  "labels" = {},
-                  },
-                  {
-                  "__path__" = "/var/log/user.log",
-                  "hostname" = "${config.networking.hostName}",
-                  "job" = "Auditd",
-                  "labels" = {},
-                  },
-                ]
-                forward_to = [
-                  loki.write.writer.receiver,
-                ]
+              rule {
+                source_labels = ["__journal__systemd_unit"]
+                target_label  = "unit"
               }
-            ''}
+              rule {
+                source_labels = ["unit"]
+                regex         = "session-\\d+\\.scope"
+                target_label  = "unit"
+                replacement   = "user-session.scope"
+              }
+              rule {
+                source_labels = ["__journal_priority_keyword"]
+                target_label  = "level"
+              }
+            }
+            loki.source.journal "journal" {
+              forward_to    = [otelcol.receiver.loki.default.receiver]
+              relabel_rules = loki.relabel.journal.rules
+              labels = {
+                hostname = "${config.networking.hostName}",
+                job      = "Systemd",
+              }
+            }
           ''
         );
         extraFlags = [
           "--server.http.listen-addr=127.0.0.1:12345"
         ];
+      };
+
+      systemd.services.alloy = lib.mkIf config.services.alloy.enable {
+        serviceConfig = {
+          LoadCredential = [
+            "oneuptime-token:${config.sops.secrets."oneuptime/ingestion_token".path}"
+          ];
+          SupplementaryGroups = lib.optionals config.services.nginx.enable [
+            config.services.nginx.group
+          ];
+        };
       };
     };
 }

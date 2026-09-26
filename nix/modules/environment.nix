@@ -14,6 +14,7 @@
       imports = [
         self.nixosModules.nix
         self.nixosModules.telemetry
+        self.nixosModules.oneuptime
         self.nixosModules.security
         self.nixosModules.networking
         self.nixosModules.nixvim
@@ -144,7 +145,6 @@
 
         services = {
           fwupd.enable = !config.isServer;
-          journald.extraConfig = "SystemMaxUse=500M";
         };
 
         system.stateVersion = "25.11";

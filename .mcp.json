@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "oneuptime": {
+      "type": "http",
+      "url": "http://oneuptime.media.local/mcp",
+      "headers": {
+        "x-api-key": "${ONEUPTIME_MCP_API_KEY}"
+      }
+    }
+  }
+}
