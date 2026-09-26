@@ -89,7 +89,6 @@
           wantedBy = [ "multi-user.target" ];
           environment = cfg.settings;
           serviceConfig = {
-            Type = "simple";
             User = "oneuptime";
             Group = "oneuptime";
             StateDirectory = "oneuptime";

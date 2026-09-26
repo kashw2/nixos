@@ -31,7 +31,6 @@
           wantedBy = [ "multi-user.target" ];
           environment = cfg.runner.settings;
           serviceConfig = {
-            Type = "simple";
             User = "oneuptime";
             Group = "oneuptime";
             StateDirectory = "oneuptime-runner";

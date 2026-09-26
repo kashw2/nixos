@@ -42,7 +42,6 @@
           wantedBy = [ "multi-user.target" ];
           environment = cfg.probe.settings;
           serviceConfig = {
-            Type = "simple";
             User = "oneuptime";
             Group = "oneuptime";
             StateDirectory = "oneuptime-probe";

@@ -44,7 +44,6 @@
           wantedBy = [ "multi-user.target" ];
           environment.ONEUPTIME_AGENT_CONFIG_PATH = configPath;
           serviceConfig = {
-            Type = "simple";
             RuntimeDirectory = "oneuptime-infrastructure-agent";
             RuntimeDirectoryMode = "0700";
             RuntimeDirectoryPreserve = "restart";
