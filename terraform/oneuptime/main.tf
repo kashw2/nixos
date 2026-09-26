@@ -46,3 +46,12 @@ module "network" {
   snmp_v3_auth_key = var.SNMP_V3_AUTH_KEY
   snmp_v3_priv_key = var.SNMP_V3_PRIV_KEY
 }
+
+module "project" {
+  source = "./modules/project"
+
+  name                         = "Homelab"
+  telemetry_retention_in_days  = 30
+  metrics_retention_in_days    = 7
+  audit_logs_retention_in_days = 7
+}
