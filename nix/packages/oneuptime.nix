@@ -18,18 +18,18 @@
           let
             # Common and the six frontends are separate npm projects that depend on each other by path, so each needs its own deps
             workspaces = {
-              "Common" = "sha256-zHswvTmdJRC9aW5zsLgXf5dSCK8KfEwlLYbisSjt01c=";
-              "App/FeatureSet/Accounts" = "sha256-d6OU3XLmi6R5mHMThfrGsq4st46bFzhEv+9zudWbuQg=";
-              "App/FeatureSet/AdminDashboard" = "sha256-7Xo3HQUDM9/0V8bUIWmi5nwBRWwleLqlW1d21s/CeJE=";
-              "App/FeatureSet/BrowserRecorder" = "sha256-C2PV0ZARaIgQ9qUQkixApV7O3RCBWJsohTYWksq0lW0=";
-              "App/FeatureSet/Dashboard" = "sha256-LOkjrCcMxAWVzKXuemsgJ/Q9/ike+MmEuV6TarYZpMI=";
-              "App/FeatureSet/PublicDashboard" = "sha256-Bqpj3YOyAZNgMwoPU/GlJYKUZOAn7IU8/fg+qZ30Q3A=";
-              "App/FeatureSet/StatusPage" = "sha256-4qOJBGktwY1b6kY14tMLGdw3kYICSy9Z/xrwEpyzoms=";
+              "packages/Common" = "sha256-UVQVgdZLFaXelE9/vwL0RiZ8INI6U0EguyBcbCEVhww=";
+              "packages/App/FeatureSet/Accounts" = "sha256-789vqpdCw908bEC/Cp2OFH988GV4+vw248MroHeH/Tg=";
+              "packages/App/FeatureSet/AdminDashboard" = "sha256-022BA2twedjZdC26q7TWAhUMUIJsv1kMp6qeaDW8Hwg=";
+              "packages/App/FeatureSet/BrowserRecorder" = "sha256-gfTNduWJZaOE5sLrNc+6Y9hnHbtwD6GzR0QS8zfjJ04=";
+              "packages/App/FeatureSet/Dashboard" = "sha256-vqeBJ7rz7tLw7FVLa5ZSPguC1bQ/L46khTi/oat+h68=";
+              "packages/App/FeatureSet/PublicDashboard" = "sha256-EROXrJ4WXK2qv7XZoBbQuyXSb2SX439lHxUarcF1ipg=";
+              "packages/App/FeatureSet/StatusPage" = "sha256-yGan/f3yPYe9PFNFzfRaP55nbQs+YqX4F87oeVyQa28=";
             };
           in
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-app";
-            version = "13.0.0";
+            version = "14.0.6";
 
             __structuredAttrs = true;
 
@@ -37,14 +37,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
-            sourceRoot = "${finalAttrs.src.name}/App";
+            sourceRoot = "${finalAttrs.src.name}/packages/App";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-DFpyMwlrw7I9UxRxOelXkMXckN0FqtrbUBc8V2BF+uw=";
+            npmDepsHash = "sha256-KQRKbKm8UM0qlcwP4HfvTCCFPz5Rb5SH9eeBV8xbvuY=";
 
             nativeBuildInputs = [ makeWrapper ];
 
@@ -68,7 +68,7 @@
                 in
                 ''
                   (
-                    cd ../${dir}
+                    cd ../../${dir}
                     # npmConfigHook requires both lockfiles to be identical, so take the
                     # repaired one back out of the fetched deps.
                     cp ${deps}/package-lock.json package-lock.json
@@ -133,52 +133,60 @@
           {
             lib,
             buildNpmPackage,
-            esbuild,
             fetchFromGitHub,
+            fetchNpmDeps,
             nix-update-script,
             nodejs_26,
             versionCheckHook,
           }:
 
-          buildNpmPackage (finalAttrs: {
-            pname = "oneuptime-cli";
-            version = "13.0.0";
-
-            __structuredAttrs = true;
+          let
+            version = "14.0.6";
 
             src = fetchFromGitHub {
               owner = "OneUptime";
               repo = "oneuptime";
-              tag = finalAttrs.version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              tag = version;
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
-            sourceRoot = "${finalAttrs.src.name}/CLI";
+            commonNpmDeps = fetchNpmDeps {
+              name = "oneuptime-common-npm-deps-${version}";
+              src = "${src}/packages/Common";
+              hash = "sha256-zOWPBxJazRMyMa8A58CPQVQgAgicvqKqDMI5UruPH+w=";
+            };
+          in
+          buildNpmPackage {
+            pname = "oneuptime-cli";
+            inherit version src;
+
+            __structuredAttrs = true;
+
+            sourceRoot = "${src.name}/packages/CLI";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-ktF7nHccPrpyV20D+k0588guyFgSRxqCsX/IPQwNnk8=";
+            npmDepsHash = "sha256-nK3KZZvJ6R5t/8Q3llBf5Td7L2JOjcwh8pCxFyGVL20=";
+
+            preBuild = ''
+              chmod -R u+w ../Common
+
+              (
+                export npmRoot=../Common
+                export npmDeps=${commonNpmDeps}
+                npmFlags=""
+                npmFlagsArray=()
+
+                npmConfigHook
+              )
+            '';
 
             nativeBuildInputs = [
-              esbuild
               versionCheckHook
             ];
 
-            # Common ships ESM with extensionless relative imports, which Node's ESM resolver rejects.
-            postBuild = ''
-              (
-                cd node_modules/Common
-
-                find build/dist -name '*.js' -exec esbuild \
-                  --format=cjs \
-                  --platform=node \
-                  --outbase=build/dist \
-                  --outdir=. \
-                  --log-level=error \
-                  {} +
-
-                rm -rf build
-              )
+            postInstall = ''
+              cp -a ../Common $out/lib/node_modules/@oneuptime/Common
             '';
 
             versionCheckProgramArg = "version";
@@ -189,7 +197,7 @@
               mainProgram = "oneuptime";
               platforms = lib.platforms.all;
             };
-          })
+          }
         ) { };
 
         oneuptime-infrastructure-agent = pkgs.callPackage (
@@ -202,7 +210,7 @@
 
           buildGoModule (finalAttrs: {
             pname = "oneuptime-infrastructure-agent";
-            version = "13.0.0";
+            version = "14.0.6";
 
             __structuredAttrs = true;
 
@@ -210,12 +218,12 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
-            sourceRoot = "${finalAttrs.src.name}/InfrastructureAgent";
+            sourceRoot = "${finalAttrs.src.name}/agents/InfrastructureAgent";
 
-            vendorHash = "sha256-CD+6MJgLf9IhlIhvbWCJBMRp/V+/25Z+4m88rYHhbHg=";
+            vendorHash = "sha256-44Z1GWZcSCh+AFfsxwJIMw9pqzgg2IuzkQEpCUOephk=";
 
             passthru.updateScript = nix-update-script { };
 
@@ -238,7 +246,7 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-kubernetes-cost-agent";
-            version = "13.0.0";
+            version = "14.0.6";
 
             __structuredAttrs = true;
 
@@ -246,14 +254,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
-            sourceRoot = "${finalAttrs.src.name}/KubernetesCostAgent";
+            sourceRoot = "${finalAttrs.src.name}/agents/KubernetesCostAgent";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-vX6cd/r0lZxCBimjfw/ZYRBAMTM+TkEvvZ2kbvdZDQo=";
+            npmDepsHash = "sha256-7YLsOl2sILhoHdfgBVgrK5HsJtEI2i9GmNi6aJB+6hw=";
 
             npmBuildScript = "compile";
 
@@ -296,7 +304,7 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-kubernetes-log-tailer";
-            version = "13.0.0";
+            version = "14.0.6";
 
             __structuredAttrs = true;
 
@@ -304,14 +312,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
-            sourceRoot = "${finalAttrs.src.name}/KubernetesLogTailer";
+            sourceRoot = "${finalAttrs.src.name}/agents/KubernetesLogTailer";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-P0EqLkWh/Cspbz/DRR7/FK6nGenAPOjLtrA6WbhFoYc=";
+            npmDepsHash = "sha256-W0clepI+mCqQ7CGtW4uDXLdpdDTfXVFt3HAmN60oCm0=";
 
             npmBuildScript = "compile";
 
@@ -361,20 +369,20 @@
           }:
 
           let
-            version = "13.0.0";
+            version = "14.0.6";
 
             src = fetchFromGitHub {
               owner = "OneUptime";
               repo = "oneuptime";
               tag = version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
             # Probe depends on Common as `file:../Common`, so npm symlinks it rather than installing it.
             commonNpmDeps = fetchNpmDeps {
               name = "oneuptime-common-npm-deps-${version}";
-              src = "${src}/Common";
-              hash = "sha256-Kv0QQYdoGXIzQYNyVsYzaxmv6K5EWBanBKng8KnwNKI=";
+              src = "${src}/packages/Common";
+              hash = "sha256-zOWPBxJazRMyMa8A58CPQVQgAgicvqKqDMI5UruPH+w=";
             };
           in
           buildNpmPackage {
@@ -383,11 +391,11 @@
 
             __structuredAttrs = true;
 
-            sourceRoot = "${src.name}/Probe";
+            sourceRoot = "${src.name}/packages/Probe";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-G3AAe4J4Yh/Fz6pHOgxpcWBbpPnnIeiKQHYd2Iyz3oM=";
+            npmDepsHash = "sha256-aiV48OrK8VUPTxbB4Hcz19Uy94P3UyV/HLv8wZ1qwhI=";
 
             # The one optional dependency is msnodesqlv8, a native driver needing unixODBC.
             npmFlags = [ "--omit=optional" ];
@@ -473,7 +481,7 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-runner";
-            version = "13.0.0";
+            version = "14.0.6";
 
             __structuredAttrs = true;
 
@@ -481,14 +489,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-oVHYTmo3P4Opo5UyRzwHkjxeInkEcotNo1FRQvSZtBw=";
+              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
             };
 
-            sourceRoot = "${finalAttrs.src.name}/Runner";
+            sourceRoot = "${finalAttrs.src.name}/packages/Runner";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-5rbZYNqX6cyF13ULg9TWtCXmzk8w4IwZdVhvmJfNEqc=";
+            npmDepsHash = "sha256-nY/t5hkZxMK0J1km8o2dxAiVrNJTJfr2baEtPrnIoJU=";
 
             nativeBuildInputs = [ makeWrapper ];
 
@@ -504,8 +512,8 @@
                 export npmDeps=${
                   fetchNpmDeps {
                     name = "oneuptime-common-npm-deps-${finalAttrs.version}";
-                    src = "${finalAttrs.src}/Common";
-                    hash = "sha256-Kv0QQYdoGXIzQYNyVsYzaxmv6K5EWBanBKng8KnwNKI=";
+                    src = "${finalAttrs.src}/packages/Common";
+                    hash = "sha256-zOWPBxJazRMyMa8A58CPQVQgAgicvqKqDMI5UruPH+w=";
                   }
                 }
                 npmConfigHook
