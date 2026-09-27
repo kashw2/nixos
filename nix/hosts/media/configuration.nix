@@ -172,6 +172,21 @@
           {
             enable = true;
             statusPage = true;
+            commonHttpConfig = ''
+              log_format json escape=json '{'
+                '"time":"$time_iso8601",'
+                '"remote_addr":"$remote_addr",'
+                '"method":"$request_method",'
+                '"path":"$uri",'
+                '"status":$status,'
+                '"bytes":$body_bytes_sent,'
+                '"duration":$request_time,'
+                '"referer":"$http_referer",'
+                '"user_agent":"$http_user_agent",'
+                '"vhost":"$host"'
+              '}';
+              access_log /var/log/nginx/access.log json;
+            '';
             virtualHosts =
               mkVirtualHost "jellyfin" 8096
               // mkVirtualHost "alloy" 12345
