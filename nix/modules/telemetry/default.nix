@@ -10,10 +10,8 @@
 
       imports = [
         self.nixosModules.alloy
-        self.nixosModules.loki
-        self.nixosModules.grafana
-        self.nixosModules.tempo
-        self.nixosModules.mimir
+        self.nixosModules.snmpd
+        self.nixosModules.oneuptimeInfrastructureAgent
       ];
 
       options.telemetry.role = lib.mkOption {
@@ -22,7 +20,7 @@
           "client"
         ];
         default = "client";
-        description = "Whether this machine is a telemetry host (runs the LGTM stack) or a client (only exports metrics).";
+        description = "Whether this machine is a telemetry host (runs the Alloy collector) or a client (only exports metrics).";
       };
 
       config = {
@@ -75,6 +73,11 @@
                 enable = true;
                 enabledCollectors = [ "systemd" ];
                 port = 9002;
+              };
+              postgres = {
+                enable = config.services.postgresql.enable;
+                runAsLocalSuperUser = true;
+                port = 9187;
               };
               nvidia-gpu = {
                 enable = builtins.elem "nvidia" config.services.xserver.videoDrivers;

@@ -21,6 +21,7 @@ on:
       - nix/deploy.nix
       - nix/packages/nixvim/**
       - nix/modules/nixvim/**
+      - nix/packages/oneuptime.nix
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -62,13 +63,20 @@ jobs:
               - 'nix/packages/desktop-environment/quickshell.nix'
               - 'nix/packages/desktop-environment/quickshell/**'
             deploy-host: 'nix/deploy.nix'
+            oneuptime-app: 'nix/packages/oneuptime.nix'
+            oneuptime-cli: 'nix/packages/oneuptime.nix'
+            oneuptime-infrastructure-agent: 'nix/packages/oneuptime.nix'
+            oneuptime-kubernetes-cost-agent: 'nix/packages/oneuptime.nix'
+            oneuptime-kubernetes-log-tailer: 'nix/packages/oneuptime.nix'
+            oneuptime-probe: 'nix/packages/oneuptime.nix'
+            oneuptime-runner: 'nix/packages/oneuptime.nix'
       - id: classify
         env:
           EVENT: ${{ github.event_name }}
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","floci-cli","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host"]'
+          ALL='["nushell","act","floci-cli","kitty","tmux","sddm-sugar-candy","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","bruno-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-kubernetes-cost-agent","oneuptime-kubernetes-log-tailer","oneuptime-probe","oneuptime-runner"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else

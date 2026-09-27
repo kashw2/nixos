@@ -14,6 +14,7 @@
       imports = [
         self.nixosModules.nix
         self.nixosModules.telemetry
+        self.nixosModules.oneuptime
         self.nixosModules.security
         self.nixosModules.networking
         self.nixosModules.nixvim
