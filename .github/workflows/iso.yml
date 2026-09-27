@@ -38,7 +38,6 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
       - uses: cachix/install-nix-action@v31.11.1
         with:
           extra_nix_config: |
