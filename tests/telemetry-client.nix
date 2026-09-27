@@ -12,7 +12,7 @@
             {
               imports = [ self.nixosModules.telemetry ];
 
-              features.telemetry.role = "client";
+              telemetry.role = "client";
             };
           testScript = ''
             machine.wait_for_unit("prometheus-node-exporter.service")

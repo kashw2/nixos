@@ -9,7 +9,7 @@
     }:
     {
 
-      config = lib.mkIf (config.features.telemetry.role == "host") {
+      config = lib.mkIf (config.telemetry.role == "host") {
 
         networking.firewall.allowedTCPPorts = lib.optionals config.services.tempo.enable [
           config.services.tempo.settings.server.http_listen_port

@@ -9,7 +9,7 @@
     }:
     {
 
-      config = lib.mkIf (config.features.telemetry.role == "host") {
+      config = lib.mkIf (config.telemetry.role == "host") {
 
         networking.firewall.allowedTCPPorts = lib.optionals config.services.grafana.enable [
           config.services.grafana.settings.server.http_port
