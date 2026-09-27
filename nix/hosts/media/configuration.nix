@@ -116,6 +116,7 @@
               Host = "media";
               MACAddress = "e0:51:d8:1c:eb:c8";
             };
+            domains = [ "~local" ];
             networkConfig = {
               DHCP = "no";
               IPv6PrivacyExtensions = "kernel";
