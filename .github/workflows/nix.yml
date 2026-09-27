@@ -33,15 +33,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jlumbroso/free-disk-space@v1.3.1
+      - uses: jlumbroso/free-disk-space@v2.0.0
         with:
-          tool-cache: true
+          preinstalled-runtimes: true
           android: true
           dotnet: true
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
       - uses: cachix/install-nix-action@v31.11.1
         with:
           extra_nix_config: |
@@ -81,15 +80,14 @@ jobs:
         host: ${{ fromJSON(needs.detect-hosts.outputs.hosts) }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jlumbroso/free-disk-space@v1.3.1
+      - uses: jlumbroso/free-disk-space@v2.0.0
         with:
-          tool-cache: true
+          preinstalled-runtimes: true
           android: true
           dotnet: true
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
       - uses: cachix/install-nix-action@v31.11.1
         with:
           extra_nix_config: |
@@ -123,15 +121,14 @@ jobs:
           - jellyfin
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jlumbroso/free-disk-space@v1.3.1
+      - uses: jlumbroso/free-disk-space@v2.0.0
         with:
-          tool-cache: true
+          preinstalled-runtimes: true
           android: true
           dotnet: true
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
       - uses: cachix/install-nix-action@v31.11.1
         with:
           extra_nix_config: |
