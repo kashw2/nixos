@@ -28,6 +28,22 @@
         polkit.enable = true;
         rtkit.enable = !config.isServer;
 
+        auditd = {
+          enable = true;
+          settings = {
+            log_file = "/var/log/audit/audit.log";
+            log_format = "ENRICHED";
+          };
+        };
+        audit = {
+          enable = true;
+          backlogLimit = 16384;
+          rules = [
+            "-a exit,always -F arch=b64 -S execve -F auid>=1000 -F auid!=unset -k commands"
+            "-a exit,always -F arch=b32 -S execve -F auid>=1000 -F auid!=unset -k commands"
+          ];
+        };
+
         apparmor = {
           enable = true;
           killUnconfinedConfinables = true;
