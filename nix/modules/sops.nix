@@ -104,9 +104,8 @@
             group = "keanu";
           };
           "oneuptime/agent_key/${config.networking.hostName}" = lib.mkIf config.telemetry.agent.enable { };
-          "oneuptime/ingestion_token" = lib.mkIf config.services.alloy.enable {
-            restartUnits = [ "alloy.service" ];
-          };
+          "oneuptime/ingestion_token".restartUnits =
+            lib.optional config.services.alloy.enable "alloy.service";
           "snmp/v3_username" = lib.mkIf config.services.snmpd.enable { };
           "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable (
             lib.optionalAttrs (!config.isServer) {
@@ -175,6 +174,14 @@
           owner = "oneuptime";
           group = "oneuptime";
           mode = "0400";
+        };
+
+        templates."opentelemetry-collector.env" = {
+          content = ''
+            ONEUPTIME_INGESTION_TOKEN=${config.sops.placeholder."oneuptime/ingestion_token"}
+          '';
+          mode = "0400";
+          restartUnits = [ "opentelemetry-collector.service" ];
         };
 
         templates."snmpd.conf" = lib.mkIf config.services.snmpd.enable {
