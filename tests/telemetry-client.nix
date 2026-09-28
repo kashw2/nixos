@@ -24,6 +24,7 @@
                 validateSopsFiles = false;
                 useSystemdActivation = false;
                 templates."snmpd.conf".content = "rouser test priv";
+                templates."opentelemetry-collector.env".content = "ONEUPTIME_INGESTION_TOKEN=test";
               };
               system.activationScripts.setupSecrets = lib.mkForce "";
             };

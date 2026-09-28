@@ -11,6 +11,7 @@
       imports = [
         self.nixosModules.alloy
         self.nixosModules.snmpd
+        self.nixosModules.hostmetrics
         self.nixosModules.oneuptimeInfrastructureAgent
       ];
 
