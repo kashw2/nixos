@@ -37,21 +37,15 @@
         services = {
           logrotate =
             let
-              # mkLogRotateSetting is a function that takes a service name (name) for which the log file is generated for
-              # and the path to it. It's purpose is to remove code duplication
-              mkLogRotateSetting =
-                name: filePath:
-                builtins.mapAttrs
-                  (value: _: {
-                    inherit name value;
-                  })
-                  {
-                    compress = true;
-                    delaycompress = true;
-                    files = filePath;
-                    frequency = "daily";
-                    rotate = 7;
-                  };
+              mkLogRotateSetting = name: filePath: {
+                ${name} = {
+                  compress = true;
+                  delaycompress = true;
+                  files = filePath;
+                  frequency = "daily";
+                  rotate = 7;
+                };
+              };
             in
             {
               enable = true;
