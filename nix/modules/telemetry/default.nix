@@ -68,6 +68,7 @@
               user.*                       -/var/log/user.log
             '';
           };
+          journald.extraConfig = "MaxRetentionSec=30day";
           prometheus = {
             exporters = {
               node = {
