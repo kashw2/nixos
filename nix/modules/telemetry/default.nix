@@ -50,8 +50,15 @@
             {
               enable = true;
               checkConfig = true;
-              settings =
-                mkLogRotateSetting "messages" "/var/log/messages" // mkLogRotateSetting "warn" "/var/log/warn";
+              settings = lib.mergeAttrsList (
+                lib.mapAttrsToList mkLogRotateSetting {
+                  auth = "/var/log/auth.log";
+                  cron = "/var/log/cron.log";
+                  messages = "/var/log/messages";
+                  user = "/var/log/user.log";
+                  warn = "/var/log/warn";
+                }
+              );
             };
           rsyslogd = {
             enable = true;
