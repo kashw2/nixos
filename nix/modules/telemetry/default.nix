@@ -37,27 +37,28 @@
         services = {
           logrotate =
             let
-              # mkLogRotateSetting is a function that takes a service name (name) for which the log file is generated for
-              # and the path to it. It's purpose is to remove code duplication
-              mkLogRotateSetting =
-                name: filePath:
-                builtins.mapAttrs
-                  (value: _: {
-                    inherit name value;
-                  })
-                  {
-                    compress = true;
-                    delaycompress = true;
-                    files = filePath;
-                    frequency = "daily";
-                    rotate = 7;
-                  };
+              mkLogRotateSetting = name: filePath: {
+                ${name} = {
+                  compress = true;
+                  delaycompress = true;
+                  files = filePath;
+                  frequency = "daily";
+                  rotate = 7;
+                };
+              };
             in
             {
               enable = true;
               checkConfig = true;
-              settings =
-                mkLogRotateSetting "messages" "/var/log/messages" // mkLogRotateSetting "warn" "/var/log/warn";
+              settings = lib.mergeAttrsList (
+                lib.mapAttrsToList mkLogRotateSetting {
+                  auth = "/var/log/auth.log";
+                  cron = "/var/log/cron.log";
+                  messages = "/var/log/messages";
+                  user = "/var/log/user.log";
+                  warn = "/var/log/warn";
+                }
+              );
             };
           rsyslogd = {
             enable = true;
@@ -68,6 +69,7 @@
               user.*                       -/var/log/user.log
             '';
           };
+          journald.extraConfig = "MaxRetentionSec=30day";
           prometheus = {
             exporters = {
               node = {

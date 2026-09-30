@@ -139,6 +139,38 @@
           "`set(attributes[\"host.name\"], \"${name}\") where attributes[\"server.address\"] == \"${addr}\"`,"
         ) scrapeAddresses
       );
+      facilityNames = [
+        "kern"
+        "user"
+        "mail"
+        "daemon"
+        "auth"
+        "syslog"
+        "lpr"
+        "news"
+        "uucp"
+        "cron"
+        "authpriv"
+        "ftp"
+        "ntp"
+        "security"
+        "console"
+        "solaris-cron"
+        "local0"
+        "local1"
+        "local2"
+        "local3"
+        "local4"
+        "local5"
+        "local6"
+        "local7"
+      ];
+      facilityStatements = lib.concatStringsSep "\n      " (
+        lib.imap0 (
+          num: name:
+          "`set(attributes[\"facility\"], \"${name}\") where attributes[\"facility\"] == \"${toString num}\"`,"
+        ) facilityNames
+      );
     in
     {
 
@@ -196,6 +228,7 @@
                   `set(resource.attributes["service.name"], attributes["unit"]) where resource.attributes["service.name"] == nil and attributes["unit"] != nil`,
                   `set(resource.attributes["service.name"], attributes["job"]) where resource.attributes["service.name"] == nil and attributes["job"] != nil`,
                   `set(resource.attributes["host.name"], attributes["hostname"]) where resource.attributes["host.name"] == nil and attributes["hostname"] != nil`,
+                  ${facilityStatements}
                   `set(severity_text, attributes["level"]) where attributes["level"] != nil`,
                   `set(severity_number, SEVERITY_NUMBER_FATAL) where attributes["level"] == "emerg" or attributes["level"] == "alert" or attributes["level"] == "crit"`,
                   `set(severity_number, SEVERITY_NUMBER_ERROR) where attributes["level"] == "error" or attributes["level"] == "err"`,
@@ -353,6 +386,10 @@
               rule {
                 source_labels = ["__journal_priority_keyword"]
                 target_label  = "level"
+              }
+              rule {
+                source_labels = ["__journal_syslog_facility"]
+                target_label  = "facility"
               }
             }
             loki.source.journal "journal" {
