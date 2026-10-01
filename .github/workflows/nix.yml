@@ -105,7 +105,7 @@ jobs:
           endpoint: http://100.116.38.8:8080
           cache: nixos
           token: ${{ secrets.ATTIC_TOKEN }}
-      - run: nix develop --command colmena build --on ${{ matrix.host }} --verbose --impure
+      - run: nix develop --command nix build .#deploy.nodes.${{ matrix.host }}.profiles.system.path --impure -L
         env:
           NIXPKGS_ALLOW_UNFREE: 1
   vm-tests:

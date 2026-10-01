@@ -1,4 +1,4 @@
-{ self, inputs, ... }:
+{ self, ... }:
 {
   flake.wrappers.nushell =
     {
@@ -117,9 +117,6 @@
           alias "tfiu" = ${lib.getExe pkgs.terraform} init --upgrade
           alias "tfp" = ${lib.getExe pkgs.terraform} plan
           alias "tml" = ${lib.getExe pkgs.tmuxp} load
-          alias "colmena" = ${
-            lib.getExe inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
-          } --impure
 
           def nbpr [pr: int, pkg: string] {
             ${lib.getExe pkgs.nix} build $"github:nixos/nixpkgs?ref=pull/($pr)/head#($pkg)" --impure

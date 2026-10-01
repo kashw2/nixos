@@ -15,10 +15,9 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    colmena = {
-      url = "github:zhaofengli/colmena";
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.stable.follows = "nixpkgs";
     };
     wrapper-modules = {
       url = "github:birdeehub/nix-wrapper-modules";
