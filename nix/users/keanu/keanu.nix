@@ -75,7 +75,7 @@
               pkgs.obs-studio
             ]
             ++ [
-              inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
+              inputs.deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
               inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default
               (inputs.witr.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs {
                 doCheck = false;
