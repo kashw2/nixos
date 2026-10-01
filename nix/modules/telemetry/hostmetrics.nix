@@ -72,6 +72,7 @@
                 };
               };
             };
+            systemd.collection_interval = "30s";
           }
           // lib.optionalAttrs shipJournal {
             journald = {
@@ -110,7 +111,10 @@
             extensions = lib.optionals shipJournal [ "file_storage" ];
             pipelines = {
               metrics = {
-                receivers = [ "hostmetrics" ];
+                receivers = [
+                  "hostmetrics"
+                  "systemd"
+                ];
                 processors = [
                   "resourcedetection"
                   "batch"
