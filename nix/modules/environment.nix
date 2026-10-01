@@ -19,6 +19,7 @@
         self.nixosModules.networking
         self.nixosModules.nixvim
         self.nixosModules.sops
+        self.nixosModules.qemu
         inputs.home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
