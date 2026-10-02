@@ -196,8 +196,28 @@
               settings.hooks =
                 let
                   workmux = lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux";
+                  # Gates Shortcut story/epic creation on having read Tablogs KB
+                  # article 163 ("Shortcut Story Standards") in the session.
+                  shortcutKb163 = lib.getExe (
+                    pkgs.writers.writeJSBin "shortcut-kb163-hook" { } (
+                      builtins.readFile ./claude-hooks/shortcut-kb163.js
+                    )
+                  );
                 in
                 {
+                  PreToolUse = [
+                    {
+                      matcher = "^mcp__plugin_hm_shortcut__(stories|epics)-create$";
+                      hooks = [
+                        {
+                          type = "command";
+                          command = shortcutKb163;
+                          args = [ "gate" ];
+                          statusMessage = "Checking Shortcut story standards (KB 163)";
+                        }
+                      ];
+                    }
+                  ];
                   UserPromptSubmit = [
                     {
                       hooks = [
@@ -214,6 +234,16 @@
                         {
                           type = "command";
                           command = "${workmux} set-window-status working";
+                        }
+                      ];
+                    }
+                    {
+                      matcher = "^mcp__claude_ai_Tablogs_Admin__get_article$";
+                      hooks = [
+                        {
+                          type = "command";
+                          command = shortcutKb163;
+                          args = [ "mark" ];
                         }
                       ];
                     }
