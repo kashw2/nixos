@@ -2014,11 +2014,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789590324,
-        "narHash": "sha256-WbkPdwj8b9fqKm58M1O7MA4HzoAV13nMaKA3rtNlOAM=",
+        "lastModified": 1790103712,
+        "narHash": "sha256-esfHnMipv0yJ0/5hH8855CaZj5L1qZ3i5bZHZQ7fMWg=",
         "owner": "raine",
         "repo": "workmux",
-        "rev": "1da41e3b7fecb889aa85696e7f1bea0258e13768",
+        "rev": "267bfc44ffc15e60acf1bd4c4b8cad5b56a7a2ad",
         "type": "github"
       },
       "original": {
