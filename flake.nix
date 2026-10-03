@@ -139,5 +139,14 @@
           ])
           inputs.wrapper-modules.flakeModules.default
         ];
+        perSystem =
+          { system, ... }:
+          {
+            # Every perSystem consumer (wrappers, packages, devShells) gets unfree.
+            _module.args.pkgs = import inputs.nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
+            };
+          };
       };
 }
