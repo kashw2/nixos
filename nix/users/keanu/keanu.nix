@@ -69,6 +69,7 @@
               pkgs.nixos-anywhere
               pkgs.nixpkgs-review
               pkgs.jetbrains.datagrip
+              inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default
             ]
             ++ lib.optionals (config.isDesktop) [
               inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
@@ -76,7 +77,6 @@
             ]
             ++ [
               inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
-              inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default
               (inputs.witr.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs {
                 doCheck = false;
               })
