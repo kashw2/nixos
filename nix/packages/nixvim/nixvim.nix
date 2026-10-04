@@ -27,13 +27,8 @@
     };
 
   config.perSystem =
-    { system, ... }:
+    { pkgs, ... }:
     {
-      packages.neovim = self.lib.mkNeovim {
-        pkgs = import inputs.nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        };
-      };
+      packages.neovim = self.lib.mkNeovim { inherit pkgs; };
     };
 }
