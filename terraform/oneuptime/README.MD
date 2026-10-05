@@ -55,7 +55,7 @@ tofu output runner_id             # -> runner.settings.ONEUPTIME_RUNNER_ID in ni
 Then deploy:
 
 ```bash
-colmena apply --on media
+deploy .#media
 ```
 
 ## Secrets that need no attention
