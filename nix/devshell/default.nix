@@ -5,7 +5,7 @@
     {
       devShells.default = pkgs.mkShell {
         packages = [
-          inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
+          inputs.deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
           pkgs.nix
           pkgs.nixfmt
           pkgs.deadnix

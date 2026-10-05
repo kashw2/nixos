@@ -4,23 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-NixOS flake-based configuration managing five hosts (home, laptop, thinkpad, media, homelab) with Colmena deployment. Uses flake-parts and import-tree for modular organization.
+NixOS flake-based configuration managing five hosts (home, laptop, thinkpad, media, homelab) with deploy-rs deployment. Uses flake-parts and import-tree for modular organization.
 
 ## Build & Deploy Commands
 
 ```bash
-# Enter dev shell (provides colmena, nix)
+# Enter dev shell (provides deploy-rs, nix)
 nix develop
 
 # Deploy to all hosts
-colmena apply
+deploy .
 
 # Deploy to a specific host
-colmena apply --on home
-colmena apply --on laptop
-colmena apply --on thinkpad
-colmena apply --on media
-colmena apply --on homelab
+deploy .#home
+deploy .#laptop
+deploy .#thinkpad
+deploy .#media
+deploy .#homelab
 
 # Build a specific host configuration without deploying
 nix build .#nixosConfigurations.home.config.system.build.toplevel
@@ -61,7 +61,7 @@ This repo follows the [dendritic pattern](https://github.com/mightyiam/dendritic
 - **`packages/desktop-environment/`** — hyprland, hyprlock, hypridle, hyprpaper and quickshell wrappers, plus the custom SDDM Sugar Candy theme
 - **`packages/nixvim/`** — `package.nix` (the `neovim` package) and custom plugins: `atone-nvim.nix`, `codestats.nix`, `tree-sitter-bruno.nix`
 - **`users/keanu/`** — User config, home-manager programs, system packages, SSH authorized keys
-- **`colmena.nix`** — Deployment targets for all five hosts (home.local, laptop.local, thinkpad.local, media.local, homelab.local)
+- **`deploy-rs.nix`** — deploy-rs nodes for all five hosts (home.local, laptop.local, thinkpad.local, media.local, homelab.local)
 - **`secrets/`** — SSH host keys per machine; SOPS-encrypted secrets in `secrets/secrets.yaml` (at repo root)
 
 ### Wrapper Modules Pattern
@@ -88,7 +88,7 @@ Uses sops-nix with age encryption.
 - Custom packages use `perSystem.packages.<name>`
 - Home-manager is integrated at the system level (not standalone)
 - Nushell is the default shell (not bash/zsh)
-- All hosts deploy via Colmena over SSH to `<hostname>.local`
+- All hosts deploy via deploy-rs over SSH to `<hostname>.local`
 
 ## Rules
 
