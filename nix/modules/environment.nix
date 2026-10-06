@@ -129,7 +129,7 @@
           ];
         };
 
-        time.timeZone = "Australia/Brisbane";
+        time.timeZone = "Australia/Melbourne";
         i18n.defaultLocale = "en_AU.UTF-8";
         i18n.supportedLocales = [ "en_AU.UTF-8/UTF-8" ];
         i18n.extraLocaleSettings = {
