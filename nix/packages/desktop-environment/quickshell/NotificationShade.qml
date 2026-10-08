@@ -69,10 +69,9 @@ Variants {
             Keys.onEscapePressed: root.shell.closePopup()
         }
 
-        Rectangle {
+        Item {
             id: backdrop
             anchors.fill: parent
-            color: Qt.rgba(0, 0, 0, 0.35)
             opacity: shadeWindow.isOnThisScreen ? 1 : 0
 
             Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }

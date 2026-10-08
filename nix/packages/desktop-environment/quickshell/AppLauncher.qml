@@ -550,17 +550,9 @@ Variants {
         }
 
         // Click anywhere outside the launcher to dismiss
-        Rectangle {
+        MouseArea {
             anchors.fill: parent
-            color: Qt.rgba(0, 0, 0, 0.35)
-            opacity: launcherWindow.isOnThisScreen ? 1 : 0
-
-            Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: root.shell.closePopup()
-            }
+            onClicked: root.shell.closePopup()
         }
 
         LauncherInfoCards {
