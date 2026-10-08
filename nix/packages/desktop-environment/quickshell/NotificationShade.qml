@@ -66,6 +66,7 @@ Variants {
 
             readonly property int padding: 16
             readonly property int cornerRadius: 16
+            readonly property int edgeMargin: 40
             readonly property real listCap: Math.max(120, shadeWindow.height * 0.45
                 - padding * 2 - header.implicitHeight - content.spacing * 2 - 1)
             readonly property real sheetHeight: Math.min(content.implicitHeight + padding * 2,
@@ -74,10 +75,10 @@ Variants {
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 bottom: parent.bottom
-                bottomMargin: -cornerRadius
+                bottomMargin: edgeMargin
             }
             width: Math.min(parent.width - 80, 1100)
-            height: sheetHeight + cornerRadius
+            height: sheetHeight
             radius: cornerRadius
             color: Theme.surfaceBg
             border.width: 1
@@ -90,7 +91,7 @@ Variants {
             }
 
             transform: Translate {
-                y: shadeWindow.isOnThisScreen ? 0 : sheet.height
+                y: shadeWindow.isOnThisScreen ? 0 : sheet.height + sheet.edgeMargin
                 Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
             }
 
