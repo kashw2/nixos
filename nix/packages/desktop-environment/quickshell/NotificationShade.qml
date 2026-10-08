@@ -72,11 +72,11 @@ Variants {
                 shadeWindow.height * 0.45)
 
             anchors {
-                left: parent.left
-                right: parent.right
+                horizontalCenter: parent.horizontalCenter
                 bottom: parent.bottom
                 bottomMargin: -cornerRadius
             }
+            width: Math.min(parent.width - 80, 1100)
             height: sheetHeight + cornerRadius
             radius: cornerRadius
             color: Theme.surfaceBg
