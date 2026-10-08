@@ -18,6 +18,24 @@ Variants {
         readonly property bool isOnThisScreen: root.shell.activePopup === "notifshade"
             && root.shell.activePopupScreen === modelData
 
+        property string searchText: ""
+
+        readonly property var matches: {
+            var list = root.shell.notifHistory;
+            var q = searchText.trim().toLowerCase();
+            if (q === "") return list;
+            var out = [];
+            for (var i = 0; i < list.length; i++) {
+                var n = list[i];
+                if ((n.appName || "").toLowerCase().indexOf(q) !== -1
+                    || (n.summary || "").toLowerCase().indexOf(q) !== -1
+                    || (n.body || "").toLowerCase().indexOf(q) !== -1) {
+                    out.push(n);
+                }
+            }
+            return out;
+        }
+
         visible: isOnThisScreen || backdrop.opacity > 0.01
 
         anchors {
@@ -37,7 +55,11 @@ Variants {
         }
 
         onIsOnThisScreenChanged: {
-            if (isOnThisScreen) keyHandler.forceActiveFocus();
+            if (isOnThisScreen) {
+                searchText = "";
+                searchInput.text = "";
+                searchInput.forceActiveFocus();
+            }
         }
 
         Item {
@@ -131,13 +153,44 @@ Variants {
 
                     Text {
                         visible: root.shell.notifCount > 0
-                        text: root.shell.notifCount
+                        text: shadeWindow.matches.length
                         color: Theme.textDim
                         font.pixelSize: Theme.fontLabel
                         Layout.alignment: Qt.AlignVCenter
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 6
+                        implicitHeight: 26
+                        radius: 6
+                        color: Theme.surfaceInner
+
+                        TextInput {
+                            id: searchInput
+                            anchors {
+                                fill: parent
+                                leftMargin: 8
+                                rightMargin: 8
+                            }
+                            verticalAlignment: TextInput.AlignVCenter
+                            color: Theme.text
+                            font.pixelSize: Theme.fontBody
+                            clip: true
+                            focus: shadeWindow.isOnThisScreen
+                            onTextChanged: shadeWindow.searchText = text
+                            Keys.onEscapePressed: root.shell.closePopup()
+
+                            Text {
+                                anchors.fill: parent
+                                verticalAlignment: Text.AlignVCenter
+                                text: "Search notifications"
+                                color: Theme.textDim
+                                font.pixelSize: Theme.fontBody
+                                visible: searchInput.text === ""
+                            }
+                        }
+                    }
 
                     Rectangle {
                         visible: root.shell.notifCount > 0
@@ -169,8 +222,8 @@ Variants {
                 SectionSeparator { color: Theme.surfaceSubtle }
 
                 Text {
-                    visible: root.shell.notifCount === 0
-                    text: "No notifications"
+                    visible: shadeWindow.matches.length === 0
+                    text: root.shell.notifCount === 0 ? "No notifications" : "No matching notifications"
                     color: Theme.iconDim
                     font.pixelSize: Theme.fontBody
                     width: parent.width
@@ -181,7 +234,7 @@ Variants {
 
                 Flickable {
                     ScrollBar.vertical: ThinScrollBar {}
-                    visible: root.shell.notifCount > 0
+                    visible: shadeWindow.matches.length > 0
                     width: parent.width
                     height: Math.min(contentHeight, sheet.listCap)
                     contentHeight: shadeList.implicitHeight
@@ -193,11 +246,14 @@ Variants {
                         spacing: 6
 
                         Repeater {
-                            model: root.shell.notifHistory
+                            model: shadeWindow.matches
 
                             NotificationItem {
                                 width: shadeList.width
-                                onDismissed: root.shell.dismissNotification(index)
+                                onDismissed: {
+                                    var i = root.shell.notifHistory.indexOf(modelData);
+                                    if (i >= 0) root.shell.dismissNotification(i);
+                                }
                             }
                         }
                     }
