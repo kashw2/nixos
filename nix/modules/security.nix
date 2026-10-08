@@ -1,12 +1,7 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.security =
-    {
-      pkgs,
-      lib,
-      config,
-      ...
-    }:
+    { config, ... }:
     {
 
       services = {
@@ -45,104 +40,6 @@
             "-a exit,always -F arch=b64 -S execve -F auid>=1000 -F auid!=unset -k commands"
             "-a exit,always -F arch=b32 -S execve -F auid>=1000 -F auid!=unset -k commands"
           ];
-        };
-
-        apparmor = {
-          enable = true;
-          killUnconfinedConfinables = true;
-          packages = [ pkgs.apparmor-profiles ];
-          # Profiles ship in `complain` so denials log without blocking; flip
-          # individual entries to `enforce` after a clean run under load.
-          policies = {
-            "nginx" = lib.mkIf config.services.nginx.enable {
-              state = "complain";
-              profile = ''
-                include <tunables/global>
-
-                profile nginx ${lib.getExe config.services.nginx.package} flags=(attach_disconnected) {
-                  include <abstractions/base>
-                  include <abstractions/nameservice>
-                  include <abstractions/openssl>
-                  include "${pkgs.apparmorRulesFromClosure { name = "nginx"; } config.services.nginx.package}"
-
-                  capability net_bind_service,
-                  capability setuid,
-                  capability setgid,
-                  capability dac_override,
-                  capability dac_read_search,
-                  capability chown,
-
-                  network inet stream,
-                  network inet6 stream,
-                  network inet dgram,
-                  network inet6 dgram,
-
-                  ${lib.getExe config.services.nginx.package} mr,
-
-                  /etc/nginx/** r,
-                  /etc/ssl/certs/** r,
-                  /var/log/nginx/** rw,
-                  /var/spool/nginx/** rwk,
-                  /tmp/nginx_client_body/ rw,
-                  /tmp/nginx_client_body/** rwk,
-                  /tmp/nginx_proxy/ rw,
-                  /tmp/nginx_proxy/** rwk,
-                  /tmp/nginx_fastcgi/ rw,
-                  /tmp/nginx_fastcgi/** rwk,
-                  /tmp/nginx_scgi/ rw,
-                  /tmp/nginx_scgi/** rwk,
-                  /tmp/nginx_uwsgi/ rw,
-                  /tmp/nginx_uwsgi/** rwk,
-                  /run/nginx/*.pid rw,
-                  /run/nginx.pid rw,
-                  /run/nginx/** rw,
-                  /run/rtorrent/ r,
-                  /run/rtorrent/rpc.sock rw,
-                  /proc/sys/kernel/random/uuid r,
-                  @{PROC}/@{pid}/** r,
-
-                  deny /home/** rwx,
-                  deny /root/** rwx,
-                }
-              '';
-            };
-
-            "jellyfin" = lib.mkIf config.services.jellyfin.enable {
-              state = "complain";
-              profile = ''
-                include <tunables/global>
-
-                profile jellyfin ${lib.getExe config.services.jellyfin.package} {
-                  include <abstractions/base>
-                  include <abstractions/nameservice>
-                  include <abstractions/ssl_certs>
-                  include <abstractions/audio>
-                  include "${pkgs.apparmorRulesFromClosure { name = "jellyfin"; } config.services.jellyfin.package}"
-
-                  network inet stream,
-                  network inet6 stream,
-                  network inet dgram,
-                  network inet6 dgram,
-                  network netlink raw,
-
-                  ${lib.getExe config.services.jellyfin.package} mrix,
-
-                  /var/lib/jellyfin/** rwk,
-                  /var/cache/jellyfin/** rwk,
-                  /var/log/jellyfin/** rw,
-                  /mnt/torrents/** r,
-                  /tmp/** rwk,
-                  /proc/sys/kernel/random/uuid r,
-                  /sys/devices/system/cpu/** r,
-                  @{PROC}/@{pid}/** r,
-                  @{PROC}/sys/net/core/somaxconn r,
-
-                  deny /home/** rwx,
-                  deny /root/** rwx,
-                }
-              '';
-            };
-          };
         };
       };
 
