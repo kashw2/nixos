@@ -42,7 +42,6 @@
               "user-session.scope"
               "dbus-broker.service"
               "nscd.service"
-              "apparmor.service"
               "fstrim.service"
             ]
             ++ map unitMatches [
