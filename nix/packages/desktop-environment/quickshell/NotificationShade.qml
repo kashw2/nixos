@@ -1,0 +1,207 @@
+import Quickshell
+import Quickshell.Hyprland
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import "."
+
+Variants {
+    id: root
+    required property var shell
+    model: Quickshell.screens
+
+    PanelWindow {
+        id: shadeWindow
+        required property var modelData
+        screen: modelData
+
+        readonly property bool isOnThisScreen: root.shell.activePopup === "notifshade"
+            && root.shell.activePopupScreen === modelData
+
+        visible: isOnThisScreen || backdrop.opacity > 0.01
+
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
+        exclusionMode: ExclusionMode.Ignore
+        focusable: true
+        color: "transparent"
+
+        HyprlandFocusGrab {
+            active: shadeWindow.isOnThisScreen
+            windows: [shadeWindow]
+            onCleared: root.shell.closePopup()
+        }
+
+        onIsOnThisScreenChanged: {
+            if (isOnThisScreen) keyHandler.forceActiveFocus();
+        }
+
+        Item {
+            id: keyHandler
+            anchors.fill: parent
+            focus: true
+            Keys.onEscapePressed: root.shell.closePopup()
+        }
+
+        Rectangle {
+            id: backdrop
+            anchors.fill: parent
+            color: Qt.rgba(0, 0, 0, 0.35)
+            opacity: shadeWindow.isOnThisScreen ? 1 : 0
+
+            Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: root.shell.closePopup()
+            }
+        }
+
+        Rectangle {
+            id: sheet
+
+            readonly property int padding: 16
+            readonly property int cornerRadius: 16
+            readonly property real listCap: Math.max(120, shadeWindow.height * 0.45
+                - padding * 2 - header.implicitHeight - content.spacing * 2 - 1)
+            readonly property real sheetHeight: Math.min(content.implicitHeight + padding * 2,
+                shadeWindow.height * 0.45)
+
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                bottomMargin: -cornerRadius
+            }
+            height: sheetHeight + cornerRadius
+            radius: cornerRadius
+            color: Theme.surfaceBg
+            border.width: 1
+            border.color: Theme.hairline
+            clip: true
+
+            Behavior on height {
+                enabled: shadeWindow.isOnThisScreen
+                NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+            }
+
+            transform: Translate {
+                y: shadeWindow.isOnThisScreen ? 0 : sheet.height
+                Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+            }
+
+            Rectangle {
+                anchors.top: parent.top
+                anchors.topMargin: 1
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width - 24
+                height: 1
+                color: Theme.hairlineTop
+            }
+
+            Column {
+                id: content
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    margins: sheet.padding
+                }
+                spacing: 10
+
+                RowLayout {
+                    id: header
+                    width: content.width
+
+                    Text {
+                        text: "Notifications"
+                        color: Theme.text
+                        font.pixelSize: Theme.fontTitle + 2
+                        font.bold: true
+                    }
+
+                    Text {
+                        visible: root.shell.notifCount > 0
+                        text: root.shell.notifCount
+                        color: Theme.textDim
+                        font.pixelSize: Theme.fontLabel
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Rectangle {
+                        visible: root.shell.notifCount > 0
+                        width: clearText.implicitWidth + 16
+                        height: 24
+                        radius: 4
+                        color: clearHover.containsMouse ? Theme.surfaceBg : Theme.surfaceInner
+
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                        Text {
+                            id: clearText
+                            anchors.centerIn: parent
+                            text: "Clear all"
+                            color: Theme.text
+                            font.pixelSize: Theme.fontLabel
+                        }
+
+                        MouseArea {
+                            id: clearHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.shell.clearNotifications()
+                        }
+                    }
+                }
+
+                SectionSeparator { color: Theme.surfaceSubtle }
+
+                Text {
+                    visible: root.shell.notifCount === 0
+                    text: "No notifications"
+                    color: Theme.iconDim
+                    font.pixelSize: Theme.fontBody
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    topPadding: 28
+                    bottomPadding: 28
+                }
+
+                Flickable {
+                    ScrollBar.vertical: ThinScrollBar {}
+                    visible: root.shell.notifCount > 0
+                    width: parent.width
+                    height: Math.min(contentHeight, sheet.listCap)
+                    contentHeight: shadeList.implicitHeight
+                    clip: true
+
+                    Column {
+                        id: shadeList
+                        width: parent.width
+                        spacing: 6
+
+                        Repeater {
+                            model: root.shell.notifHistory
+
+                            NotificationItem {
+                                width: shadeList.width
+                                onDismissed: root.shell.dismissNotification(index)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

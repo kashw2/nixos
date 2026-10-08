@@ -12,7 +12,7 @@ ShellRoot {
     id: shell
 
     property bool showFullDate: true
-    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "sysMon", "overflow", "weather", "media", "power"
+    // Valid activePopup names: "wifi", "bt", "volume", "brightness", "battery", "notif", "notifshade", "sysMon", "overflow", "weather", "media", "power"
     property string activePopup: ""
     property var activePopupScreen: null
     property string selectedNetworkName: ""
@@ -430,6 +430,17 @@ ShellRoot {
     function openPopup(name, screen) {
         shell.activePopup = name;
         shell.activePopupScreen = screen;
+    }
+
+    function focusedScreen() {
+        var screens = Quickshell.screens;
+        var monitor = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.monitor : null;
+        if (monitor) {
+            for (var i = 0; i < screens.length; i++) {
+                if (screens[i].name === monitor.name) return screens[i];
+            }
+        }
+        return screens.length > 0 ? screens[0] : null;
     }
 
     function togglePopupFrom(item, name, screen) {
@@ -1705,23 +1716,14 @@ ShellRoot {
     // App launcher - one per screen, surfaced via IPC from Hyprland
     AppLauncher { shell: shell }
 
+    // Notification shade - one per screen, surfaced via IPC from Hyprland
+    NotificationShade { shell: shell }
+
     IpcHandler {
         target: "applauncher"
 
         function show(): void {
-            var screen = null;
-            var monitor = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.monitor : null;
-            if (monitor) {
-                var screens = Quickshell.screens;
-                for (var i = 0; i < screens.length; i++) {
-                    if (screens[i].name === monitor.name) {
-                        screen = screens[i];
-                        break;
-                    }
-                }
-            }
-            if (!screen && Quickshell.screens.length > 0) screen = Quickshell.screens[0];
-            shell.openPopup("applauncher", screen);
+            shell.openPopup("applauncher", shell.focusedScreen());
         }
 
         function hide(): void {
@@ -1730,6 +1732,23 @@ ShellRoot {
 
         function toggle(): void {
             if (shell.activePopup === "applauncher") shell.closePopup();
+            else show();
+        }
+    }
+
+    IpcHandler {
+        target: "notifications"
+
+        function show(): void {
+            shell.openPopup("notifshade", shell.focusedScreen());
+        }
+
+        function hide(): void {
+            if (shell.activePopup === "notifshade") shell.closePopup();
+        }
+
+        function toggle(): void {
+            if (shell.activePopup === "notifshade") shell.closePopup();
             else show();
         }
     }
