@@ -117,6 +117,13 @@
                   }
                 )
               } ipc call applauncher toggle"))
+              hl.bind("SUPER + N",   hl.dsp.exec_cmd("${
+                lib.getExe (
+                  self.packages.${pkgs.stdenv.hostPlatform.system}.quickshell.wrap {
+                    inherit (config) isDesktop isLaptop;
+                  }
+                )
+              } ipc call notifications toggle"))
               hl.bind("SUPER + SHIFT + R", hl.dsp.exec_cmd("${
                 lib.getExe' inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland "hyprctl"
               } dispatch forcerendererreload"))
