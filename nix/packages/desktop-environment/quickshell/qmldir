@@ -23,6 +23,8 @@ LauncherInfoCards 1.0 LauncherInfoCards.qml
 MediaPlayerIcon 1.0 MediaPlayerIcon.qml
 MediaPlayerPopup 1.0 MediaPlayerPopup.qml
 NotificationCenter 1.0 NotificationCenter.qml
+NotificationItem 1.0 NotificationItem.qml
+NotificationShade 1.0 NotificationShade.qml
 SectionSeparator 1.0 SectionSeparator.qml
 Slider 1.0 Slider.qml
 SysMonIcon 1.0 SysMonIcon.qml
