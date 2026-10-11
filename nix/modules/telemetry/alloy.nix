@@ -8,16 +8,7 @@
       ...
     }:
     let
-      # LAN address per host under nix/hosts/. Keep in sync when adding hosts.
-      hostAddresses = {
-        home = "home.tailscale";
-        laptop = "laptop.tailscale";
-        homelab = "homelab.tailscale";
-        thinkpad = "thinkpad.tailscale";
-        media = "media.tailscale";
-      };
-      scrapeAddresses = hostAddresses // {
-        ${config.networking.hostName} = "127.0.0.1";
+      scrapeAddresses = {
         openwrt = config.networking.defaultGateway.address;
       };
       scrapeTargets = lib.concatMapStringsSep "\n            " (
@@ -25,7 +16,7 @@
       ) (lib.attrValues scrapeAddresses);
       metricGroups = {
         "alloy" = "Alloy";
-        "prometheus.scrape.nixosConfiguration" = "Node Exporter";
+        "prometheus.scrape.openwrt" = "OpenWrt";
         "prometheus.scrape.clickhouse" = "ClickHouse";
         "prometheus.scrape.postgres" = "PostgreSQL";
       };
@@ -147,7 +138,7 @@
               ]
             }
             prometheus.scrape "postgres" {
-              scrape_interval = "30s"
+              scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
                 {"__address__" = "127.0.0.1:9187"},
@@ -157,7 +148,7 @@
               ]
             }
             prometheus.scrape "clickhouse" {
-              scrape_interval = "30s"
+              scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
                 {"__address__" = "127.0.0.1:9363"},
@@ -166,8 +157,8 @@
                 otelcol.receiver.prometheus.default.receiver,
               ]
             }
-            prometheus.scrape "nixosConfiguration" {
-              scrape_interval = "30s"
+            prometheus.scrape "openwrt" {
+              scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
                 ${scrapeTargets}
