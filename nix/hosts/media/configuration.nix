@@ -364,9 +364,9 @@
               endpoint = "/metrics";
               port = 9363;
               metrics = true;
-              events = true;
-              asynchronous_metrics = true;
-              errors = true;
+              events = false;
+              asynchronous_metrics = false;
+              errors = false;
             };
             keeper_server = {
               tcp_port = 9181;
