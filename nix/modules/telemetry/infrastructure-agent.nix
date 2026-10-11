@@ -47,7 +47,12 @@
             RuntimeDirectory = "oneuptime-infrastructure-agent";
             RuntimeDirectoryMode = "0700";
             RuntimeDirectoryPreserve = "restart";
-            ExecStartPre = writeConfig;
+            # The agent exits hard if its startup check can't reach the server, so
+            # wait for the OneUptime instance to answer before starting it.
+            ExecStartPre = [
+              "${lib.getExe pkgs.curl} -fsS -o /dev/null -m 3 --retry 15 --retry-delay 2 --retry-all-errors ${cfg.url}/status"
+              writeConfig
+            ];
             ExecStart = "${
               lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-infrastructure-agent
             } run";
