@@ -47,7 +47,7 @@
           };
           receivers = {
             hostmetrics = {
-              collection_interval = "30s";
+              collection_interval = "60s";
               scrapers = {
                 cpu.metrics = {
                   "system.cpu.utilization".enabled = true;
@@ -66,13 +66,16 @@
                   mute_process_io_error = true;
                   mute_process_user_error = true;
                   metrics = {
+                    "process.cpu.time".enabled = false;
                     "process.cpu.utilization".enabled = true;
+                    "process.disk.io".enabled = false;
+                    "process.memory.virtual".enabled = false;
                     "process.memory.utilization".enabled = true;
                   };
                 };
               };
             };
-            systemd.collection_interval = "30s";
+            systemd.collection_interval = "60s";
           }
           // lib.optionalAttrs shipJournal {
             journald = {
