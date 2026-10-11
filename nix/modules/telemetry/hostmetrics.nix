@@ -66,7 +66,10 @@
                   mute_process_io_error = true;
                   mute_process_user_error = true;
                   metrics = {
+                    "process.cpu.time".enabled = false;
                     "process.cpu.utilization".enabled = true;
+                    "process.disk.io".enabled = false;
+                    "process.memory.virtual".enabled = false;
                     "process.memory.utilization".enabled = true;
                   };
                 };
