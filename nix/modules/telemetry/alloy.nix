@@ -8,16 +8,7 @@
       ...
     }:
     let
-      # LAN address per host under nix/hosts/. Keep in sync when adding hosts.
-      hostAddresses = {
-        home = "home.tailscale";
-        laptop = "laptop.tailscale";
-        homelab = "homelab.tailscale";
-        thinkpad = "thinkpad.tailscale";
-        media = "media.tailscale";
-      };
-      scrapeAddresses = hostAddresses // {
-        ${config.networking.hostName} = "127.0.0.1";
+      scrapeAddresses = {
         openwrt = config.networking.defaultGateway.address;
       };
       scrapeTargets = lib.concatMapStringsSep "\n            " (
@@ -25,7 +16,7 @@
       ) (lib.attrValues scrapeAddresses);
       metricGroups = {
         "alloy" = "Alloy";
-        "prometheus.scrape.nixosConfiguration" = "Node Exporter";
+        "prometheus.scrape.openwrt" = "OpenWrt";
         "prometheus.scrape.clickhouse" = "ClickHouse";
         "prometheus.scrape.postgres" = "PostgreSQL";
       };
@@ -166,7 +157,7 @@
                 otelcol.receiver.prometheus.default.receiver,
               ]
             }
-            prometheus.scrape "nixosConfiguration" {
+            prometheus.scrape "openwrt" {
               scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
