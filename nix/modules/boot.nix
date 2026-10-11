@@ -19,6 +19,16 @@
           };
         }
 
+        (lib.mkIf config.isServer {
+          boot.loader = {
+            systemd-boot = {
+              enable = true;
+              configurationLimit = 10;
+            };
+            efi.canTouchEfiVariables = true;
+          };
+        })
+
         (lib.mkIf (!config.isServer) {
           boot.loader.grub = {
             enable = true;
