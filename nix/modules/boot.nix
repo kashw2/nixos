@@ -18,6 +18,17 @@
             };
           };
         }
+
+        (lib.mkIf (!config.isServer) {
+          boot.loader.grub = {
+            enable = true;
+            device = "nodev";
+            configurationLimit = 5;
+            useOSProber = true;
+            efiSupport = true;
+            efiInstallAsRemovable = true;
+          };
+        })
       ];
     };
 }

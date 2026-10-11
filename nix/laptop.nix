@@ -15,15 +15,6 @@
       isDesktop = false;
       isServer = false;
 
-      boot.loader.grub = {
-        enable = true;
-        device = "nodev";
-        configurationLimit = 5;
-        useOSProber = true;
-        efiSupport = true;
-        efiInstallAsRemovable = true;
-      };
-
       fonts.packages = [
         pkgs.nerd-fonts.jetbrains-mono
         pkgs.nerd-fonts.symbols-only
