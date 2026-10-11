@@ -147,7 +147,7 @@
               ]
             }
             prometheus.scrape "postgres" {
-              scrape_interval = "30s"
+              scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
                 {"__address__" = "127.0.0.1:9187"},
@@ -157,7 +157,7 @@
               ]
             }
             prometheus.scrape "clickhouse" {
-              scrape_interval = "30s"
+              scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
                 {"__address__" = "127.0.0.1:9363"},
@@ -167,7 +167,7 @@
               ]
             }
             prometheus.scrape "nixosConfiguration" {
-              scrape_interval = "30s"
+              scrape_interval = "60s"
               scrape_timeout  = "10s"
               targets = [
                 ${scrapeTargets}

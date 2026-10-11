@@ -47,7 +47,7 @@
           };
           receivers = {
             hostmetrics = {
-              collection_interval = "30s";
+              collection_interval = "60s";
               scrapers = {
                 cpu.metrics = {
                   "system.cpu.utilization".enabled = true;
@@ -72,7 +72,7 @@
                 };
               };
             };
-            systemd.collection_interval = "30s";
+            systemd.collection_interval = "60s";
           }
           // lib.optionalAttrs shipJournal {
             journald = {
