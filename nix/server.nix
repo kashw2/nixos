@@ -66,10 +66,6 @@
       isLaptop = false;
 
       boot = {
-        loader.systemd-boot.enable = true;
-        loader.systemd-boot.configurationLimit = 10;
-        loader.efi.canTouchEfiVariables = true;
-
         kernel.sysctl = {
           "net.core.rmem_max" = 67108864;
           "net.core.wmem_max" = 67108864;

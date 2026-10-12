@@ -12,6 +12,7 @@
       # Every configuration will import this file so if we import home-manager modules here
       # All configurations and downstream modules will have access to it
       imports = [
+        self.nixosModules.boot
         self.nixosModules.nix
         self.nixosModules.telemetry
         self.nixosModules.oneuptime
@@ -63,14 +64,6 @@
         # sops-nix (users.users.keanu.hashedPasswordFile), so mutable users
         # would be misleading.
         users.mutableUsers = false;
-
-        boot = {
-          # All machines run the xanmod kernel
-          kernelPackages = pkgs.linuxPackages_xanmod_stable;
-          kernel.sysctl = {
-            "kernel.sysrq" = 1; # Enable SysRQ for rebooting properly during halts
-          };
-        };
 
         documentation.enable = false;
 

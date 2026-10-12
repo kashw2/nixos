@@ -15,15 +15,6 @@
       isLaptop = false;
       isServer = false;
 
-      boot.loader.grub = {
-        enable = true;
-        device = "nodev";
-        configurationLimit = 5;
-        useOSProber = true;
-        efiSupport = true;
-        efiInstallAsRemovable = true;
-      };
-
       hardware.openrazer.enable = true;
 
       fonts.packages = [
