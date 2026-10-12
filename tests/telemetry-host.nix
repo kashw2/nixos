@@ -31,7 +31,7 @@
                 validateSopsFiles = false;
                 useSystemdActivation = false;
                 secrets = {
-                  "oneuptime/ingestion_token" = { };
+                  "oneuptime/homelab/ingestion_token" = { };
                 };
                 templates."snmpd.conf".content = "rouser test priv";
                 templates."opentelemetry-collector.env".content = "ONEUPTIME_INGESTION_TOKEN=test";
@@ -39,8 +39,8 @@
               system.activationScripts.setupSecrets = lib.mkForce "";
               systemd.tmpfiles.rules = [
                 "d /run/secrets 0755 root root - -"
-                "d /run/secrets/oneuptime 0755 root root - -"
-                "f /run/secrets/oneuptime/ingestion_token 0400 root root -"
+                "d /run/secrets/oneuptime/homelab 0755 root root - -"
+                "f /run/secrets/oneuptime/homelab/ingestion_token 0400 root root -"
               ];
             };
           testScript = ''

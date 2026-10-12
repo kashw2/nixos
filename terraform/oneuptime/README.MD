@@ -8,8 +8,8 @@ The `Server` monitor type cannot be created from the dashboard. It is absent fro
 
 | Variable | Source |
 | --- | --- |
-| `ONEUPTIME_API_KEY` | `oneuptime/mcp_api_key` |
-| `TF_VAR_ONEUPTIME_RUNNER_KEY` | `oneuptime/runner_key` |
+| `ONEUPTIME_API_KEY` | `oneuptime/homelab/mcp_api_key` |
+| `TF_VAR_ONEUPTIME_RUNNER_KEY` | `oneuptime/homelab/runner_key` |
 | `TF_VAR_SNMP_V3_AUTH_KEY` | `snmp/v3_auth_key` |
 | `TF_VAR_SNMP_V3_PRIV_KEY` | `snmp/v3_priv_key` |
 | `TF_VAR_NIXOS_STATE_PASSPHRASE` | `terraform_state_passphrase` |
@@ -45,8 +45,8 @@ tofu apply
 Feed the outputs back into the configuration:
 
 ```bash
-tofu output -json agent_keys      # -> oneuptime/agent_key/<host>, one per host
-tofu output -json ingestion_token # -> oneuptime/ingestion_token
+tofu output -json agent_keys      # -> oneuptime/homelab/agent_key/<host>, one per host
+tofu output -json ingestion_token # -> oneuptime/homelab/ingestion_token
 tofu output runner_id             # -> runner.settings.ONEUPTIME_RUNNER_ID in nix/hosts/media/configuration.nix
 ```
 
@@ -60,5 +60,5 @@ deploy .#media
 
 ## Secrets that need no attention
 
-`oneuptime/secret`, `oneuptime/encryption_secret`, `oneuptime/register_probe_key`, `oneuptime/probe_key` and `oneuptime/runner_key` are shared values generated once and held in sops, not issued by the server. They survive a database wipe. The probe self-registers with `register_probe_key`, so it needs no dashboard step.
+`oneuptime/homelab/secret`, `oneuptime/homelab/encryption_secret`, `oneuptime/homelab/register_probe_key`, `oneuptime/homelab/probe_key` and `oneuptime/homelab/runner_key` are shared values generated once and held in sops, not issued by the server. They survive a database wipe. The probe self-registers with `register_probe_key`, so it needs no dashboard step.
 

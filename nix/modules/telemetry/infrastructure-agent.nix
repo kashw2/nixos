@@ -13,7 +13,7 @@
       writeConfig = pkgs.writeShellScript "oneuptime-agent-config" ''
         ${lib.getExe pkgs.jq} -n \
           --arg secret_key "$(cat ${
-            config.sops.secrets."oneuptime/agent_key/${config.networking.hostName}".path
+            config.sops.secrets."oneuptime/homelab/agent_key/${config.networking.hostName}".path
           })" \
           --arg oneuptime_url "${cfg.url}" \
           '{secret_key: $secret_key, oneuptime_url: $oneuptime_url, proxy_url: ""}' \
