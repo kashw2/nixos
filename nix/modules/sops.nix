@@ -121,6 +121,18 @@
               group = "keanu";
             }
           );
+          "oneuptime/tablogs/master_api_key" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+          "oneuptime/tablogs/tablogs_api_key" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+          "oneuptime/tablogs/tablabs_api_key" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
           "github_kashw2_pat" = { };
           "github_tablogs_pat" = { };
           "github_classic_pat" = { };

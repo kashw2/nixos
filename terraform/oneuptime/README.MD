@@ -8,6 +8,7 @@ The `Server` monitor type cannot be created from the dashboard. It is absent fro
 
 | Variable | Source |
 | --- | --- |
+| `ONEUPTIME_API_KEY` | `oneuptime/tablogs/master_api_key` |
 | `TF_VAR_ONEUPTIME_RUNNER_KEY` | `oneuptime/homelab/runner_key` |
 | `TF_VAR_SNMP_V3_AUTH_KEY` | `snmp/v3_auth_key` |
 | `TF_VAR_SNMP_V3_PRIV_KEY` | `snmp/v3_priv_key` |
