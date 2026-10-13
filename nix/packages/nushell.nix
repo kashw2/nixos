@@ -67,18 +67,24 @@
             $env.INFRACOST_API_KEY = (open /run/secrets/infracost_api_key | str trim)
           }
 
-          if ("/run/secrets/oneuptime/mcp_api_key" | path exists) {
-            let oneuptime_api_key = (open /run/secrets/oneuptime/mcp_api_key | str trim)
-            $env.ONEUPTIME_MCP_API_KEY = $oneuptime_api_key
-            $env.ONEUPTIME_API_KEY = $oneuptime_api_key
+          if ("/run/secrets/oneuptime/tablogs/master_api_key" | path exists) {
+            $env.ONEUPTIME_API_KEY = (open /run/secrets/oneuptime/tablogs/master_api_key | str trim)
           }
 
-          if ("/run/secrets/oneuptime/runner_key" | path exists) {
-            $env.TF_VAR_ONEUPTIME_RUNNER_KEY = (open /run/secrets/oneuptime/runner_key | str trim)
+          if ("/run/secrets/oneuptime/homelab/runner_key" | path exists) {
+            $env.TF_VAR_ONEUPTIME_RUNNER_KEY = (open /run/secrets/oneuptime/homelab/runner_key | str trim)
           }
 
-          if ("/run/secrets/oneuptime/probe_key" | path exists) {
-            $env.TF_VAR_ONEUPTIME_PROBE_KEY = (open /run/secrets/oneuptime/probe_key | str trim)
+          if ("/run/secrets/oneuptime/homelab/probe_key" | path exists) {
+            $env.TF_VAR_ONEUPTIME_PROBE_KEY = (open /run/secrets/oneuptime/homelab/probe_key | str trim)
+          }
+
+          if ("/run/secrets/oneuptime/tablogs/tablogs_api_key" | path exists) {
+            $env.TF_VAR_TABLOGS_API_KEY = (open /run/secrets/oneuptime/tablogs/tablogs_api_key | str trim)
+          }
+
+          if ("/run/secrets/oneuptime/tablogs/tablabs_api_key" | path exists) {
+            $env.TF_VAR_TABLABS_API_KEY = (open /run/secrets/oneuptime/tablogs/tablabs_api_key | str trim)
           }
 
           if ("/run/secrets/snmp/v3_auth_key" | path exists) {

@@ -234,7 +234,7 @@
       systemd.services.alloy = lib.mkIf config.services.alloy.enable {
         serviceConfig = {
           LoadCredential = [
-            "oneuptime-token:${config.sops.secrets."oneuptime/ingestion_token".path}"
+            "oneuptime-token:${config.sops.secrets."oneuptime/homelab/ingestion_token".path}"
           ];
           SupplementaryGroups = lib.optionals config.services.nginx.enable [
             config.services.nginx.group

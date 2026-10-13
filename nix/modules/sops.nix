@@ -92,19 +92,21 @@
                 "/home/keanu/.ssh/id_ed25519.pub";
           };
           "tailscale" = { };
-          "oneuptime/secret" = lib.mkIf config.oneuptime.enable { };
-          "oneuptime/encryption_secret" = lib.mkIf config.oneuptime.enable { };
-          "oneuptime/register_probe_key" = lib.mkIf config.oneuptime.enable { };
-          "oneuptime/probe_key" = lib.mkIf (config.oneuptime.probe.enable || !config.isServer) {
+          "oneuptime/homelab/secret" = lib.mkIf config.oneuptime.enable { };
+          "oneuptime/homelab/encryption_secret" = lib.mkIf config.oneuptime.enable { };
+          "oneuptime/homelab/register_probe_key" = lib.mkIf config.oneuptime.enable { };
+          "oneuptime/homelab/probe_key" = lib.mkIf (config.oneuptime.probe.enable || !config.isServer) {
             owner = "keanu";
             group = "keanu";
           };
-          "oneuptime/runner_key" = lib.mkIf (config.oneuptime.runner.enable || !config.isServer) {
+          "oneuptime/homelab/runner_key" = lib.mkIf (config.oneuptime.runner.enable || !config.isServer) {
             owner = "keanu";
             group = "keanu";
           };
-          "oneuptime/agent_key/${config.networking.hostName}" = lib.mkIf config.telemetry.agent.enable { };
-          "oneuptime/ingestion_token".restartUnits =
+          "oneuptime/homelab/agent_key/${config.networking.hostName}" =
+            lib.mkIf config.telemetry.agent.enable
+              { };
+          "oneuptime/homelab/ingestion_token".restartUnits =
             lib.optional config.services.alloy.enable "alloy.service";
           "snmp/v3_username" = lib.mkIf config.services.snmpd.enable { };
           "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable (
@@ -119,7 +121,15 @@
               group = "keanu";
             }
           );
-          "oneuptime/mcp_api_key" = lib.mkIf (!config.isServer) {
+          "oneuptime/tablogs/master_api_key" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+          "oneuptime/tablogs/tablogs_api_key" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+            group = "keanu";
+          };
+          "oneuptime/tablogs/tablabs_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
             group = "keanu";
           };
@@ -149,9 +159,9 @@
 
         templates."oneuptime.env" = lib.mkIf config.oneuptime.enable {
           content = ''
-            ONEUPTIME_SECRET=${config.sops.placeholder."oneuptime/secret"}
-            ENCRYPTION_SECRET=${config.sops.placeholder."oneuptime/encryption_secret"}
-            REGISTER_PROBE_KEY=${config.sops.placeholder."oneuptime/register_probe_key"}
+            ONEUPTIME_SECRET=${config.sops.placeholder."oneuptime/homelab/secret"}
+            ENCRYPTION_SECRET=${config.sops.placeholder."oneuptime/homelab/encryption_secret"}
+            REGISTER_PROBE_KEY=${config.sops.placeholder."oneuptime/homelab/register_probe_key"}
           '';
           owner = "oneuptime";
           group = "oneuptime";
@@ -160,7 +170,7 @@
 
         templates."oneuptime-probe.env" = lib.mkIf config.oneuptime.probe.enable {
           content = ''
-            PROBE_KEY=${config.sops.placeholder."oneuptime/probe_key"}
+            PROBE_KEY=${config.sops.placeholder."oneuptime/homelab/probe_key"}
           '';
           owner = "oneuptime";
           group = "oneuptime";
@@ -169,7 +179,7 @@
 
         templates."oneuptime-runner.env" = lib.mkIf config.oneuptime.runner.enable {
           content = ''
-            ONEUPTIME_RUNNER_KEY=${config.sops.placeholder."oneuptime/runner_key"}
+            ONEUPTIME_RUNNER_KEY=${config.sops.placeholder."oneuptime/homelab/runner_key"}
           '';
           owner = "oneuptime";
           group = "oneuptime";
@@ -178,7 +188,7 @@
 
         templates."opentelemetry-collector.env" = {
           content = ''
-            ONEUPTIME_INGESTION_TOKEN=${config.sops.placeholder."oneuptime/ingestion_token"}
+            ONEUPTIME_INGESTION_TOKEN=${config.sops.placeholder."oneuptime/homelab/ingestion_token"}
           '';
           mode = "0400";
           restartUnits = [ "opentelemetry-collector.service" ];
