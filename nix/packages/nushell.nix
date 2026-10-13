@@ -67,12 +67,6 @@
             $env.INFRACOST_API_KEY = (open /run/secrets/infracost_api_key | str trim)
           }
 
-          if ("/run/secrets/oneuptime/homelab/mcp_api_key" | path exists) {
-            let oneuptime_api_key = (open /run/secrets/oneuptime/homelab/mcp_api_key | str trim)
-            $env.ONEUPTIME_MCP_API_KEY = $oneuptime_api_key
-            $env.ONEUPTIME_API_KEY = $oneuptime_api_key
-          }
-
           if ("/run/secrets/oneuptime/homelab/runner_key" | path exists) {
             $env.TF_VAR_ONEUPTIME_RUNNER_KEY = (open /run/secrets/oneuptime/homelab/runner_key | str trim)
           }

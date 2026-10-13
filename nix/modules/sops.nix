@@ -121,10 +121,6 @@
               group = "keanu";
             }
           );
-          "oneuptime/homelab/mcp_api_key" = lib.mkIf (!config.isServer) {
-            owner = "keanu";
-            group = "keanu";
-          };
           "github_kashw2_pat" = { };
           "github_tablogs_pat" = { };
           "github_classic_pat" = { };

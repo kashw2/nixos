@@ -8,7 +8,6 @@ The `Server` monitor type cannot be created from the dashboard. It is absent fro
 
 | Variable | Source |
 | --- | --- |
-| `ONEUPTIME_API_KEY` | `oneuptime/homelab/mcp_api_key` |
 | `TF_VAR_ONEUPTIME_RUNNER_KEY` | `oneuptime/homelab/runner_key` |
 | `TF_VAR_SNMP_V3_AUTH_KEY` | `snmp/v3_auth_key` |
 | `TF_VAR_SNMP_V3_PRIV_KEY` | `snmp/v3_priv_key` |
@@ -26,14 +25,7 @@ Do not rename `key_provider.pbkdf2.sops`, `method.aes_gcm.sops`, or `encrypted_m
 
 ## Bootstrapping a new instance
 
-Two steps cannot be automated, because the API needs a project and a key before it can do anything:
-
-1. Sign up at `http://oneuptime.media.local` to create the first user and project.
-2. Mint an API key with `ProjectOwner` at `.../dashboard/<PROJECT_ID>/settings/api-keys` and store it:
-
-   ```bash
-   sops set secrets/secrets.yaml '["oneuptime"]["mcp_api_key"]' '"<key>"'
-   ```
+Sign up at `http://oneuptime.media.local` to create the first user and project. This cannot be automated, because the API needs a project before it can do anything.
 
 Everything else is created by OpenTofu:
 
