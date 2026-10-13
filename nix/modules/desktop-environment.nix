@@ -52,21 +52,28 @@
 
       services.upower.enable = config.isLaptop;
 
-      services.displayManager.autoLogin = {
+      # Boot straight into Hyprland: initial_session autologins once at boot,
+      # and tuigreet is only shown after logging out.
+      services.greetd = {
         enable = true;
-        user = "keanu";
+        settings = {
+          initial_session = {
+            user = "keanu";
+            command = lib.getExe config.programs.hyprland.package;
+          };
+          default_session.command = "${lib.getExe pkgs.tuigreet} --time --remember --cmd ${lib.getExe config.programs.hyprland.package}";
+        };
       };
 
-      services.displayManager.sddm = {
-        enable = true;
-        wayland.enable = true;
-        enableHidpi = true;
-        theme = toString self.packages.${pkgs.stdenv.hostPlatform.system}.sddm-sugar-candy;
-        extraPackages = with pkgs.qt6; [
-          qt5compat
-          qtsvg
-        ];
-      };
+      # Hand the screen straight from the plymouth splash to Hyprland. greetd is
+      # Type=idle upstream, which holds it back for up to 5s after plymouth quits.
+      systemd.services.greetd.serviceConfig.Type = lib.mkForce "simple";
+      # Leave the last splash frame on screen instead of dropping back to the
+      # text console while Hyprland starts.
+      systemd.services.plymouth-quit.serviceConfig.ExecStart = lib.mkIf config.boot.plymouth.enable [
+        ""
+        "-${lib.getExe' config.boot.plymouth.package "plymouth"} quit --retain-splash"
+      ];
 
       nix.settings = {
         substituters = [ "https://hyprland.cachix.org" ];

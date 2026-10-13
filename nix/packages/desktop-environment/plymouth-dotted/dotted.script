@@ -1,0 +1,85 @@
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+frame_count = FRAME_COUNT_PLACEHOLDER;
+source_fps = SOURCE_FPS_PLACEHOLDER;
+// Frames before this are the fade-in, played once; after that playback
+// bounces between loop_start and the last frame.
+loop_start = LOOP_START_PLACEHOLDER;
+
+// The script plugin ticks at 50 Hz by default; match the frame rate instead.
+refresh_rate = 60;
+Plymouth.SetRefreshRate(refresh_rate);
+
+// Frames are decoded lazily (one per displayed frame) rather than all
+// preloaded: preloading took seconds and held hundreds of MB of pixels.
+probe = Image("frame-1.png");
+original_width = probe.GetWidth();
+original_height = probe.GetHeight();
+probe = null;
+
+screen_width = 0;
+screen_height = 0;
+final_width = original_width;
+final_height = original_height;
+needs_scale = 0;
+
+anim_sprite = Sprite();
+anim_sprite.SetZ(0);
+
+// Recompute fill-and-centre geometry whenever the display size changes
+// (plymouth starts on the firmware framebuffer, then the GPU driver takes over).
+fun update_geometry() {
+  sw = Window.GetWidth();
+  sh = Window.GetHeight();
+  if (sw == screen_width && sh == screen_height) return 0;
+  screen_width = sw;
+  screen_height = sh;
+
+  // Fill the screen, cropping edges if needed, without distortion
+  scale = Math.Max(sw / original_width, sh / original_height);
+  final_width = Math.Int(original_width * scale);
+  final_height = Math.Int(original_height * scale);
+  needs_scale = (final_width != original_width) || (final_height != original_height);
+
+  anim_sprite.SetX((sw - final_width) / 2);
+  anim_sprite.SetY((sh - final_height) / 2);
+  return 1;
+}
+
+// ffmpeg outputs frame-1.png, frame-2.png ... (1-indexed)
+fun load_frame(index) {
+  img = Image("frame-" + (index + 1) + ".png");
+  if (img && needs_scale) img = img.Scale(final_width, final_height);
+  return img;
+}
+
+// Ping-pong rather than wrap: every step is between adjacent frames, so the
+// loop has no visible seam.
+fun frame_for(position) {
+  last = frame_count - 1;
+  if (position <= last) return position;
+  span = last - loop_start;
+  k = (position - last) % (2 * span);
+  if (k < span) return last - k;
+  return loop_start + (k - span);
+}
+
+tick = 0;
+current_frame = -1;
+
+fun refresh_callback() {
+  if (update_geometry()) current_frame = -1;
+
+  // Only touch the sprite when the frame changes; SetImage forces a full redraw.
+  index = frame_for(Math.Int(tick * source_fps / refresh_rate));
+  if (index != current_frame) {
+    img = load_frame(index);
+    // Keep showing the previous frame if a load fails rather than blanking.
+    if (img) anim_sprite.SetImage(img);
+    current_frame = index;
+  }
+  tick++;
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
