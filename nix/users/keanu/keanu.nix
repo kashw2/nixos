@@ -273,6 +273,7 @@
             };
             git = {
               enable = true;
+              package = if config.isServer then pkgs.gitMinimal else pkgs.git;
               lfs.enable = true;
               includes = [
                 { path = config.sops.templates."git_email_address".path; }
