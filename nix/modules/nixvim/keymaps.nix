@@ -233,6 +233,15 @@
           mode = [ "n" ];
           options.silent = true;
         }
+      ]
+      ++ lib.optionals (!config.host.isServer) [
+        # Atlas
+        {
+          action = ":Atlas<CR>";
+          key = "cr";
+          mode = [ "n" ];
+          options.silent = true;
+        }
       ];
     };
 }

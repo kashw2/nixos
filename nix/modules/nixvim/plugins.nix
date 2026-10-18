@@ -14,7 +14,10 @@
       ]
       ++ lib.optionals (!config.host.isServer) [
         self.packages.${pkgs.stdenv.hostPlatform.system}.bruno-nvim
+        self.packages.${pkgs.stdenv.hostPlatform.system}.atlas-nvim
       ];
+
+      extraPackages = lib.optionals (!config.host.isServer) [ pkgs.gh ];
 
       extraConfigLua = ''
         require("atone").setup({})
@@ -23,13 +26,7 @@
         pcall(dofile, "${config.host.codestatsSetup}")
       ''
       + lib.optionalString (!config.host.isServer) ''
-        local tuicr = require("toggleterm.terminal").Terminal:new({
-          cmd = "${lib.getExe' inputs.tuicr.packages.${pkgs.stdenv.hostPlatform.system}.default "tuicr"}",
-          direction = "float",
-          float_opts = { border = "rounded" },
-          hidden = true,
-        })
-        vim.keymap.set("n", "cr", function() tuicr:toggle() end, { silent = true })
+        require("atlas").setup({})
       '';
 
       plugins = {
@@ -93,6 +90,7 @@
         git-conflict.enable = true;
         barbecue.enable = true;
         lazygit.enable = true;
+        diffview.enable = !config.host.isServer;
         nvim-lightbulb.enable = true;
         mini-pairs.enable = true;
         mini-cmdline.enable = true;

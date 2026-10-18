@@ -35,7 +35,6 @@
     nixd.url = "github:nix-community/nixd";
     llm-agents.url = "github:numtide/llm-agents.nix";
     nautilus-my-computer.url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
-    tuicr.url = "github:agavra/tuicr";
     witr.url = "github:pranshuparmar/witr";
     workmux.url = "github:raine/workmux";
     superpowers = {
