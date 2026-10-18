@@ -26,7 +26,11 @@
         pcall(dofile, "${config.host.codestatsSetup}")
       ''
       + lib.optionalString (!config.host.isServer) ''
-        require("atlas").setup({})
+        require("atlas").setup({
+          providers = {
+            github = {},
+          },
+        })
       '';
 
       plugins = {
