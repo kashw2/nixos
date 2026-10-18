@@ -30,7 +30,10 @@
     nixcord.url = "github:4evy/nixcord";
     nixos-generators.url = "github:nix-community/nixos-generators";
     impermanence.url = "github:nix-community/impermanence";
-    quickshell.url = "github:quickshell-mirror/quickshell";
+    quickshell = {
+      url = "github:quickshell-mirror/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixfmt.url = "github:nixos/nixfmt";
     nixd.url = "github:nix-community/nixd";
     llm-agents.url = "github:numtide/llm-agents.nix";
