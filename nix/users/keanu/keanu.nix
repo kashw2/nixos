@@ -312,7 +312,10 @@
               # Only enable if discord is installed for this user, that way servers aren't getting it
               enable = !config.isServer;
               discord = {
-                equicord.enable = true;
+                equicord = {
+                  enable = true;
+                  package = inputs.nixcord.packages.${pkgs.stdenv.hostPlatform.system}.equicord;
+                };
                 openASAR.enable = false;
               };
               config = {
