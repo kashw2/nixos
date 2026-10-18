@@ -84,7 +84,15 @@
         };
         colorizer.enable = true;
         render-markdown.enable = true;
-        bufferline.enable = true;
+        bufferline = {
+          enable = true;
+          # Hide the empty [No Name] buffer Bdelete leaves behind after closing the last buffer
+          settings.options.custom_filter.__raw = ''
+            function(buf)
+              return vim.fn.bufname(buf) ~= "" or vim.bo[buf].modified
+            end
+          '';
+        };
         lensline.enable = true;
         lualine.enable = true;
         gitsigns.enable = true;
