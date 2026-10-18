@@ -322,7 +322,6 @@
                     enable = true;
                     anonymiseByDefault = true;
                   };
-                  appleMusicRichPresence.enable = true;
                   musicRichPresence.enable = true;
                   callTimer.enable = true;
                   clearUrls.enable = true;
