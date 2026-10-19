@@ -314,7 +314,7 @@ Variants {
             } else if (row.type === "file") {
                 Quickshell.execDetached(["kitty", "nvim", "--", row.path]);
             } else if (row.type === "dir") {
-                Quickshell.execDetached(["nautilus", "--", row.path]);
+                Quickshell.execDetached(["loaf", row.path]);
             } else if (row.type === "session") {
                 Quickshell.execDetached(["kitty", "tmux", "new-session", "-A", "-s", row.name]);
             } else if (row.type === "calc") {
@@ -1053,7 +1053,7 @@ Variants {
                                         if (r.type === "dir") return [
                                             { key: "Path", value: launcherWindow.shortenPath(r.path) },
                                             { key: "Modified", value: launcherWindow.formatTime(r.mtime) },
-                                            { key: "Enter", value: "Open in Nautilus" }
+                                            { key: "Enter", value: "Open in Loaf" }
                                         ];
                                         if (r.type === "session") return [
                                             { key: "Windows", value: String(r.windows) },
