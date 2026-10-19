@@ -40,6 +40,10 @@
     nautilus-my-computer.url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
     witr.url = "github:pranshuparmar/witr";
     workmux.url = "github:raine/workmux";
+    loaf-fm = {
+      url = "github:m-uvex/loaf-fm";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;

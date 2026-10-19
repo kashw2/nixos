@@ -119,6 +119,7 @@
             pkgs.unzip
             pkgs.nautilus-python
             inputs.nautilus-my-computer.packages.${pkgs.stdenv.hostPlatform.system}.default
+            inputs.loaf-fm.packages.${pkgs.stdenv.hostPlatform.system}.default
           ];
         };
 
