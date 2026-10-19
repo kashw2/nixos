@@ -917,7 +917,9 @@ ShellRoot {
 
     Process {
         id: tempCheck
-        command: ["sh", "-c", "cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null | sort -rn | head -1"]
+        // Desktop AMD boards often expose no ACPI thermal zones; fall back to
+        // the CPU hwmon driver, matched by name since hwmon indices aren't stable.
+        command: ["sh", "-c", "t=$(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null | sort -rn | head -1); if [ -z \"$t\" ]; then for h in /sys/class/hwmon/hwmon*; do case $(cat $h/name) in k10temp|zenpower|coretemp) t=$(cat $h/temp1_input); break;; esac; done; fi; echo $t"]
         running: true
         stdout: SplitParser {
             onRead: data => {
