@@ -30,6 +30,24 @@
           providers = {
             github = {},
           },
+          pulls = {
+            github = {
+              -- atlas's built-in default is a single global involves:@me view
+              views = {
+                { name = "Repo", key = "1", layout = "compact", current_repo = true, search = "is:pr is:open sort:updated-desc" },
+                { name = "Me", key = "2", layout = "compact", search = "involves:@me" },
+              },
+            },
+          },
+          issues = {
+            github = {
+              -- Same as pulls: the built-in default is a global assignee:@me view
+              views = {
+                { name = "Repo", key = "1", current_repo = true, search = "is:open sort:updated-desc" },
+                { name = "Assigned", key = "2", search = "assignee:@me is:open" },
+              },
+            },
+          },
         })
       '';
 
