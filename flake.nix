@@ -42,6 +42,10 @@
       url = "github:matthart1983/netwatch";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    loaf-fm = {
+      url = "github:m-uvex/loaf-fm";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
