@@ -192,7 +192,10 @@
                 pr = "";
                 sessionUrl = false;
               };
+              # Top-level effortLevel in user settings only applies to models up to
+              # Opus 5 / Fable 5.1; newer models read the per-model key instead.
               settings.effortLevel = "xhigh";
+              settings.modelSettings.claude-opus-5-5.effortLevel = "xhigh";
               settings.hooks =
                 let
                   workmux = lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux";
