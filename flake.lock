@@ -2254,11 +2254,11 @@
         "nixpkgs": "nixpkgs_18"
       },
       "locked": {
-        "lastModified": 1791134749,
-        "narHash": "sha256-UA2EO2ve8JAHzY02iH2svpOCTzlyI12DsMizxd/4hbY=",
+        "lastModified": 1791859212,
+        "narHash": "sha256-E+Zf6vUV12htmjPwBNafVKw6oLT15X92dWaD2oEnLkg=",
         "owner": "pranshuparmar",
         "repo": "witr",
-        "rev": "7e46fa68151fd7c59fb7a0cf4247a9a0ac0fbb6e",
+        "rev": "321954184e976d9cd269ea36369869a656aa7d71",
         "type": "github"
       },
       "original": {
