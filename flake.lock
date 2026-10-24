@@ -1204,11 +1204,11 @@
     "i-have-adhd": {
       "flake": false,
       "locked": {
-        "lastModified": 1791387442,
+        "lastModified": 1791734634,
         "narHash": "sha256-GTqrnZxQvzo/ogAuUrffkOaMK1BYm/4rAZsnfmDt7DU=",
         "owner": "ayghri",
         "repo": "i-have-adhd",
-        "rev": "29139ff31a87ac74c04f4ef9cccdee3234e2512c",
+        "rev": "1ecea1993b7fce257ffbd686c070948b5e07eda6",
         "type": "github"
       },
       "original": {
