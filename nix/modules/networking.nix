@@ -77,7 +77,7 @@
           pkgs.traceroute
           pkgs.inetutils
           pkgs.unixtools.netstat
-          pkgs.netwatch
+          inputs.netwatch.packages.${pkgs.stdenv.hostPlatform.system}.default
         ]
         ++ lib.optionals (!config.isServer) [
           pkgs.whois
