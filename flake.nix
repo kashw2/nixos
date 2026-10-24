@@ -2,7 +2,7 @@
   description = "Keanu Ashwell's Flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nix.url = "github:nixos/nix";
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
@@ -15,12 +15,12 @@
     hyprland.url = "github:hyprwm/Hyprland";
     hyprpaper.url = "github:hyprwm/hyprpaper";
     hypridle.url = "github:hyprwm/hypridle";
-    nixvim.url = "github:nix-community/nixvim";
+    nixvim.url = "github:nix-community/nixvim/nixos-26.05";
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
     mcp-servers-nix.url = "github:natsukium/mcp-servers-nix";
     sops-nix = {
       url = "github:Mic92/sops-nix";

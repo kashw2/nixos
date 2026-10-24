@@ -179,9 +179,10 @@
               enable = !config.isServer;
               package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
               enableMcpIntegration = true;
-              plugins = {
-                inherit (inputs) superpowers i-have-adhd;
-              };
+              plugins = [
+                inputs.superpowers
+                inputs.i-have-adhd
+              ];
               skills = builtins.mapAttrs (name: _: "${inputs.anthropic-skills}/skills/${name}") (
                 builtins.readDir "${inputs.anthropic-skills}/skills"
               );

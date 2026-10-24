@@ -24,7 +24,7 @@
           };
 
           mvnJdk = pkgs.jdk25;
-          mvnHash = "sha256-v5QrnW0Cvfz6rNFevHqPfZ8yQFF2/6LtjiCIDoTMVgo=";
+          mvnHash = "sha256-OW/Xf/rOeHCMecxfxc3frJklbSlDCvDqHRnKCSbUET8=";
 
           installPhase = ''
             install -Dm644 target/floci.jar $out
