@@ -51,7 +51,7 @@ This repo follows the [dendritic pattern](https://github.com/mightyiam/dendritic
 ### Layout (`nix/`)
 
 - **`hosts/`** — Per-machine configs (hardware, disko partitions, GPU drivers). Each host imports the same ordered set of feature modules.
-- **`desktop.nix`**, **`laptop.nix`**, **`server.nix`** — Host templates (`desktopTemplate`, `laptopTemplate`, `serverTemplate`) that compose feature modules for each host class. Desktop enables display manager, audio, etc.; laptop adds laptop-specific tweaks; server is minimal with no desktop environment.
+- **`modules/desktop.nix`**, **`modules/laptop.nix`**, **`modules/server.nix`** — Host templates (`desktopTemplate`, `laptopTemplate`, `serverTemplate`) that compose feature modules for each host class. Desktop enables display manager, audio, etc.; laptop adds laptop-specific tweaks; server is minimal with no desktop environment.
 - **`modules/`** — Reusable NixOS modules: `environment.nix`, `nix/`, `security.nix`, `networking.nix`, `audio.nix`, `virtualisation.nix`, `sops.nix`, `impermanence.nix`, `attic.nix`, `jellyfin.nix`
 - **`modules/desktop-environment/`** — Hyprland session module wiring the desktop packages and SDDM together
 - **`modules/nixvim/`** — Neovim config split across: `default.nix` (core), `plugins.nix`, `lsp.nix`, `keymaps.nix`, `colorschemes.nix`, `highlights.nix`, `options.nix`
