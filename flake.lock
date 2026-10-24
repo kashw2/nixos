@@ -420,11 +420,11 @@
         "systems": "systems_6"
       },
       "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "lastModified": 1791914995,
+        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
         "type": "github"
       },
       "original": {
@@ -1266,11 +1266,11 @@
       },
       "locked": {
         "dir": "packaging/nix",
-        "lastModified": 1787696611,
-        "narHash": "sha256-+hE39OIp1+uq0TG5E1f4VocK0iMv5xkXLJnmSal5FZM=",
+        "lastModified": 1792096319,
+        "narHash": "sha256-OiGBFEwRjb7l0a8fFydMhKElcXH+a3QDaRqDUb/gKVQ=",
         "owner": "yannmasoch",
         "repo": "nautilus-my-computer",
-        "rev": "4c6247e8210239ecc8de66fd7a9c793dc9a7e66f",
+        "rev": "f7cb64a3daa553cf6ca360260dec388f8d0f7886",
         "type": "github"
       },
       "original": {
@@ -1604,11 +1604,11 @@
     },
     "nixpkgs_10": {
       "locked": {
-        "lastModified": 1791048980,
-        "narHash": "sha256-KgItSKML8Xvte0B7/uGnBDsYzSnnKHcOaiUbgWBXLXw=",
+        "lastModified": 1792502884,
+        "narHash": "sha256-IoNisKcGbUjdd45qCqywGMCYmZ5EnkxezvLII0FWwNA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "a7868a727837f3c09cee2ce0ca671c76b1589fed",
+        "rev": "02c087f3fe673c9e317f206a627cb6b910336dbe",
         "type": "github"
       },
       "original": {
