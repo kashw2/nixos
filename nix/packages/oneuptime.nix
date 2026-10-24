@@ -18,18 +18,18 @@
           let
             # Common and the six frontends are separate npm projects that depend on each other by path, so each needs its own deps
             workspaces = {
-              "packages/Common" = "sha256-UVQVgdZLFaXelE9/vwL0RiZ8INI6U0EguyBcbCEVhww=";
-              "packages/App/FeatureSet/Accounts" = "sha256-789vqpdCw908bEC/Cp2OFH988GV4+vw248MroHeH/Tg=";
-              "packages/App/FeatureSet/AdminDashboard" = "sha256-022BA2twedjZdC26q7TWAhUMUIJsv1kMp6qeaDW8Hwg=";
-              "packages/App/FeatureSet/BrowserRecorder" = "sha256-gfTNduWJZaOE5sLrNc+6Y9hnHbtwD6GzR0QS8zfjJ04=";
-              "packages/App/FeatureSet/Dashboard" = "sha256-vqeBJ7rz7tLw7FVLa5ZSPguC1bQ/L46khTi/oat+h68=";
-              "packages/App/FeatureSet/PublicDashboard" = "sha256-EROXrJ4WXK2qv7XZoBbQuyXSb2SX439lHxUarcF1ipg=";
-              "packages/App/FeatureSet/StatusPage" = "sha256-yGan/f3yPYe9PFNFzfRaP55nbQs+YqX4F87oeVyQa28=";
+              "packages/Common" = "sha256-2oYJcpbsa+uzNtMrjR8wS/lruoJKZ5FzoPgb3czR5Hw=";
+              "packages/App/FeatureSet/Accounts" = "sha256-4rNnAiyNnb75ZG0uH9RFF/jQXZe2M1HKO3HvzuR9b14=";
+              "packages/App/FeatureSet/AdminDashboard" = "sha256-BGu+DwMtS+qh2Pl7zJf3PfkRVn+y48FIzyMCYDeE36k=";
+              "packages/App/FeatureSet/BrowserRecorder" = "sha256-fpwwMIitA+oWKeLplpuMjUT9EJaZzMri7I7GdiVRv2E=";
+              "packages/App/FeatureSet/Dashboard" = "sha256-Z50k/DthvQbVV4+O4M0y3VGHz77md/iJLdsoMs+72Sk=";
+              "packages/App/FeatureSet/PublicDashboard" = "sha256-deJd0gjW2HGtLgdYYwAgdWCACfxl3n/aa8c+syUuhcg=";
+              "packages/App/FeatureSet/StatusPage" = "sha256-Zhr2E8DNNa67asSXj/w9Mrm5wtjh48NcAky8DZD6y1s=";
             };
           in
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-app";
-            version = "14.0.6";
+            version = "14.0.88";
 
             __structuredAttrs = true;
 
@@ -37,14 +37,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             sourceRoot = "${finalAttrs.src.name}/packages/App";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-KQRKbKm8UM0qlcwP4HfvTCCFPz5Rb5SH9eeBV8xbvuY=";
+            npmDepsHash = "sha256-6ld09B4FBR92xuCQhlKs7j30zJi3gWI6KgpNNw21jQE=";
 
             nativeBuildInputs = [ makeWrapper ];
 
@@ -141,19 +141,19 @@
           }:
 
           let
-            version = "14.0.6";
+            version = "14.0.88";
 
             src = fetchFromGitHub {
               owner = "OneUptime";
               repo = "oneuptime";
               tag = version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             commonNpmDeps = fetchNpmDeps {
               name = "oneuptime-common-npm-deps-${version}";
               src = "${src}/packages/Common";
-              hash = "sha256-zOWPBxJazRMyMa8A58CPQVQgAgicvqKqDMI5UruPH+w=";
+              hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
             };
           in
           buildNpmPackage {
@@ -166,7 +166,7 @@
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-nK3KZZvJ6R5t/8Q3llBf5Td7L2JOjcwh8pCxFyGVL20=";
+            npmDepsHash = "sha256-A8Jv5WFQQeIZgeYWQq/WsCMD6hIwEUq0yEjzAsd1BWk=";
 
             preBuild = ''
               chmod -R u+w ../Common
@@ -210,7 +210,7 @@
 
           buildGoModule (finalAttrs: {
             pname = "oneuptime-infrastructure-agent";
-            version = "14.0.6";
+            version = "14.0.88";
 
             __structuredAttrs = true;
 
@@ -218,7 +218,7 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             sourceRoot = "${finalAttrs.src.name}/agents/InfrastructureAgent";
@@ -246,7 +246,7 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-kubernetes-cost-agent";
-            version = "14.0.6";
+            version = "14.0.88";
 
             __structuredAttrs = true;
 
@@ -254,14 +254,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             sourceRoot = "${finalAttrs.src.name}/agents/KubernetesCostAgent";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-7YLsOl2sILhoHdfgBVgrK5HsJtEI2i9GmNi6aJB+6hw=";
+            npmDepsHash = "sha256-PxfhyimofxjokV6Wo29uMlmeEUwi4QYafZAb4j2X1WU=";
 
             npmBuildScript = "compile";
 
@@ -304,7 +304,7 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-kubernetes-log-tailer";
-            version = "14.0.6";
+            version = "14.0.88";
 
             __structuredAttrs = true;
 
@@ -312,14 +312,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             sourceRoot = "${finalAttrs.src.name}/agents/KubernetesLogTailer";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-W0clepI+mCqQ7CGtW4uDXLdpdDTfXVFt3HAmN60oCm0=";
+            npmDepsHash = "sha256-wQrGTCrEPFkfj50MMnk3EBuUlXlGeufr2wenEQqn2II=";
 
             npmBuildScript = "compile";
 
@@ -369,20 +369,20 @@
           }:
 
           let
-            version = "14.0.6";
+            version = "14.0.88";
 
             src = fetchFromGitHub {
               owner = "OneUptime";
               repo = "oneuptime";
               tag = version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             # Probe depends on Common as `file:../Common`, so npm symlinks it rather than installing it.
             commonNpmDeps = fetchNpmDeps {
               name = "oneuptime-common-npm-deps-${version}";
               src = "${src}/packages/Common";
-              hash = "sha256-zOWPBxJazRMyMa8A58CPQVQgAgicvqKqDMI5UruPH+w=";
+              hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
             };
           in
           buildNpmPackage {
@@ -395,7 +395,7 @@
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-aiV48OrK8VUPTxbB4Hcz19Uy94P3UyV/HLv8wZ1qwhI=";
+            npmDepsHash = "sha256-i+RXO6HeXQsnQCpU8D8coFYnNX9PuvO2gmWND7tEEoI=";
 
             # The one optional dependency is msnodesqlv8, a native driver needing unixODBC.
             npmFlags = [ "--omit=optional" ];
@@ -481,7 +481,7 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-runner";
-            version = "14.0.6";
+            version = "14.0.88";
 
             __structuredAttrs = true;
 
@@ -489,14 +489,14 @@
               owner = "OneUptime";
               repo = "oneuptime";
               tag = finalAttrs.version;
-              hash = "sha256-lAXHLVIUA4XstFSZ6h8jN8bpucrDKzHU+dVMJTDUnOQ=";
+              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
             };
 
             sourceRoot = "${finalAttrs.src.name}/packages/Runner";
 
             nodejs = nodejs_26;
 
-            npmDepsHash = "sha256-nY/t5hkZxMK0J1km8o2dxAiVrNJTJfr2baEtPrnIoJU=";
+            npmDepsHash = "sha256-LyH9CvFQko1t1rqBPiajYBGVrFpfdLAKtxFFcJFFiLc=";
 
             nativeBuildInputs = [ makeWrapper ];
 
@@ -513,7 +513,7 @@
                   fetchNpmDeps {
                     name = "oneuptime-common-npm-deps-${finalAttrs.version}";
                     src = "${finalAttrs.src}/packages/Common";
-                    hash = "sha256-zOWPBxJazRMyMa8A58CPQVQgAgicvqKqDMI5UruPH+w=";
+                    hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
                   }
                 }
                 npmConfigHook
