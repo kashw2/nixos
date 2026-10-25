@@ -21,6 +21,7 @@
         self.nixosModules.nixvim
         self.nixosModules.sops
         self.nixosModules.qemu
+        self.nixosModules.storage
         inputs.home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
