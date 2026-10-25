@@ -459,6 +459,27 @@
                     <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
                     <flush_interval_milliseconds>7500</flush_interval_milliseconds>
                 </asynchronous_metric_log>
+                <query_views_log>
+                    <database>system</database>
+                    <table>query_views_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </query_views_log>
+                <background_schedule_pool_log>
+                    <database>system</database>
+                    <table>background_schedule_pool_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </background_schedule_pool_log>
+                <aggregated_zookeeper_log>
+                    <database>system</database>
+                    <table>aggregated_zookeeper_log</table>
+                    <partition_by>toYYYYMM(event_date)</partition_by>
+                    <ttl>event_time + INTERVAL 6 HOUR DELETE</ttl>
+                    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+                </aggregated_zookeeper_log>
                 <processors_profile_log remove="1" />
             </clickhouse>
           '';
