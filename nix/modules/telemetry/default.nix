@@ -111,6 +111,13 @@
                 url = "http://127.0.0.1:${toString config.services.prowlarr.settings.server.port}";
                 apiKeyFile = config.sops.secrets."prowlarr/api_key".path;
               };
+              exportarr-bazarr = {
+                enable = config.services.bazarr.enable;
+                environment.INTERFACE = "127.0.0.1";
+                port = 9710;
+                url = "http://127.0.0.1:${toString config.services.bazarr.listenPort}";
+                apiKeyFile = config.sops.secrets."bazarr/api_key".path;
+              };
             };
           };
         };
