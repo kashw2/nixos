@@ -54,6 +54,7 @@
             ++ lib.optional config.services.prometheus.exporters.smartctl.enable config.services.prometheus.exporters.smartctl.port
             ++ lib.optional config.services.prometheus.exporters.exportarr-sonarr.enable config.services.prometheus.exporters.exportarr-sonarr.port
             ++ lib.optional config.services.prometheus.exporters.exportarr-radarr.enable config.services.prometheus.exporters.exportarr-radarr.port
+            ++ lib.optional config.services.prometheus.exporters.exportarr-prowlarr.enable config.services.prometheus.exporters.exportarr-prowlarr.port
           )
         )
       );

@@ -110,6 +110,7 @@
             lib.optional config.services.alloy.enable "alloy.service";
           "sonarr/api_key" = lib.mkIf config.services.prometheus.exporters.exportarr-sonarr.enable { };
           "radarr/api_key" = lib.mkIf config.services.prometheus.exporters.exportarr-radarr.enable { };
+          "prowlarr/api_key" = lib.mkIf config.services.prometheus.exporters.exportarr-prowlarr.enable { };
           "snmp/v3_username" = lib.mkIf config.services.snmpd.enable { };
           "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable (
             lib.optionalAttrs (!config.isServer) {

@@ -104,6 +104,13 @@
                 url = "http://127.0.0.1:${toString config.services.radarr.settings.server.port}";
                 apiKeyFile = config.sops.secrets."radarr/api_key".path;
               };
+              exportarr-prowlarr = {
+                enable = config.services.prowlarr.enable;
+                environment.INTERFACE = "127.0.0.1";
+                port = 9709;
+                url = "http://127.0.0.1:${toString config.services.prowlarr.settings.server.port}";
+                apiKeyFile = config.sops.secrets."prowlarr/api_key".path;
+              };
             };
           };
         };
