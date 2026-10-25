@@ -52,6 +52,7 @@
             ]
             ++ lib.optional config.services.prometheus.exporters.postgres.enable config.services.prometheus.exporters.postgres.port
             ++ lib.optional config.services.prometheus.exporters.smartctl.enable config.services.prometheus.exporters.smartctl.port
+            ++ lib.optional config.services.prometheus.exporters.exportarr-sonarr.enable config.services.prometheus.exporters.exportarr-sonarr.port
           )
         )
       );

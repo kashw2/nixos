@@ -89,6 +89,14 @@
                 enable = true;
                 listenAddress = "127.0.0.1";
               };
+              exportarr-sonarr = {
+                enable = config.services.sonarr.enable;
+                # exportarr ignores listenAddress; it binds to INTERFACE.
+                environment.INTERFACE = "127.0.0.1";
+                port = 9707;
+                url = "http://127.0.0.1:${toString config.services.sonarr.settings.server.port}";
+                apiKeyFile = config.sops.secrets."sonarr/api_key".path;
+              };
             };
           };
         };
