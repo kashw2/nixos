@@ -142,11 +142,8 @@
             "/var/lib/nixos" # stable UIDs/GIDs across rebuilds
             "/var/lib/systemd" # random-seed, backlight, timers
             "/var/lib/bluetooth"
-            "/var/lib/NetworkManager"
-            "/var/lib/tailscale"
             "/var/lib/sops-nix"
             "/var/lib/colord"
-            "/etc/NetworkManager/system-connections"
           ];
           files = [
             "/etc/machine-id"
