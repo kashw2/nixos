@@ -15,7 +15,6 @@
       impermanence = {
         enable = false;
         rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-        rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
       };
 
       # DP-3's preferred mode is 4K; pin it to 1080p so plymouth renders the

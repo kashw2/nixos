@@ -5,10 +5,12 @@
       pkgs,
       lib,
       config,
+      utils,
       ...
     }:
     let
       cfg = config.impermanence;
+      rootDeviceUnit = "${utils.escapeSystemdPath cfg.rootDevice}.device";
     in
     {
       imports = [
@@ -35,37 +37,13 @@
             Required when `enable = true`.
           '';
         };
-
-        rootDeviceUnit = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          example = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
-          description = ''
-            systemd device unit name for `rootDevice`, used to order the
-            rollback service after the device becomes available.
-            Required when `enable = true`.
-
-            Derivation rule: drop the leading `/`, replace every path
-            separator `/` with `-`, and escape any `-` that was already
-            in the original path as `\x2d` (so it isn't confused with the
-            separator replacement). Append `.device`.
-
-            Worked example for `/dev/disk/by-partlabel/disk-main-root`:
-              dev-disk-by\x2dpartlabel-disk\x2dmain\x2droot.device
-
-            In a nix double-quoted string each `\` must itself be
-            escaped, so write `\\x2d`. You can also generate it at
-            install time with:
-              systemd-escape -p --suffix=device /dev/disk/by-partlabel/...
-          '';
-        };
       };
 
       config = lib.mkIf cfg.enable {
         assertions = [
           {
-            assertion = cfg.rootDevice != null && cfg.rootDeviceUnit != null;
-            message = "impermanence.enable requires both rootDevice and rootDeviceUnit to be set.";
+            assertion = cfg.rootDevice != null;
+            message = "impermanence.enable requires rootDevice to be set.";
           }
         ];
 
@@ -89,8 +67,8 @@
         boot.initrd.systemd.services.rollback-root = {
           description = "Roll back root + home btrfs subvolumes to empty";
           wantedBy = [ "initrd.target" ];
-          after = [ cfg.rootDeviceUnit ];
-          requires = [ cfg.rootDeviceUnit ];
+          after = [ rootDeviceUnit ];
+          requires = [ rootDeviceUnit ];
           before = [ "sysroot.mount" ];
           unitConfig.DefaultDependencies = "no";
           serviceConfig.Type = "oneshot";
