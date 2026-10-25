@@ -91,10 +91,7 @@
               # doesn't silently fill up.
               if [[ -d /btrfs_tmp/old_roots ]]; then
                 find /btrfs_tmp/old_roots -maxdepth 1 -mtime +30 | while read -r old; do
-                  btrfs subvolume list -o "$old" | cut -f9 -d' ' | while read -r sub; do
-                    btrfs subvolume delete "/btrfs_tmp/$sub" || true
-                  done
-                  btrfs subvolume delete "$old" || true
+                  btrfs subvolume delete --recursive "$old" || true
                 done
               fi
 
