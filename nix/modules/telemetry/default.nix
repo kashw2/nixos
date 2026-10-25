@@ -85,6 +85,10 @@
                 enable = builtins.elem "nvidia" config.services.xserver.videoDrivers;
                 port = 9835;
               };
+              smartctl = {
+                enable = true;
+                listenAddress = "127.0.0.1";
+              };
             };
           };
         };

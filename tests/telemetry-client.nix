@@ -53,6 +53,10 @@
                 " | grep -o '/nix/store/[^ ]*-config.yaml'"
             ).strip()
             machine.succeed(f"grep -q journald {config}")
+            machine.succeed(f"grep -q 'job_name: SMART' {config}")
+
+            machine.wait_for_unit("prometheus-smartctl-exporter.service")
+            machine.wait_until_succeeds("curl --fail --silent http://127.0.0.1:9633/metrics", timeout=60)
             machine.wait_until_succeeds(
                 "journalctl -u opentelemetry-collector.service | grep -q 'Journalctl command'",
                 timeout=60,

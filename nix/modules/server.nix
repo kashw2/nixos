@@ -51,6 +51,7 @@
               12345
             ]
             ++ lib.optional config.services.prometheus.exporters.postgres.enable config.services.prometheus.exporters.postgres.port
+            ++ lib.optional config.services.prometheus.exporters.smartctl.enable config.services.prometheus.exporters.smartctl.port
           )
         )
       );

@@ -9,6 +9,7 @@
     }:
     let
       shipJournal = config.telemetry.role == "client";
+      smartctl = config.services.prometheus.exporters.smartctl;
       stateDirectory = "/var/lib/opentelemetry-collector";
       priorityNames = [
         "emerg"
@@ -77,6 +78,19 @@
             };
             systemd.collection_interval = "60s";
           }
+          // lib.optionalAttrs smartctl.enable {
+            # SMART attributes move slowly; a 5m scrape keeps OneUptime's
+            # ClickHouse growth down on media's nearly full eMMC.
+            prometheus.config.scrape_configs = [
+              {
+                job_name = "SMART";
+                scrape_interval = "300s";
+                static_configs = [
+                  { targets = [ "127.0.0.1:${toString smartctl.port}" ]; }
+                ];
+              }
+            ];
+          }
           // lib.optionalAttrs shipJournal {
             journald = {
               priority = "debug";
@@ -117,7 +131,8 @@
                 receivers = [
                   "hostmetrics"
                   "systemd"
-                ];
+                ]
+                ++ lib.optional smartctl.enable "prometheus";
                 processors = [
                   "resourcedetection"
                   "batch"
