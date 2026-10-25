@@ -59,7 +59,6 @@
       impermanence = {
         enable = true;
         rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-        rootDeviceUnit = "dev-disk-by\\x2dpartlabel-disk\\x2dmain\\x2droot.device";
       };
 
       # persistence. For services that set `DynamicUser = true` in their
