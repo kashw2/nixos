@@ -19,6 +19,10 @@
         "prometheus.scrape.openwrt" = "OpenWrt";
         "prometheus.scrape.clickhouse" = "ClickHouse";
         "prometheus.scrape.postgres" = "PostgreSQL";
+        "prometheus.scrape.sonarr" = "Sonarr";
+        "prometheus.scrape.radarr" = "Radarr";
+        "prometheus.scrape.prowlarr" = "Prowlarr";
+        "prometheus.scrape.bazarr" = "Bazarr";
       };
       metricStatements = lib.concatStringsSep "\n      " (
         lib.mapAttrsToList (
@@ -162,6 +166,56 @@
               scrape_timeout  = "10s"
               targets = [
                 ${scrapeTargets}
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+          ''
+          # *arr stats move slowly; a 5m scrape keeps OneUptime's ClickHouse
+          # growth down on media's nearly full eMMC.
+          + lib.optionalString config.services.prometheus.exporters.exportarr-sonarr.enable ''
+            prometheus.scrape "sonarr" {
+              scrape_interval = "300s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.exportarr-sonarr.port}"},
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+          ''
+          + lib.optionalString config.services.prometheus.exporters.exportarr-radarr.enable ''
+            prometheus.scrape "radarr" {
+              scrape_interval = "300s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.exportarr-radarr.port}"},
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+          ''
+          + lib.optionalString config.services.prometheus.exporters.exportarr-prowlarr.enable ''
+            prometheus.scrape "prowlarr" {
+              scrape_interval = "300s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.exportarr-prowlarr.port}"},
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+          ''
+          + lib.optionalString config.services.prometheus.exporters.exportarr-bazarr.enable ''
+            prometheus.scrape "bazarr" {
+              scrape_interval = "300s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.exportarr-bazarr.port}"},
               ]
               forward_to = [
                 otelcol.receiver.prometheus.default.receiver,

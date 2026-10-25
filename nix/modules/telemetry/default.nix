@@ -85,6 +85,39 @@
                 enable = builtins.elem "nvidia" config.services.xserver.videoDrivers;
                 port = 9835;
               };
+              smartctl = {
+                enable = true;
+                listenAddress = "127.0.0.1";
+              };
+              exportarr-sonarr = {
+                enable = config.services.sonarr.enable;
+                # exportarr ignores listenAddress; it binds to INTERFACE.
+                environment.INTERFACE = "127.0.0.1";
+                port = 9707;
+                url = "http://127.0.0.1:${toString config.services.sonarr.settings.server.port}";
+                apiKeyFile = config.sops.secrets."sonarr/api_key".path;
+              };
+              exportarr-radarr = {
+                enable = config.services.radarr.enable;
+                environment.INTERFACE = "127.0.0.1";
+                port = 9708;
+                url = "http://127.0.0.1:${toString config.services.radarr.settings.server.port}";
+                apiKeyFile = config.sops.secrets."radarr/api_key".path;
+              };
+              exportarr-prowlarr = {
+                enable = config.services.prowlarr.enable;
+                environment.INTERFACE = "127.0.0.1";
+                port = 9709;
+                url = "http://127.0.0.1:${toString config.services.prowlarr.settings.server.port}";
+                apiKeyFile = config.sops.secrets."prowlarr/api_key".path;
+              };
+              exportarr-bazarr = {
+                enable = config.services.bazarr.enable;
+                environment.INTERFACE = "127.0.0.1";
+                port = 9710;
+                url = "http://127.0.0.1:${toString config.services.bazarr.listenPort}";
+                apiKeyFile = config.sops.secrets."bazarr/api_key".path;
+              };
             };
           };
         };
