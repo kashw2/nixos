@@ -56,9 +56,6 @@
         # bind mounts; impermanence requires it be marked neededForBoot.
         fileSystems."/home".neededForBoot = true;
 
-        # Log subvolume also wants to be up before journald rotates in.
-        fileSystems."/var/log".neededForBoot = true;
-
         # Roll back `root` and `home` btrfs subvolumes before the real root
         # is mounted: rename the live subvolume into /old_roots/<name>_<ts>
         # for a 30-day inspection window, then create a fresh empty subvol
