@@ -71,6 +71,14 @@
         etc."NetworkManager/dnsmasq.d/azure-postgres.conf" = lib.mkIf (!config.isServer) {
           text = "server=/postgres.database.azure.com/10.1.2.4\n";
         };
+        persistence = lib.mkIf config.impermanence.enable {
+          "/persist".directories =
+            lib.optionals config.services.tailscale.enable [ "/var/lib/tailscale" ]
+            ++ lib.optionals config.networking.networkmanager.enable [
+              "/var/lib/NetworkManager"
+              "/etc/NetworkManager/system-connections"
+            ];
+        };
         systemPackages = [
           pkgs.dstp
           pkgs.dig
