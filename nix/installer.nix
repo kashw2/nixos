@@ -271,18 +271,19 @@ in
       packages = builtins.listToAttrs (
         map (hostName: {
           name = "installer-${hostName}";
-          value = inputs.nixos-generators.nixosGenerate {
-            inherit system;
-            inherit (inputs.nixpkgs) lib;
-            inherit (inputs.nixpkgs.lib) nixosSystem;
-            format = "install-iso";
-            specialArgs = {
-              inherit self inputs hostName;
-            };
-            modules = [
-              self.nixosModules.installer
-            ];
-          };
+          value =
+            (inputs.nixpkgs.lib.nixosSystem {
+              inherit system;
+              specialArgs = {
+                inherit self inputs hostName;
+              };
+              modules = [
+                # Wrapped rather than a bare path so clone-config doesn't
+                # list it in the live ISO's /etc/nixos/configuration.nix.
+                { imports = [ "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-base.nix" ]; }
+                self.nixosModules.installer
+              ];
+            }).config.system.build.isoImage;
         }) hosts
       );
     };
