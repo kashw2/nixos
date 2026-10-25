@@ -97,6 +97,13 @@
                 url = "http://127.0.0.1:${toString config.services.sonarr.settings.server.port}";
                 apiKeyFile = config.sops.secrets."sonarr/api_key".path;
               };
+              exportarr-radarr = {
+                enable = config.services.radarr.enable;
+                environment.INTERFACE = "127.0.0.1";
+                port = 9708;
+                url = "http://127.0.0.1:${toString config.services.radarr.settings.server.port}";
+                apiKeyFile = config.sops.secrets."radarr/api_key".path;
+              };
             };
           };
         };

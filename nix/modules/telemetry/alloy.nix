@@ -20,6 +20,7 @@
         "prometheus.scrape.clickhouse" = "ClickHouse";
         "prometheus.scrape.postgres" = "PostgreSQL";
         "prometheus.scrape.sonarr" = "Sonarr";
+        "prometheus.scrape.radarr" = "Radarr";
       };
       metricStatements = lib.concatStringsSep "\n      " (
         lib.mapAttrsToList (
@@ -177,6 +178,18 @@
               scrape_timeout  = "10s"
               targets = [
                 {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.exportarr-sonarr.port}"},
+              ]
+              forward_to = [
+                otelcol.receiver.prometheus.default.receiver,
+              ]
+            }
+          ''
+          + lib.optionalString config.services.prometheus.exporters.exportarr-radarr.enable ''
+            prometheus.scrape "radarr" {
+              scrape_interval = "300s"
+              scrape_timeout  = "10s"
+              targets = [
+                {"__address__" = "127.0.0.1:${toString config.services.prometheus.exporters.exportarr-radarr.port}"},
               ]
               forward_to = [
                 otelcol.receiver.prometheus.default.receiver,
