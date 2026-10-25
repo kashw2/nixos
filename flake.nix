@@ -28,7 +28,6 @@
     };
     attic.url = "github:zhaofengli/attic";
     nixcord.url = "github:4evy/nixcord";
-    nixos-generators.url = "github:nix-community/nixos-generators";
     impermanence.url = "github:nix-community/impermanence";
     quickshell = {
       url = "github:quickshell-mirror/quickshell";
