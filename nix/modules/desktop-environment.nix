@@ -54,16 +54,23 @@
 
       # Boot straight into Hyprland: initial_session autologins once at boot,
       # and tuigreet is only shown after logging out.
-      services.greetd = {
-        enable = true;
-        settings = {
-          initial_session = {
-            user = "keanu";
-            command = lib.getExe config.programs.hyprland.package;
+      services.greetd =
+        let
+          # start-hyprland and Hyprland print their startup banner and logs to stdout,
+          # which greetd wires to tty1, so they'd draw over the plymouth splash.
+          # Send them to the journal instead.
+          session = "${lib.getExe' config.systemd.package "systemd-cat"} --identifier=hyprland ${lib.getExe config.programs.hyprland.package}";
+        in
+        {
+          enable = true;
+          settings = {
+            initial_session = {
+              user = "keanu";
+              command = session;
+            };
+            default_session.command = "${lib.getExe pkgs.tuigreet} --time --remember --cmd '${session}'";
           };
-          default_session.command = "${lib.getExe pkgs.tuigreet} --time --remember --cmd ${lib.getExe config.programs.hyprland.package}";
         };
-      };
 
       # Hand the screen straight from the plymouth splash to Hyprland. greetd is
       # Type=idle upstream, which holds it back for up to 5s after plymouth quits.
