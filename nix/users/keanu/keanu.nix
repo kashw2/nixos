@@ -141,14 +141,36 @@
           };
           mcp-servers = {
             programs = {
-              nixos.enable = true;
-              "sequential-thinking".enable = true;
-              terraform.enable = true;
-              fetch.enable = true;
-              git.enable = true;
-              memory.enable = true;
+              nixos = {
+                enable = true;
+                package =
+                  inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.mcp-nixos;
+              };
+              "sequential-thinking" = {
+                enable = true;
+                package =
+                  inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.mcp-server-sequential-thinking;
+              };
+              terraform = {
+                enable = true;
+                package =
+                  inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.terraform-mcp-server;
+              };
+              fetch = {
+                enable = true;
+                package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.mcp-server-fetch;
+              };
+              git = {
+                enable = true;
+                package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.mcp-server-git;
+              };
+              memory = {
+                enable = true;
+                package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.mcp-server-memory;
+              };
               github = {
                 enable = true;
+                package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.github-mcp-server;
                 type = "stdio";
                 passwordCommand.GITHUB_PERSONAL_ACCESS_TOKEN = [
                   "gh"
@@ -163,12 +185,17 @@
                 url = "https://mcp.shortcut.com/mcp";
               };
               azure = {
-                command = lib.getExe' pkgs.nodejs "npx";
+                command =
+                  lib.getExe
+                    inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.azure-mcp;
                 args = [
-                  "-y"
-                  "@azure/mcp@latest"
                   "server"
                   "start"
+                ];
+                # nixpkgs' azure-mcp wrapper is missing the ICU/OpenSSL libs .NET dlopens
+                env.LD_LIBRARY_PATH = lib.makeLibraryPath [
+                  inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.icu
+                  inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.openssl
                 ];
               };
             };
