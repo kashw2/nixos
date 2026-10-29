@@ -25,5 +25,10 @@
       # exits non-zero when it finds nothing to monitor.
       virtualisation.vmVariant.services.smartd.enable = lib.mkForce false;
       virtualisation.vmVariantWithBootLoader.services.smartd.enable = lib.mkForce false;
+
+      # The VM's root is qemu-vm's ext4 image, not the host's btrfs, and autoScrub
+      # asserts that at least one btrfs filesystem is mounted.
+      virtualisation.vmVariant.services.btrfs.autoScrub.enable = lib.mkForce false;
+      virtualisation.vmVariantWithBootLoader.services.btrfs.autoScrub.enable = lib.mkForce false;
     };
 }
