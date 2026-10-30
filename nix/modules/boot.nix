@@ -46,7 +46,6 @@
             };
             # Silent boot so kernel/systemd messages don't draw over the splash.
             consoleLogLevel = 3;
-            initrd.verbose = false;
             kernelParams = [
               "quiet"
               "udev.log_level=3"
