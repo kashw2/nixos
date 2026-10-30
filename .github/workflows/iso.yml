@@ -38,7 +38,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-      - uses: cachix/install-nix-action@v31.11.2
+      - uses: cachix/install-nix-action@v31.11.3
         with:
           extra_nix_config: |
             extra-substituters = https://nix-community.cachix.org
