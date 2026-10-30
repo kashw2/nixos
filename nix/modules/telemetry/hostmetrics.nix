@@ -42,6 +42,9 @@
       services.opentelemetry-collector = {
         enable = true;
         package = pkgs.opentelemetry-collector-contrib;
+        validateConfigOverrides = lib.optionals shipJournal [
+          "extensions::file_storage::create_directory=true"
+        ];
         settings = {
           extensions = lib.optionalAttrs shipJournal {
             file_storage.directory = stateDirectory;
