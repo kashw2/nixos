@@ -1284,11 +1284,11 @@
       },
       "locked": {
         "dir": "packaging/nix",
-        "lastModified": 1792096319,
-        "narHash": "sha256-OiGBFEwRjb7l0a8fFydMhKElcXH+a3QDaRqDUb/gKVQ=",
+        "lastModified": 1792533753,
+        "narHash": "sha256-eVNqH36UfkXkJ2w0mMuPjXF0YBfnXm9kiJfPUbDjT0Q=",
         "owner": "yannmasoch",
         "repo": "nautilus-my-computer",
-        "rev": "f7cb64a3daa553cf6ca360260dec388f8d0f7886",
+        "rev": "ed2f7087daf92b984459f754ce3b1870ba790f5a",
         "type": "github"
       },
       "original": {
@@ -1609,11 +1609,11 @@
     },
     "nixpkgs_10": {
       "locked": {
-        "lastModified": 1792502884,
-        "narHash": "sha256-IoNisKcGbUjdd45qCqywGMCYmZ5EnkxezvLII0FWwNA=",
+        "lastModified": 1793110635,
+        "narHash": "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "02c087f3fe673c9e317f206a627cb6b910336dbe",
+        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
         "type": "github"
       },
       "original": {
