@@ -12,10 +12,6 @@
       config = {
         package = inputs.hypridle.packages.${pkgs.stdenv.hostPlatform.system}.hypridle;
         flags."--config" = pkgs.writeText "hypridle.conf" ''
-          general {
-            ignore_dbus_inhibit=false
-          }
-
           listener {
             on-timeout=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock}
             timeout=600
