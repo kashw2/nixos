@@ -79,12 +79,9 @@
 
               hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1} } })
               hl.curve("easeInOutCubic", { type = "bezier", points = { {0.65, 0.05}, {0.36, 1} } })
-              hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1} } })
               hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1} } })
               hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1} } })
               hl.curve("spring",         { type = "bezier", points = { {0.34, 1.4},  {0.64, 1} } })
-
-              hl.config({ animations = { enabled = true } })
 
               hl.animation({ leaf = "global",        enabled = true, speed = 10,   bezier = "default" })
               hl.animation({ leaf = "border",        enabled = true, speed = 5.39, bezier = "easeOutQuint" })
@@ -164,24 +161,15 @@
 
               hl.config({
                 decoration = {
-                  active_opacity   = 1.0,
-                  inactive_opacity = 1.0,
-                  rounding         = 0,
                   shadow = {
-                    enabled      = true,
-                    range        = 15,
-                    render_power = 3,
-                    color        = "rgba(1a1a1aee)",
+                    range = 15,
                   },
                   blur = {
-                    enabled           = true,
-                    passes            = 4,
-                    size              = 6,
-                    vibrancy          = 0.1696,
-                    new_optimizations = true,
-                    popups            = true,
-                    noise             = 0.02,
-                    contrast          = 1.1,
+                    passes   = 4,
+                    size     = 6,
+                    popups   = true,
+                    noise    = 0.02,
+                    contrast = 1.1,
                   },
                   motion_blur = {
                     enabled = true,
@@ -195,12 +183,7 @@
 
               hl.config({
                 general = {
-                  allow_tearing    = false,
-                  border_size      = 1,
-                  gaps_in          = 5,
-                  gaps_out         = 5,
-                  layout           = "dwindle",
-                  resize_on_border = false,
+                  gaps_out = 5,
                   col = {
                     active_border = {
                       colors = {
@@ -221,19 +204,6 @@
               })
 
               hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
-
-              ${lib.optionalString config.isLaptop ''
-                hl.config({
-                  input = {
-                    follow_mouse = 1,
-                    kb_layout    = "us",
-                    sensitivity  = 0.0,
-                    touchpad = {
-                      natural_scroll = false,
-                    },
-                  },
-                })
-              ''}
 
               hl.config({ master = { new_status = "master" } })
 
