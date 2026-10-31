@@ -27,9 +27,6 @@
         gc.automatic = true;
         gc.options = "--delete-older-than 30d";
         channel.enable = false; # All hosts use flakes
-        # Pin <nixpkgs> to the flake input so legacy commands (nix-shell -p,
-        # nix repl '<nixpkgs>') resolve against the same pinned nixpkgs.
-        nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
         extraOptions = ''
           warn-dirty = false
           !include ${config.sops.templates."nix-access-tokens".path}
@@ -40,19 +37,11 @@
             "flakes"
           ];
           substituters = [
-            "https://cache.nixos.org/"
-            "https://nix-community.cachix.org"
-            "https://cache.numtide.com"
-            # "http://100.116.38.8:8080/nixos"
-          ];
-          trusted-substituters = [
-            "https://cache.nixos.org/"
             "https://nix-community.cachix.org"
             "https://cache.numtide.com"
             # "http://100.116.38.8:8080/nixos"
           ];
           trusted-public-keys = [
-            "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
             "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
             "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
           ];
@@ -62,7 +51,6 @@
           fallback = true;
           trusted-users = [
             "keanu"
-            "kashw2"
             "@wheel"
           ];
         };
