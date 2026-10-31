@@ -183,14 +183,7 @@
                   "/" = {
                     proxyPass = "http://127.0.0.1:${toString port}/";
                     proxyWebsockets = true;
-                    extraConfig = ''
-                      proxy_set_header Host $host;
-                      proxy_set_header X-Real-IP $remote_addr;
-                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto $scheme;
-                      proxy_set_header Cookie $http_cookie;
-                      proxy_set_header Authorization $http_authorization;
-                    '';
+                    recommendedProxySettings = true;
                   };
                 };
               };
@@ -198,15 +191,8 @@
             mkOneUptimeRewrite = pattern: {
               proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
               proxyWebsockets = true;
-              extraConfig = ''
-                rewrite ${pattern} break;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header Cookie $http_cookie;
-                proxy_set_header Authorization $http_authorization;
-              '';
+              recommendedProxySettings = true;
+              extraConfig = "rewrite ${pattern} break;";
             };
           in
           {
@@ -234,13 +220,8 @@
                 oneuptime.locations = {
                   "/otlp" = {
                     proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
-                    extraConfig = ''
-                      access_log off;
-                      proxy_set_header Host $host;
-                      proxy_set_header X-Real-IP $remote_addr;
-                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto $scheme;
-                    '';
+                    recommendedProxySettings = true;
+                    extraConfig = "access_log off;";
                   };
                   "/identity" = mkOneUptimeRewrite "^/identity(.*)$ /api/identity$1";
                   "/notification" = mkOneUptimeRewrite "^/notification(.*)$ /api/notification$1";
