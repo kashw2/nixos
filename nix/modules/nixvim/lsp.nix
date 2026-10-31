@@ -7,7 +7,7 @@
       ...
     }:
     {
-      plugins.lsp.enable = true;
+      plugins.lspconfig.enable = true;
       lsp = {
         inlayHints.enable = true;
         servers = {
