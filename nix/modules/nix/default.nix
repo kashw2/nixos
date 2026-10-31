@@ -19,7 +19,7 @@
       };
 
       nix = {
-        package = inputs.nix.packages.${pkgs.system}.default.override (prev: {
+        package = inputs.nix.packages.${pkgs.stdenv.hostPlatform.system}.default.override (prev: {
           nix-functional-tests = prev.nix-functional-tests.overrideAttrs {
             doCheck = false;
           };
