@@ -21,10 +21,6 @@
 
       networking = {
         hostName = "laptop";
-        defaultGateway = {
-          address = "192.168.1.1";
-          interface = "enp4s0f1";
-        };
         networkmanager = {
           enable = true;
           ensureProfiles.profiles = {
