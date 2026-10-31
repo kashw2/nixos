@@ -118,7 +118,7 @@
             let
               hmClaude = config.home-manager.users.keanu.programs.claude-code;
             in
-            if hmClaude.enable then lib.getExe hmClaude.finalPackage else lib.getExe pkgs.claude-code;
+            lib.mkIf hmClaude.enable (lib.getExe hmClaude.finalPackage);
         };
 
         enable = true;
