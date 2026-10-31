@@ -25,15 +25,9 @@
         runner.enable = true;
 
         settings = {
-          PROVISION_SSL = "false";
           DATABASE_HOST = "127.0.0.1";
           DATABASE_NAME = "oneuptime";
           DATABASE_USERNAME = "oneuptime";
-          DATABASE_SSL_REJECT_UNAUTHORIZED = "false";
-          CLICKHOUSE_USER = "default";
-          CLICKHOUSE_DATABASE = "oneuptime";
-          REDIS_USERNAME = "default";
-          REDIS_DB = "0";
         };
 
         probe.settings = {

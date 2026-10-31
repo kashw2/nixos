@@ -22,11 +22,7 @@
           DISABLE_TELEMETRY = "true";
           PROBE_ALLOW_PRIVATE_NETWORK_MONITORS = "true";
           PROBE_MONITORING_WORKERS = "5";
-          PROBE_MONITOR_FETCH_LIMIT = "10";
-          PROBE_SYNTHETIC_MONITOR_CHROMIUM_SANDBOX_ENABLED = "false";
-          PROBE_NETFLOW_RECEIVER_ENABLED = "true";
           PROBE_NETFLOW_RECEIVER_PORT = toString cfg.probe.netflowPort;
-          PROBE_SYSLOG_RECEIVER_ENABLED = "true";
           PROBE_SYSLOG_RECEIVER_PORT = toString cfg.probe.syslogPort;
         };
 
