@@ -17,21 +17,10 @@
         self.nixosModules.keanu
       ];
 
-      # Values consumed by nix/modules/impermanence.nix. The unit
-      # name is systemd-escaped: `/` → `-`, and each original `-` in the
-      # path becomes `\x2d` (double-backslashed here to survive the
-      # nix string parser).
-      impermanence = {
-        enable = true;
-        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-      };
+      impermanence.enable = true;
 
       networking = {
         hostName = "laptop";
-        defaultGateway = {
-          address = "192.168.1.1";
-          interface = "enp4s0f1";
-        };
         networkmanager = {
           enable = true;
           ensureProfiles.profiles = {
@@ -82,8 +71,6 @@
           extraPackages = [ pkgs.libvdpau-va-gl ];
         };
       };
-
-      services.xserver.videoDrivers = [ "nouveau" ];
 
       # Colon-free iGPU alias; AQ_DRM_DEVICES is colon-separated so by-path names break it.
       services.udev.extraRules = ''

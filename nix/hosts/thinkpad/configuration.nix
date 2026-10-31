@@ -15,14 +15,7 @@
         self.nixosModules.keanu
       ];
 
-      # Values consumed by nix/modules/impermanence.nix. The unit
-      # name is systemd-escaped: `/` → `-`, and each original `-` in the
-      # path becomes `\x2d` (double-backslashed here to survive the
-      # nix string parser).
-      impermanence = {
-        enable = true;
-        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-      };
+      impermanence.enable = true;
 
       networking = {
         hostName = "thinkpad";

@@ -21,7 +21,6 @@
           tab_bar_style powerline
           tab_powerline_style round
           background_opacity 0.6
-          sync_to_monitor yes
           confirm_os_window_close 0
           cursor_shape beam
           cursor_trail 1

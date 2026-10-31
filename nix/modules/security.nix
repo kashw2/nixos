@@ -23,13 +23,7 @@
         polkit.enable = true;
         rtkit.enable = !config.isServer;
 
-        auditd = {
-          enable = true;
-          settings = {
-            log_file = "/var/log/audit/audit.log";
-            log_format = "ENRICHED";
-          };
-        };
+        auditd.enable = true;
         audit = {
           enable = true;
           backlogLimit = 16384;

@@ -50,7 +50,6 @@ runs:
       shell: bash
       env:
         EVENT: ${{ github.event_name }}
-        BRANCH: ${{ github.head_ref }}
         DESKTOP_CHANGED: ${{ steps.changes.outputs.desktop }}
         SERVER_CHANGED: ${{ steps.changes.outputs.server }}
         SHARED_CHANGED: ${{ steps.changes.outputs.shared }}
@@ -58,17 +57,10 @@ runs:
         ALL='["home","laptop","thinkpad","media","homelab"]'
         DESKTOP='["home","laptop","thinkpad"]'
         SERVER='["media","homelab"]'
-        DESKTOP_INPUT_BRANCHES='update-hyprland-flake-input update-hyprpaper-flake-input update-hyprlock-flake-input update-rose-pine-hyprcursor-flake-input update-xdg-desktop-portal-hyprland-flake-input update-quickshell-flake-input'
 
         if [ "$EVENT" != "pull_request" ]; then
           echo "hosts=$ALL" >> "$GITHUB_OUTPUT"; exit 0
         fi
-
-        for b in $DESKTOP_INPUT_BRANCHES; do
-          if [ "$BRANCH" = "$b" ]; then
-            echo "hosts=$DESKTOP" >> "$GITHUB_OUTPUT"; exit 0
-          fi
-        done
 
         if [ "$SHARED_CHANGED" = "true" ]; then
           echo "hosts=$ALL" >> "$GITHUB_OUTPUT"; exit 0

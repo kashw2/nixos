@@ -25,15 +25,9 @@
         runner.enable = true;
 
         settings = {
-          PROVISION_SSL = "false";
           DATABASE_HOST = "127.0.0.1";
           DATABASE_NAME = "oneuptime";
           DATABASE_USERNAME = "oneuptime";
-          DATABASE_SSL_REJECT_UNAUTHORIZED = "false";
-          CLICKHOUSE_USER = "default";
-          CLICKHOUSE_DATABASE = "oneuptime";
-          REDIS_USERNAME = "default";
-          REDIS_DB = "0";
         };
 
         probe.settings = {
@@ -56,10 +50,7 @@
         nginx.extraGroups = [ "rtorrent" ];
       };
 
-      impermanence = {
-        enable = true;
-        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-      };
+      impermanence.enable = true;
 
       # persistence. For services that set `DynamicUser = true` in their
       # systemd unit, the real state lives at `/var/lib/private/<name>` —
@@ -186,14 +177,7 @@
                   "/" = {
                     proxyPass = "http://127.0.0.1:${toString port}/";
                     proxyWebsockets = true;
-                    extraConfig = ''
-                      proxy_set_header Host $host;
-                      proxy_set_header X-Real-IP $remote_addr;
-                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto $scheme;
-                      proxy_set_header Cookie $http_cookie;
-                      proxy_set_header Authorization $http_authorization;
-                    '';
+                    recommendedProxySettings = true;
                   };
                 };
               };
@@ -201,15 +185,8 @@
             mkOneUptimeRewrite = pattern: {
               proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
               proxyWebsockets = true;
-              extraConfig = ''
-                rewrite ${pattern} break;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header Cookie $http_cookie;
-                proxy_set_header Authorization $http_authorization;
-              '';
+              recommendedProxySettings = true;
+              extraConfig = "rewrite ${pattern} break;";
             };
           in
           {
@@ -237,13 +214,8 @@
                 oneuptime.locations = {
                   "/otlp" = {
                     proxyPass = "http://127.0.0.1:${toString config.oneuptime.port}";
-                    extraConfig = ''
-                      access_log off;
-                      proxy_set_header Host $host;
-                      proxy_set_header X-Real-IP $remote_addr;
-                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto $scheme;
-                    '';
+                    recommendedProxySettings = true;
+                    extraConfig = "access_log off;";
                   };
                   "/identity" = mkOneUptimeRewrite "^/identity(.*)$ /api/identity$1";
                   "/notification" = mkOneUptimeRewrite "^/notification(.*)$ /api/notification$1";
@@ -346,10 +318,8 @@
 
         redis.servers.oneuptime = lib.mkIf config.oneuptime.enable {
           enable = true;
-          bind = "127.0.0.1";
           port = 6379;
           save = [ ];
-          appendOnly = false;
         };
 
         clickhouse = lib.mkIf config.oneuptime.enable {

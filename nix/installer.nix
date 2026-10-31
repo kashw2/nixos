@@ -40,8 +40,6 @@ in
           pkgs.age # age-keygen for validation
         ];
         text = ''
-          set -euo pipefail
-
           # Self-escalate: mount/umount, disko, and writing to /mnt all
           # require root. The installer ISO auto-logs in as an unprivileged
           # user, so re-exec under sudo preserving the environment.
@@ -220,12 +218,6 @@ in
     {
       environment.systemPackages = [
         pkgs.age
-        pkgs.util-linux
-        pkgs.parted
-        pkgs.cryptsetup
-        pkgs.dosfstools
-        pkgs.e2fsprogs
-        pkgs.btrfs-progs
         installHost
       ];
 

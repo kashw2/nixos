@@ -27,11 +27,11 @@
       metricStatements = lib.concatStringsSep "\n      " (
         lib.mapAttrsToList (
           from: to:
-          "`set(attributes[\"service.name\"], \"${to}\") where attributes[\"service.name\"] == \"${from}\"`,"
+          "`set(resource.attributes[\"service.name\"], \"${to}\") where resource.attributes[\"service.name\"] == \"${from}\"`,"
         ) metricGroups
         ++ lib.mapAttrsToList (
           name: addr:
-          "`set(attributes[\"host.name\"], \"${name}\") where attributes[\"server.address\"] == \"${addr}\"`,"
+          "`set(resource.attributes[\"host.name\"], \"${name}\") where resource.attributes[\"server.address\"] == \"${addr}\"`,"
         ) scrapeAddresses
       );
       logStatements = lib.concatMapStringsSep "\n                  " (statement: "`${statement}`,") (

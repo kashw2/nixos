@@ -9,6 +9,7 @@
     }:
     let
       usingImpermanence = config.impermanence.enable;
+      homeDir = if usingImpermanence then "/persist/home/keanu" else "/home/keanu";
     in
     {
       imports = [
@@ -62,11 +63,9 @@
         # to sshKeyPaths.
         age.keyFile =
           if usingImpermanence then "/persist/var/lib/sops-nix/key.txt" else "/var/lib/sops-nix/key.txt";
-        age.sshKeyPaths =
-          if usingImpermanence then
-            lib.mkForce [ "/persist/etc/ssh/ssh_host_ed25519_key" ]
-          else
-            [ "/etc/ssh/ssh_host_ed25519_key" ];
+        age.sshKeyPaths = lib.mkIf usingImpermanence (
+          lib.mkForce [ "/persist/etc/ssh/ssh_host_ed25519_key" ]
+        );
 
         secrets = {
           # Write to the source of the home-manager .ssh bind mount on
@@ -75,21 +74,14 @@
           # there is no bind mount, so /home/keanu/.ssh is the real path.
           "ssh/${config.networking.hostName}/id_ed25519" = {
             owner = "keanu";
-            group = "keanu";
             mode = "0600";
-            path =
-              if usingImpermanence then "/persist/home/keanu/.ssh/id_ed25519" else "/home/keanu/.ssh/id_ed25519";
+            path = "${homeDir}/.ssh/id_ed25519";
           };
           # This doesn't need to be a secret, but home manager doesn't support setting the mode
           "ssh/${config.networking.hostName}/id_ed25519_pub" = {
             owner = "keanu";
-            group = "keanu";
             mode = "0644";
-            path =
-              if usingImpermanence then
-                "/persist/home/keanu/.ssh/id_ed25519.pub"
-              else
-                "/home/keanu/.ssh/id_ed25519.pub";
+            path = "${homeDir}/.ssh/id_ed25519.pub";
           };
           "tailscale" = { };
           "oneuptime/homelab/secret" = lib.mkIf config.oneuptime.enable { };
@@ -97,11 +89,9 @@
           "oneuptime/homelab/register_probe_key" = lib.mkIf config.oneuptime.enable { };
           "oneuptime/homelab/probe_key" = lib.mkIf (config.oneuptime.probe.enable || !config.isServer) {
             owner = "keanu";
-            group = "keanu";
           };
           "oneuptime/homelab/runner_key" = lib.mkIf (config.oneuptime.runner.enable || !config.isServer) {
             owner = "keanu";
-            group = "keanu";
           };
           "oneuptime/homelab/agent_key/${config.networking.hostName}" =
             lib.mkIf config.telemetry.agent.enable
@@ -116,26 +106,21 @@
           "snmp/v3_auth_key" = lib.mkIf config.services.snmpd.enable (
             lib.optionalAttrs (!config.isServer) {
               owner = "keanu";
-              group = "keanu";
             }
           );
           "snmp/v3_priv_key" = lib.mkIf config.services.snmpd.enable (
             lib.optionalAttrs (!config.isServer) {
               owner = "keanu";
-              group = "keanu";
             }
           );
           "oneuptime/tablogs/master_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
-            group = "keanu";
           };
           "oneuptime/tablogs/tablogs_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
-            group = "keanu";
           };
           "oneuptime/tablogs/tablabs_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
-            group = "keanu";
           };
           "github_kashw2_pat" = { };
           "github_tablogs_pat" = { };
@@ -145,19 +130,15 @@
           "keanu_password".neededForUsers = true;
           "infracost_api_key" = {
             owner = "keanu";
-            group = "keanu";
           };
           "codestats_api_key" = {
             owner = "keanu";
-            group = "keanu";
           };
           "git_email_address" = {
             owner = "keanu";
-            group = "keanu";
           };
           "terraform_state_passphrase" = lib.mkIf (!config.isServer) {
             owner = "keanu";
-            group = "keanu";
           };
         };
 
@@ -169,7 +150,6 @@
           '';
           owner = "oneuptime";
           group = "oneuptime";
-          mode = "0400";
         };
 
         templates."oneuptime-probe.env" = lib.mkIf config.oneuptime.probe.enable {
@@ -178,7 +158,6 @@
           '';
           owner = "oneuptime";
           group = "oneuptime";
-          mode = "0400";
         };
 
         templates."oneuptime-runner.env" = lib.mkIf config.oneuptime.runner.enable {
@@ -187,14 +166,12 @@
           '';
           owner = "oneuptime";
           group = "oneuptime";
-          mode = "0400";
         };
 
         templates."opentelemetry-collector.env" = {
           content = ''
             ONEUPTIME_INGESTION_TOKEN=${config.sops.placeholder."oneuptime/homelab/ingestion_token"}
           '';
-          mode = "0400";
           restartUnits = [ "opentelemetry-collector.service" ];
         };
 
@@ -208,7 +185,6 @@
             sysLocation home
             sysContact keanu
           '';
-          mode = "0400";
           restartUnits = [ "snmpd.service" ];
         };
 
@@ -226,8 +202,6 @@
             })
           '';
           owner = "keanu";
-          group = "keanu";
-          mode = "0400";
         };
 
         templates."git_email_address" = {
@@ -236,8 +210,6 @@
               email = ${config.sops.placeholder.git_email_address}
           '';
           owner = "keanu";
-          group = "keanu";
-          mode = "0400";
         };
 
         templates."credentials" = lib.mkIf (!config.isServer) {
@@ -247,13 +219,8 @@
             aws_secret_access_key = ${config.sops.placeholder.aws_access_key_secret}
           '';
           owner = "keanu";
-          group = "keanu";
           mode = "0600";
-          path =
-            if usingImpermanence then
-              "/persist/home/keanu/.aws/credentials"
-            else
-              "/home/keanu/.aws/credentials";
+          path = "${homeDir}/.aws/credentials";
         };
 
         templates.".npmrc" = lib.mkIf (!config.isServer) {
@@ -265,9 +232,8 @@
             //npm.pkg.github.com/:_authToken=${config.sops.placeholder.github_classic_pat}
           '';
           owner = "keanu";
-          group = "keanu";
           mode = "0600";
-          path = if usingImpermanence then "/persist/home/keanu/.npmrc" else "/home/keanu/.npmrc";
+          path = "${homeDir}/.npmrc";
         };
       };
     };

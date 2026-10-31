@@ -10,11 +10,7 @@
     {
       imports = [ wlib.wrapperModules.fastfetch ];
       config = {
-        package = pkgs.fastfetch.override {
-          flashfetchSupport = true;
-        };
         settings = {
-          "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json";
           logo = {
             type = "kitty-direct";
             source = "${./logo.png}";

@@ -17,9 +17,7 @@
 
         users.users.keanu = {
           hashedPasswordFile = config.sops.secrets."keanu_password".path;
-          createHome = true;
           isNormalUser = true;
-          home = "/home/keanu";
           group = "keanu";
           extraGroups = [
             "wheel"
@@ -128,14 +126,6 @@
                 ".claude.json" # claude-code per-project config + auth
               ];
             };
-          };
-          xdg.userDirs = {
-            createDirectories = !config.isServer;
-            documents = "${config.users.users.keanu.home}/Documents";
-            download = "${config.users.users.keanu.home}/Downloads";
-            pictures = "${config.users.users.keanu.home}/Pictures";
-            videos = "${config.users.users.keanu.home}/Videos";
-            music = "${config.users.users.keanu.home}/Music";
           };
           mcp-servers = {
             programs = {
@@ -272,7 +262,6 @@
                 user.author.name = "Keanu Ashwell";
                 init.defaultBranch = "main";
                 core.autocrlf = "input";
-                color.ui = true;
                 alias = {
                   br = "branch";
                   cl = "clone";

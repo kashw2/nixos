@@ -22,17 +22,18 @@
         "debug"
       ];
       journaldStatements = [
-        ''set(attributes["job"], "Systemd")''
-        ''set(attributes["unit"], body["_SYSTEMD_UNIT"]) where body["_SYSTEMD_UNIT"] != nil''
-        ''set(attributes["unit"], "user-session.scope") where IsMatch(attributes["unit"], "^session-\\d+\\.scope$")''
-        ''set(attributes["transport"], body["_TRANSPORT"]) where body["_TRANSPORT"] != nil''
-        ''set(attributes["hostname"], body["_HOSTNAME"]) where body["_HOSTNAME"] != nil''
-        ''set(attributes["facility"], body["SYSLOG_FACILITY"]) where body["SYSLOG_FACILITY"] != nil''
+        ''set(log.attributes["job"], "Systemd")''
+        ''set(log.attributes["unit"], log.body["_SYSTEMD_UNIT"]) where log.body["_SYSTEMD_UNIT"] != nil''
+        ''set(log.attributes["unit"], "user-session.scope") where IsMatch(log.attributes["unit"], "^session-\\d+\\.scope$")''
+        ''set(log.attributes["transport"], log.body["_TRANSPORT"]) where log.body["_TRANSPORT"] != nil''
+        ''set(log.attributes["hostname"], log.body["_HOSTNAME"]) where log.body["_HOSTNAME"] != nil''
+        ''set(log.attributes["facility"], log.body["SYSLOG_FACILITY"]) where log.body["SYSLOG_FACILITY"] != nil''
       ]
       ++ lib.imap0 (
-        num: name: ''set(attributes["level"], "${name}") where body["PRIORITY"] == "${toString num}"''
+        num: name:
+        ''set(log.attributes["level"], "${name}") where log.body["PRIORITY"] == "${toString num}"''
       ) priorityNames
-      ++ [ ''set(body, body["MESSAGE"]) where body["MESSAGE"] != nil'' ];
+      ++ [ ''set(log.body, log.body["MESSAGE"]) where log.body["MESSAGE"] != nil'' ];
     in
     {
 
