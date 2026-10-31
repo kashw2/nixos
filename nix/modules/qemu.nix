@@ -39,52 +39,31 @@
         isLaptop = false;
         isDesktop = false;
       };
+      vm = {
+        virtualisation = {
+          inherit (spec) memorySize cores;
+          diskSize = 6384;
+          graphics = !config.isServer;
+          qemu.options = qemuOptions;
+        };
+        # The host monitor rules name physical outputs this guest does not have.
+        programs.hyprland.package = lib.mkIf (!config.isServer) (lib.mkForce hyprlandPackage);
+        # virgl exposes no alpha-capable EGL config, so Qt renders opaque and kitty dies.
+        environment.sessionVariables = lib.mkIf (!config.isServer) {
+          QT_QUICK_BACKEND = "software";
+          LIBGL_ALWAYS_SOFTWARE = "1";
+        };
+        # Hyprland autostarts kitty with --directory ~/nixos, which a fresh guest lacks.
+        systemd.tmpfiles.rules = [ "d /home/keanu/nixos 0755 keanu keanu -" ];
+        boot.resumeDevice = lib.mkForce "";
+        users.users.keanu = {
+          hashedPasswordFile = lib.mkForce null;
+          initialPassword = "nixos";
+        };
+      };
     in
     {
-      virtualisation.vmVariant = {
-        virtualisation = {
-          inherit (spec) memorySize cores;
-          diskSize = 6384;
-          graphics = !config.isServer;
-          qemu.options = qemuOptions;
-        };
-        # The host monitor rules name physical outputs this guest does not have.
-        programs.hyprland.package = lib.mkIf (!config.isServer) (lib.mkForce hyprlandPackage);
-        # virgl exposes no alpha-capable EGL config, so Qt renders opaque and kitty dies.
-        environment.sessionVariables = lib.mkIf (!config.isServer) {
-          QT_QUICK_BACKEND = "software";
-          LIBGL_ALWAYS_SOFTWARE = "1";
-        };
-        # Hyprland autostarts kitty with --directory ~/nixos, which a fresh guest lacks.
-        systemd.tmpfiles.rules = [ "d /home/keanu/nixos 0755 keanu keanu -" ];
-        boot.resumeDevice = lib.mkForce "";
-        users.users.keanu = {
-          hashedPasswordFile = lib.mkForce null;
-          initialPassword = "nixos";
-        };
-      };
-
-      virtualisation.vmVariantWithBootLoader = {
-        virtualisation = {
-          inherit (spec) memorySize cores;
-          diskSize = 6384;
-          graphics = !config.isServer;
-          qemu.options = qemuOptions;
-        };
-        # The host monitor rules name physical outputs this guest does not have.
-        programs.hyprland.package = lib.mkIf (!config.isServer) (lib.mkForce hyprlandPackage);
-        # virgl exposes no alpha-capable EGL config, so Qt renders opaque and kitty dies.
-        environment.sessionVariables = lib.mkIf (!config.isServer) {
-          QT_QUICK_BACKEND = "software";
-          LIBGL_ALWAYS_SOFTWARE = "1";
-        };
-        # Hyprland autostarts kitty with --directory ~/nixos, which a fresh guest lacks.
-        systemd.tmpfiles.rules = [ "d /home/keanu/nixos 0755 keanu keanu -" ];
-        boot.resumeDevice = lib.mkForce "";
-        users.users.keanu = {
-          hashedPasswordFile = lib.mkForce null;
-          initialPassword = "nixos";
-        };
-      };
+      virtualisation.vmVariant = vm;
+      virtualisation.vmVariantWithBootLoader = vm;
     };
 }
