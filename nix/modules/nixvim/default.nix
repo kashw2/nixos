@@ -56,6 +56,7 @@
         signcolumn = "yes";
       };
       diagnostic.settings.virtual_text = true;
+      filetype.extension.bru = "bruno";
       autoCmd = [
         {
           desc = "Terraform New File LSP Fix";

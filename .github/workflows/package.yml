@@ -53,7 +53,6 @@ jobs:
             atone-nvim: 'nix/packages/nixvim/atone-nvim.nix'
             codestats: 'nix/packages/nixvim/codestats.nix'
             atlas-nvim: 'nix/packages/nixvim/atlas-nvim.nix'
-            bruno-nvim: 'nix/packages/nixvim/tree-sitter-bruno.nix'
             tree-sitter-bruno: 'nix/packages/nixvim/tree-sitter-bruno.nix'
             neovim:
               - 'nix/packages/nixvim/**'
@@ -73,7 +72,7 @@ jobs:
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","floci-cli","kitty","tmux","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","atlas-nvim","bruno-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-probe","oneuptime-runner"]'
+          ALL='["nushell","act","floci-cli","kitty","tmux","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","atlas-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-probe","oneuptime-runner"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else

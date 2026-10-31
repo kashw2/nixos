@@ -13,7 +13,6 @@
         self.packages.${pkgs.stdenv.hostPlatform.system}.codestats
       ]
       ++ lib.optionals (!config.host.isServer) [
-        self.packages.${pkgs.stdenv.hostPlatform.system}.bruno-nvim
         self.packages.${pkgs.stdenv.hostPlatform.system}.atlas-nvim
       ];
 
@@ -300,7 +299,7 @@
               g.sql # postgres_lsp
               g.terraform # conform (terraform_fmt)
               g.typescript # conform (typescript)
-              self.packages.${pkgs.stdenv.hostPlatform.system}.tree-sitter-bruno # bruno-nvim
+              self.packages.${pkgs.stdenv.hostPlatform.system}.tree-sitter-bruno # bruno
             ];
         };
         toggleterm = {
