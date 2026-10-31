@@ -266,7 +266,7 @@
           };
           settings = {
             ignore_errors = false;
-            format_on_save.timeoutMs = 500;
+            format_on_save.timeout_ms = 500;
             formatters_by_ft = {
               nix = [ "nixfmt" ];
               sh = [ "shfmt" ];
