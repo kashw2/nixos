@@ -56,10 +56,7 @@
         nginx.extraGroups = [ "rtorrent" ];
       };
 
-      impermanence = {
-        enable = true;
-        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-      };
+      impermanence.enable = true;
 
       # persistence. For services that set `DynamicUser = true` in their
       # systemd unit, the real state lives at `/var/lib/private/<name>` —

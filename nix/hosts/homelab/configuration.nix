@@ -31,10 +31,7 @@
       boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
       boot.loader.systemd-boot.enable = lib.mkForce false;
 
-      impermanence = {
-        enable = false;
-        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-      };
+      impermanence.enable = false;
 
       networking = {
         hostName = "homelab";

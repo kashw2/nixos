@@ -12,10 +12,7 @@
         self.nixosModules.keanu
       ];
 
-      impermanence = {
-        enable = false;
-        rootDevice = "/dev/disk/by-partlabel/disk-main-root";
-      };
+      impermanence.enable = false;
 
       # DP-3's preferred mode is 4K; pin it to 1080p so plymouth renders the
       # 1080p splash frames without upscaling every frame.
