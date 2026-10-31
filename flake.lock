@@ -2241,11 +2241,11 @@
         "nixpkgs": "nixpkgs_17"
       },
       "locked": {
-        "lastModified": 1791859212,
-        "narHash": "sha256-E+Zf6vUV12htmjPwBNafVKw6oLT15X92dWaD2oEnLkg=",
+        "lastModified": 1792724358,
+        "narHash": "sha256-XOnNnwJqlZp8+zRX26dy7rQXVZExC+rHY42nUbWviVM=",
         "owner": "pranshuparmar",
         "repo": "witr",
-        "rev": "321954184e976d9cd269ea36369869a656aa7d71",
+        "rev": "9e54a0507a4b3025fe8c3ecb329c7cb8da627995",
         "type": "github"
       },
       "original": {
