@@ -343,10 +343,8 @@
 
         redis.servers.oneuptime = lib.mkIf config.oneuptime.enable {
           enable = true;
-          bind = "127.0.0.1";
           port = 6379;
           save = [ ];
-          appendOnly = false;
         };
 
         clickhouse = lib.mkIf config.oneuptime.enable {
