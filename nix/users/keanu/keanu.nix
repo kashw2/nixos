@@ -17,9 +17,7 @@
 
         users.users.keanu = {
           hashedPasswordFile = config.sops.secrets."keanu_password".path;
-          createHome = true;
           isNormalUser = true;
-          home = "/home/keanu";
           group = "keanu";
           extraGroups = [
             "wheel"
