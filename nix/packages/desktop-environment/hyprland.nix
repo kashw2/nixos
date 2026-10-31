@@ -32,7 +32,6 @@
           "share/applications/*.desktop"
           "share/wayland-sessions/*.desktop"
         ];
-        runtimePkgs = [ pkgs.rose-pine-hyprcursor ];
         addFlag =
           let
             monitorConfiguration =
