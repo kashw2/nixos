@@ -51,8 +51,6 @@ in
           pkgs.nix
         ];
         text = ''
-          set -euo pipefail
-
           HOST=""
           IP=""
           PATH_USB=""
