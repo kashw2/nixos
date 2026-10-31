@@ -50,16 +50,12 @@
         shiftwidth = 2;
         tabstop = 2;
         undofile = true;
-        autoread = true;
         clipboard = "unnamedplus";
         ignorecase = true;
         smartcase = true;
         signcolumn = "yes";
       };
-      diagnostic.settings = {
-        virtual_lines = false;
-        virtual_text = true;
-      };
+      diagnostic.settings.virtual_text = true;
       autoCmd = [
         {
           desc = "Terraform New File LSP Fix";
@@ -93,7 +89,6 @@
         }
       ];
       extraPackages = lib.optionals (!config.host.isServer) [
-        pkgs.ueberzugpp
         pkgs.ansible-language-server
       ];
     };
