@@ -262,7 +262,6 @@
                 user.author.name = "Keanu Ashwell";
                 init.defaultBranch = "main";
                 core.autocrlf = "input";
-                color.ui = true;
                 alias = {
                   br = "branch";
                   cl = "clone";
