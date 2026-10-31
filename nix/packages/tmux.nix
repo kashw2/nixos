@@ -1,4 +1,4 @@
-{ self, inputs, ... }:
+{ self, ... }:
 {
   flake.wrappers.tmux =
     {
@@ -84,10 +84,6 @@
             bind - split-window -v -c "#{pane_current_path}"
             unbind '"'
             unbind %
-
-            bind C-t run-shell '${
-              lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux"
-            } sidebar'
 
             run-shell ${pkgs.tmuxPlugins.resurrect}/share/tmux-plugins/resurrect/resurrect.tmux
             set -g @resurrect-dir '/home/keanu/.local/share/tmux/resurrect'

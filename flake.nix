@@ -38,7 +38,6 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
     nautilus-my-computer.url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
     witr.url = "github:pranshuparmar/witr";
-    workmux.url = "github:raine/workmux";
     netwatch = {
       url = "github:matthart1983/netwatch";
       inputs.nixpkgs.follows = "nixpkgs";

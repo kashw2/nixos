@@ -68,7 +68,6 @@
               pkgs.nixos-anywhere
               pkgs.nixpkgs-review
               pkgs.jetbrains.datagrip
-              inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default
             ]
             ++ lib.optionals (config.isDesktop) [
               inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
@@ -224,7 +223,6 @@
               settings.modelSettings.claude-opus-5-5.effortLevel = "xhigh";
               settings.hooks =
                 let
-                  workmux = lib.getExe' inputs.workmux.packages.${pkgs.stdenv.hostPlatform.system}.default "workmux";
                   # Gates Shortcut story/epic creation on having read Tablogs KB
                   # article 163 ("Shortcut Story Standards") in the session.
                   shortcutKb163 = lib.getExe (
@@ -247,25 +245,7 @@
                       ];
                     }
                   ];
-                  UserPromptSubmit = [
-                    {
-                      hooks = [
-                        {
-                          type = "command";
-                          command = "${workmux} set-window-status working";
-                        }
-                      ];
-                    }
-                  ];
                   PostToolUse = [
-                    {
-                      hooks = [
-                        {
-                          type = "command";
-                          command = "${workmux} set-window-status working";
-                        }
-                      ];
-                    }
                     {
                       matcher = "^mcp__claude_ai_Tablogs_Admin__get_article$";
                       hooks = [
@@ -273,27 +253,6 @@
                           type = "command";
                           command = shortcutKb163;
                           args = [ "mark" ];
-                        }
-                      ];
-                    }
-                  ];
-                  Stop = [
-                    {
-                      hooks = [
-                        {
-                          type = "command";
-                          command = "${workmux} set-window-status done";
-                        }
-                      ];
-                    }
-                  ];
-                  Notification = [
-                    {
-                      matcher = "permission_prompt|elicitation_dialog";
-                      hooks = [
-                        {
-                          type = "command";
-                          command = "${workmux} set-window-status waiting";
                         }
                       ];
                     }
