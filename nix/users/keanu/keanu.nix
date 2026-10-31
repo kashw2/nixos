@@ -169,7 +169,8 @@
               };
               github = {
                 enable = true;
-                package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.github-mcp-server;
+                package =
+                  inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.github-mcp-server;
                 type = "stdio";
                 passwordCommand.GITHUB_PERSONAL_ACCESS_TOKEN = [
                   "gh"
