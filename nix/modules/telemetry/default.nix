@@ -48,8 +48,6 @@
               };
             in
             {
-              enable = true;
-              checkConfig = true;
               settings = lib.mergeAttrsList (
                 lib.mapAttrsToList mkLogRotateSetting {
                   auth = "/var/log/auth.log";
@@ -79,11 +77,9 @@
               postgres = {
                 enable = config.services.postgresql.enable;
                 runAsLocalSuperUser = true;
-                port = 9187;
               };
               nvidia-gpu = {
                 enable = builtins.elem "nvidia" config.services.xserver.videoDrivers;
-                port = 9835;
               };
               smartctl = {
                 enable = true;
