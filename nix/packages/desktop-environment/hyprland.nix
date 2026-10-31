@@ -27,7 +27,6 @@
         # so we must re-declare providedSessions even though upstream Hyprland sets it.
         binName = "start-hyprland";
         exePath = "bin/start-hyprland";
-        passthru.mainProgram = "start-hyprland";
         passthru.providedSessions = [ "hyprland" ];
         filesToPatch = [
           "share/applications/*.desktop"
