@@ -220,12 +220,6 @@ in
     {
       environment.systemPackages = [
         pkgs.age
-        pkgs.util-linux
-        pkgs.parted
-        pkgs.cryptsetup
-        pkgs.dosfstools
-        pkgs.e2fsprogs
-        pkgs.btrfs-progs
         installHost
       ];
 
