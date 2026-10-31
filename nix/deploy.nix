@@ -136,15 +136,14 @@ in
           # the installer). Loose host-key options tolerate the fresh
           # installer host key without touching ~/.ssh/known_hosts.
           echo "Invoking nixos-anywhere..."
-          NIXPKGS_ALLOW_UNFREE=1 exec nix run github:nix-community/nixos-anywhere -- \
+          exec nix run github:nix-community/nixos-anywhere -- \
             --flake ".#$HOST" \
             --target-host "root@$IP" \
             --build-on local \
             --phases disko,install,reboot \
             --extra-files "$STAGING" \
             --ssh-option StrictHostKeyChecking=no \
-            --ssh-option UserKnownHostsFile=/dev/null \
-            --option pure-eval false
+            --ssh-option UserKnownHostsFile=/dev/null
         '';
       };
     in
