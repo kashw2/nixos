@@ -62,41 +62,25 @@
             ''
           }
 
-          if ("/run/secrets/infracost_api_key" | path exists) {
-            $env.INFRACOST_API_KEY = (open /run/secrets/infracost_api_key | str trim)
-          }
-
-          if ("/run/secrets/oneuptime/tablogs/master_api_key" | path exists) {
-            $env.ONEUPTIME_API_KEY = (open /run/secrets/oneuptime/tablogs/master_api_key | str trim)
-          }
-
-          if ("/run/secrets/oneuptime/homelab/runner_key" | path exists) {
-            $env.TF_VAR_ONEUPTIME_RUNNER_KEY = (open /run/secrets/oneuptime/homelab/runner_key | str trim)
-          }
-
-          if ("/run/secrets/oneuptime/homelab/probe_key" | path exists) {
-            $env.TF_VAR_ONEUPTIME_PROBE_KEY = (open /run/secrets/oneuptime/homelab/probe_key | str trim)
-          }
-
-          if ("/run/secrets/oneuptime/tablogs/tablogs_api_key" | path exists) {
-            $env.TF_VAR_TABLOGS_API_KEY = (open /run/secrets/oneuptime/tablogs/tablogs_api_key | str trim)
-          }
-
-          if ("/run/secrets/oneuptime/tablogs/tablabs_api_key" | path exists) {
-            $env.TF_VAR_TABLABS_API_KEY = (open /run/secrets/oneuptime/tablogs/tablabs_api_key | str trim)
-          }
-
-          if ("/run/secrets/snmp/v3_auth_key" | path exists) {
-            try { $env.TF_VAR_SNMP_V3_AUTH_KEY = (open /run/secrets/snmp/v3_auth_key | str trim) }
-          }
-
-          if ("/run/secrets/snmp/v3_priv_key" | path exists) {
-            try { $env.TF_VAR_SNMP_V3_PRIV_KEY = (open /run/secrets/snmp/v3_priv_key | str trim) }
-          }
-
-          if ("/run/secrets/terraform_state_passphrase" | path exists) {
-            $env.TF_VAR_NIXOS_STATE_PASSPHRASE = (open /run/secrets/terraform_state_passphrase | str trim)
-          }
+          ${lib.concatLines (
+            lib.mapAttrsToList
+              (var: secret: ''
+                if ("/run/secrets/${secret}" | path exists) {
+                  try { $env.${var} = (open /run/secrets/${secret} | str trim) }
+                }
+              '')
+              {
+                INFRACOST_API_KEY = "infracost_api_key";
+                ONEUPTIME_API_KEY = "oneuptime/tablogs/master_api_key";
+                TF_VAR_ONEUPTIME_RUNNER_KEY = "oneuptime/homelab/runner_key";
+                TF_VAR_ONEUPTIME_PROBE_KEY = "oneuptime/homelab/probe_key";
+                TF_VAR_TABLOGS_API_KEY = "oneuptime/tablogs/tablogs_api_key";
+                TF_VAR_TABLABS_API_KEY = "oneuptime/tablogs/tablabs_api_key";
+                TF_VAR_SNMP_V3_AUTH_KEY = "snmp/v3_auth_key";
+                TF_VAR_SNMP_V3_PRIV_KEY = "snmp/v3_priv_key";
+                TF_VAR_NIXOS_STATE_PASSPHRASE = "terraform_state_passphrase";
+              }
+          )}
 
           alias ".." = cd ..
           alias "cd" = z
