@@ -59,14 +59,7 @@
           settings = {
             command = config.host.claudeCommand;
             window.position = "float";
-            window.float = {
-              width = "80%";
-              height = "85%";
-              row = "center";
-              col = "center";
-              border = "rounded";
-              relative = "editor";
-            };
+            window.float.height = "85%";
             git.use_git_root = false;
           };
         };
@@ -205,19 +198,11 @@
         nvim-tree = {
           enable = true;
           settings = {
-            git = {
-              enable = true;
-              timeout = 2000;
-            };
-            view.width = 30;
-            filters = {
-              dotfiles = false;
-              git_ignored = false;
-            };
+            git.timeout = 2000;
+            filters.git_ignored = false;
             update_focused_file.enable = true;
             renderer = {
               highlight_git = "name";
-              highlight_diagnostics = "name";
               highlight_hidden = "name";
               indent_markers.enable = true;
               icons.show = {
@@ -325,16 +310,7 @@
             open_mapping = "[[<C-t>]]";
           };
         };
-        smart-splits = {
-          enable = true;
-          settings = {
-            ignored_events = [
-              "BufEnter"
-              "WinEnter"
-            ];
-            silent = true;
-          };
-        };
+        smart-splits.enable = true;
       };
     };
 }
