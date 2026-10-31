@@ -122,8 +122,7 @@
         };
 
         enable = true;
-        nixpkgs.source = inputs.nixpkgs;
-        nixpkgs.config.allowUnfree = true;
+        nixpkgs.useGlobalPackages = true;
       };
     };
 }
