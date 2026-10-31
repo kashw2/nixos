@@ -56,21 +56,13 @@
         signcolumn = "yes";
       };
       diagnostic.settings.virtual_text = true;
-      filetype.extension.bru = "bruno";
+      # Without filetype_tf, an empty new .tf file is detected as TinyFugue.
+      globals.filetype_tf = "terraform";
+      filetype.extension = {
+        bru = "bruno";
+        tfvars = "terraform";
+      };
       autoCmd = [
-        {
-          desc = "Terraform New File LSP Fix";
-          event = [
-            "BufEnter"
-            "BufRead"
-            "BufNewFile"
-          ];
-          pattern = [
-            "*.tf"
-            "*.tfvars"
-          ];
-          command = "set filetype=terraform";
-        }
         {
           desc = "Auto-answer swap-file prompts";
           event = [ "SwapExists" ];
