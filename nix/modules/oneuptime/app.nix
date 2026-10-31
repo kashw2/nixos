@@ -29,14 +29,8 @@
           NODE_ENV = "production";
           LOG_LEVEL = "ERROR";
           TRUSTED_PROXY_HOPS = "1";
-          BILLING_ENABLED = "false";
-          IS_ENTERPRISE_EDITION = "false";
           DISABLE_TELEMETRY = "true";
           DISABLE_UPDATE_CHECK = "true";
-          GOOGLE_TAG_MANAGER_ENABLED = "false";
-          CAPTCHA_ENABLED = "false";
-          WORKER_CONCURRENCY = "100";
-          TELEMETRY_CONCURRENCY = "100";
           MQTT_INGEST_ENABLED = "false";
           ALLOW_PRIVATE_NETWORK_WEBHOOKS = "true";
           PROBE_ALLOW_PRIVATE_NETWORK_MONITORS = "true";

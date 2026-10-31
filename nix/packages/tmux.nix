@@ -41,9 +41,6 @@
             bind -T copy-mode-vi v send -X begin-selection
             bind -T copy-mode-vi y send -X copy-pipe-and-cancel '${lib.getExe' pkgs.wl-clipboard "wl-copy"}'
 
-            set -g status on
-            set -g status-position bottom
-            set -g status-justify left
             set -g status-interval 5
             set -g status-style "bg=#0B0B14,fg=#CDD6F4"
             set -g status-left-length 60

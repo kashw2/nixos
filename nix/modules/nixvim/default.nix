@@ -50,50 +50,27 @@
         shiftwidth = 2;
         tabstop = 2;
         undofile = true;
-        autoread = true;
         clipboard = "unnamedplus";
         ignorecase = true;
         smartcase = true;
         signcolumn = "yes";
       };
-      diagnostic.settings = {
-        virtual_lines = false;
-        virtual_text = true;
+      diagnostic.settings.virtual_text = true;
+      # Without filetype_tf, an empty new .tf file is detected as TinyFugue.
+      globals.filetype_tf = "terraform";
+      filetype.extension = {
+        bru = "bruno";
+        tfvars = "terraform";
       };
       autoCmd = [
-        {
-          desc = "Terraform New File LSP Fix";
-          event = [
-            "BufEnter"
-            "BufRead"
-            "BufNewFile"
-          ];
-          pattern = [
-            "*.tf"
-            "*.tfvars"
-          ];
-          command = "set filetype=terraform";
-        }
         {
           desc = "Auto-answer swap-file prompts";
           event = [ "SwapExists" ];
           pattern = [ "*" ];
           command = "let v:swapchoice = 'e'";
         }
-        {
-          desc = "Check for external file changes on focus and idle";
-          event = [
-            "FocusGained"
-            "BufEnter"
-            "CursorHold"
-            "CursorHoldI"
-          ];
-          pattern = [ "*" ];
-          command = "if mode() !~ '\\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif";
-        }
       ];
       extraPackages = lib.optionals (!config.host.isServer) [
-        pkgs.ueberzugpp
         pkgs.ansible-language-server
       ];
     };
@@ -118,12 +95,11 @@
             let
               hmClaude = config.home-manager.users.keanu.programs.claude-code;
             in
-            if hmClaude.enable then lib.getExe hmClaude.finalPackage else lib.getExe pkgs.claude-code;
+            lib.mkIf hmClaude.enable (lib.getExe hmClaude.finalPackage);
         };
 
         enable = true;
-        nixpkgs.source = inputs.nixpkgs;
-        nixpkgs.config.allowUnfree = true;
+        nixpkgs.useGlobalPackages = true;
       };
     };
 }

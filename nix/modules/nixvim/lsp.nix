@@ -7,8 +7,7 @@
       ...
     }:
     {
-      plugins.lsp.enable = true;
-      plugins.lsp-format.enable = !config.plugins.conform-nvim.enable;
+      plugins.lspconfig.enable = true;
       lsp = {
         inlayHints.enable = true;
         servers = {

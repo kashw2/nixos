@@ -27,26 +27,17 @@
         '';
 
         rootDevice = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          example = "/dev/disk/by-partlabel/disk-main-root";
+          type = lib.types.str;
+          default = "/dev/disk/by-partlabel/disk-main-root";
           description = ''
             Block device of the top-level btrfs filesystem that holds the
             `root`, `home`, and `persist` subvolumes. Mounted with
             `subvol=/` in the initrd to perform the pre-boot wipe.
-            Required when `enable = true`.
           '';
         };
       };
 
       config = lib.mkIf cfg.enable {
-        assertions = [
-          {
-            assertion = cfg.rootDevice != null;
-            message = "impermanence.enable requires rootDevice to be set.";
-          }
-        ];
-
         # /persist holds the sops-nix age decryption key (the persisted
         # /etc/ssh/ssh_host_ed25519_key) and the hashed user passwords that
         # sops writes during early activation — must be up in stage 1.

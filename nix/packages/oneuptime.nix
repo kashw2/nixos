@@ -2,13 +2,30 @@
 {
   perSystem =
     { pkgs, ... }:
+    let
+      version = "14.0.88";
+
+      # Every package builds from a subdirectory of the one monorepo tag.
+      src = pkgs.fetchFromGitHub {
+        owner = "OneUptime";
+        repo = "oneuptime";
+        tag = version;
+        hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
+      };
+
+      # CLI, Probe and Runner depend on Common as `file:../Common`, so npm symlinks it rather than installing it.
+      commonNpmDeps = pkgs.fetchNpmDeps {
+        name = "oneuptime-common-npm-deps-${version}";
+        src = "${src}/packages/Common";
+        hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
+      };
+    in
     {
       packages = {
         oneuptime-app = pkgs.callPackage (
           {
             lib,
             buildNpmPackage,
-            fetchFromGitHub,
             fetchNpmDeps,
             makeWrapper,
             nodejs_26,
@@ -29,16 +46,9 @@
           in
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-app";
-            version = "14.0.88";
+            inherit version src;
 
             __structuredAttrs = true;
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = finalAttrs.version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
 
             sourceRoot = "${finalAttrs.src.name}/packages/App";
 
@@ -133,29 +143,11 @@
           {
             lib,
             buildNpmPackage,
-            fetchFromGitHub,
-            fetchNpmDeps,
             nix-update-script,
             nodejs_26,
             versionCheckHook,
           }:
 
-          let
-            version = "14.0.88";
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
-
-            commonNpmDeps = fetchNpmDeps {
-              name = "oneuptime-common-npm-deps-${version}";
-              src = "${src}/packages/Common";
-              hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
-            };
-          in
           buildNpmPackage {
             pname = "oneuptime-cli";
             inherit version src;
@@ -204,22 +196,14 @@
           {
             lib,
             buildGoModule,
-            fetchFromGitHub,
             nix-update-script,
           }:
 
           buildGoModule (finalAttrs: {
             pname = "oneuptime-infrastructure-agent";
-            version = "14.0.88";
+            inherit version src;
 
             __structuredAttrs = true;
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = finalAttrs.version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
 
             sourceRoot = "${finalAttrs.src.name}/agents/InfrastructureAgent";
 
@@ -234,132 +218,11 @@
           })
         ) { };
 
-        oneuptime-kubernetes-cost-agent = pkgs.callPackage (
-          {
-            lib,
-            buildNpmPackage,
-            fetchFromGitHub,
-            makeWrapper,
-            nix-update-script,
-            nodejs_26,
-          }:
-
-          buildNpmPackage (finalAttrs: {
-            pname = "oneuptime-kubernetes-cost-agent";
-            version = "14.0.88";
-
-            __structuredAttrs = true;
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = finalAttrs.version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
-
-            sourceRoot = "${finalAttrs.src.name}/agents/KubernetesCostAgent";
-
-            nodejs = nodejs_26;
-
-            npmDepsHash = "sha256-PxfhyimofxjokV6Wo29uMlmeEUwi4QYafZAb4j2X1WU=";
-
-            npmBuildScript = "compile";
-
-            nativeBuildInputs = [ makeWrapper ];
-
-            installPhase =
-              let
-                libDir = "$out/lib/oneuptime-kubernetes-cost-agent";
-              in
-              ''
-                runHook preInstall
-
-                install -d ${libDir}
-                cp -a build/dist ${libDir}/
-
-                makeWrapper ${lib.getExe nodejs_26} $out/bin/oneuptime-kubernetes-cost-agent \
-                  --add-flags ${libDir}/dist/Index.js
-
-                runHook postInstall
-              '';
-
-            passthru.updateScript = nix-update-script { };
-
-            meta = {
-              mainProgram = "oneuptime-kubernetes-cost-agent";
-              platforms = lib.platforms.linux;
-            };
-          })
-        ) { };
-
-        oneuptime-kubernetes-log-tailer = pkgs.callPackage (
-          {
-            lib,
-            buildNpmPackage,
-            fetchFromGitHub,
-            makeWrapper,
-            nix-update-script,
-            nodejs_26,
-          }:
-
-          buildNpmPackage (finalAttrs: {
-            pname = "oneuptime-kubernetes-log-tailer";
-            version = "14.0.88";
-
-            __structuredAttrs = true;
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = finalAttrs.version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
-
-            sourceRoot = "${finalAttrs.src.name}/agents/KubernetesLogTailer";
-
-            nodejs = nodejs_26;
-
-            npmDepsHash = "sha256-wQrGTCrEPFkfj50MMnk3EBuUlXlGeufr2wenEQqn2II=";
-
-            npmBuildScript = "compile";
-
-            # Prevent inclusion of dev deps since we override installPhase
-            npmFlags = [ "--omit=dev" ];
-
-            nativeBuildInputs = [ makeWrapper ];
-
-            installPhase =
-              let
-                libDir = "$out/lib/oneuptime-kubernetes-log-tailer";
-              in
-              ''
-                runHook preInstall
-
-                install -d ${libDir}
-                cp -a build/dist node_modules ${libDir}/
-
-                makeWrapper ${lib.getExe nodejs_26} $out/bin/oneuptime-kubernetes-log-tailer \
-                  --add-flags ${libDir}/dist/Index.js
-
-                runHook postInstall
-              '';
-
-            passthru.updateScript = nix-update-script { };
-
-            meta = {
-              mainProgram = "oneuptime-kubernetes-log-tailer";
-              platforms = lib.platforms.linux;
-            };
-          })
-        ) { };
-
         oneuptime-probe = pkgs.callPackage (
           {
             lib,
             buildNpmPackage,
             dnsutils,
-            fetchFromGitHub,
-            fetchNpmDeps,
             iputils,
             makeWrapper,
             nodejs_26,
@@ -368,23 +231,6 @@
             traceroute,
           }:
 
-          let
-            version = "14.0.88";
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
-
-            # Probe depends on Common as `file:../Common`, so npm symlinks it rather than installing it.
-            commonNpmDeps = fetchNpmDeps {
-              name = "oneuptime-common-npm-deps-${version}";
-              src = "${src}/packages/Common";
-              hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
-            };
-          in
           buildNpmPackage {
             pname = "oneuptime-probe";
             inherit version src;
@@ -472,8 +318,6 @@
             lib,
             bash,
             buildNpmPackage,
-            fetchFromGitHub,
-            fetchNpmDeps,
             git,
             makeWrapper,
             nodejs_26,
@@ -481,16 +325,9 @@
 
           buildNpmPackage (finalAttrs: {
             pname = "oneuptime-runner";
-            version = "14.0.88";
+            inherit version src;
 
             __structuredAttrs = true;
-
-            src = fetchFromGitHub {
-              owner = "OneUptime";
-              repo = "oneuptime";
-              tag = finalAttrs.version;
-              hash = "sha256-/1XDQl2lPQlChfXbZa5ivR/BU19y74HCjMdwMLmkU18=";
-            };
 
             sourceRoot = "${finalAttrs.src.name}/packages/Runner";
 
@@ -505,17 +342,10 @@
               chmod -R u+w ..
             '';
 
-            # Runner depends on Common as `file:../Common`, so npm symlinks it rather than installing it.
             preBuild = ''
               (
                 cd ../Common
-                export npmDeps=${
-                  fetchNpmDeps {
-                    name = "oneuptime-common-npm-deps-${finalAttrs.version}";
-                    src = "${finalAttrs.src}/packages/Common";
-                    hash = "sha256-1VZsdM7PjDwk4WJLnPKF5r4QW3mP0Jb0+JCWUzst2mQ=";
-                  }
-                }
+                export npmDeps=${commonNpmDeps}
                 npmConfigHook
               )
             '';
