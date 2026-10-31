@@ -69,17 +69,6 @@
           pattern = [ "*" ];
           command = "let v:swapchoice = 'e'";
         }
-        {
-          desc = "Check for external file changes on focus and idle";
-          event = [
-            "FocusGained"
-            "BufEnter"
-            "CursorHold"
-            "CursorHoldI"
-          ];
-          pattern = [ "*" ];
-          command = "if mode() !~ '\\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif";
-        }
       ];
       extraPackages = lib.optionals (!config.host.isServer) [
         pkgs.ansible-language-server
