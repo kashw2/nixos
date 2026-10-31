@@ -65,8 +65,6 @@ jobs:
             oneuptime-app: 'nix/packages/oneuptime.nix'
             oneuptime-cli: 'nix/packages/oneuptime.nix'
             oneuptime-infrastructure-agent: 'nix/packages/oneuptime.nix'
-            oneuptime-kubernetes-cost-agent: 'nix/packages/oneuptime.nix'
-            oneuptime-kubernetes-log-tailer: 'nix/packages/oneuptime.nix'
             oneuptime-probe: 'nix/packages/oneuptime.nix'
             oneuptime-runner: 'nix/packages/oneuptime.nix'
       - id: classify
@@ -75,7 +73,7 @@ jobs:
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","floci-cli","kitty","tmux","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","atlas-nvim","bruno-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-kubernetes-cost-agent","oneuptime-kubernetes-log-tailer","oneuptime-probe","oneuptime-runner"]'
+          ALL='["nushell","act","floci-cli","kitty","tmux","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","atlas-nvim","bruno-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-probe","oneuptime-runner"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else
