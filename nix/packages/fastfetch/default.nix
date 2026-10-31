@@ -10,9 +10,6 @@
     {
       imports = [ wlib.wrapperModules.fastfetch ];
       config = {
-        package = pkgs.fastfetch.override {
-          flashfetchSupport = true;
-        };
         settings = {
           logo = {
             type = "kitty-direct";
