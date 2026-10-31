@@ -57,8 +57,5 @@
           extraPackages = [ pkgs.libvdpau-va-gl ];
         };
       };
-
-      services.xserver.videoDrivers = [ "amdgpu" ];
-
     };
 }

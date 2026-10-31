@@ -76,8 +76,6 @@
         };
       };
 
-      services.xserver.videoDrivers = [ "nouveau" ];
-
       # Colon-free iGPU alias; AQ_DRM_DEVICES is colon-separated so by-path names break it.
       services.udev.extraRules = ''
         KERNEL=="card*", SUBSYSTEM=="drm", KERNELS=="0000:00:02.0", SYMLINK+="dri/igpu"
