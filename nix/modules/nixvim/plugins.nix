@@ -159,6 +159,7 @@
             };
             indent = {
               chars = [ "│" ];
+              enable = true;
               exclude_filetypes = {
                 lazyterm = true;
                 neo-tree = true;
