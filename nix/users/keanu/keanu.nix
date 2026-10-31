@@ -46,7 +46,6 @@
               pkgs.azure-cli
               pkgs.terraform
               pkgs.ansible
-              pkgs.antigravity-ide
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
