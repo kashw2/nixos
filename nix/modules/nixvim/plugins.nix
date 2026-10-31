@@ -352,16 +352,7 @@
             open_mapping = "[[<C-t>]]";
           };
         };
-        smart-splits = {
-          enable = true;
-          settings = {
-            ignored_events = [
-              "BufEnter"
-              "WinEnter"
-            ];
-            silent = true;
-          };
-        };
+        smart-splits.enable = true;
       };
     };
 }
