@@ -45,7 +45,6 @@
               pkgs.terraform
               pkgs.ansible
               pkgs.openvpn
-              pkgs.nautilus
               pkgs.slack
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
