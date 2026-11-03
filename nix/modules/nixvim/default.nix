@@ -99,6 +99,9 @@
         };
 
         enable = true;
+        # Generating the options manpage evaluates docs for every nixvim option,
+        # roughly 10% of a host's eval time.
+        enableMan = false;
         nixpkgs.useGlobalPackages = true;
       };
     };
