@@ -158,6 +158,11 @@
               hl.bind("SUPER + mouse:272", hl.dsp.window.drag(),   { mouse = true })
               hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
+              hl.bind("SUPER + CTRL + left",  hl.dsp.window.resize({ x = -40, y = 0,   relative = true }), { repeating = true })
+              hl.bind("SUPER + CTRL + right", hl.dsp.window.resize({ x = 40,  y = 0,   relative = true }), { repeating = true })
+              hl.bind("SUPER + CTRL + up",    hl.dsp.window.resize({ x = 0,   y = -40, relative = true }), { repeating = true })
+              hl.bind("SUPER + CTRL + down",  hl.dsp.window.resize({ x = 0,   y = 40,  relative = true }), { repeating = true })
+
               hl.config({
                 decoration = {
                   shadow = {
