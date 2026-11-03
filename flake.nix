@@ -74,10 +74,16 @@
         perSystem =
           { system, ... }:
           {
-            # Every perSystem consumer (wrappers, packages, devShells) gets unfree.
+            # The flake's only nixpkgs instance: perSystem consumers (wrappers, packages,
+            # devShells) and every NixOS host (via nixpkgs.pkgs) share it, so nixpkgs
+            # config and overlays go here rather than in nixpkgs.config/overlays.
             _module.args.pkgs = import inputs.nixpkgs {
               inherit system;
-              config.allowUnfree = true;
+              config = {
+                allowUnfree = true;
+                nvidia.acceptLicense = true;
+              };
+              overlays = [ inputs.self.overlays.default ];
             };
           };
       };
