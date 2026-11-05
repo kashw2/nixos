@@ -5,6 +5,7 @@
     {
       config,
       lib,
+      pkgs,
       modulesPath,
       ...
     }:
@@ -29,6 +30,14 @@
       };
 
       hardware.cpu.amd.updateMicrocode = config.hardware.enableRedistributableFirmware;
+
+      # ath12k can fail to resume from deep sleep ("failed to resume core: -110"),
+      # leaving wlp9s0 dead until reboot. Unload it before suspend and load it
+      # fresh on resume.
+      powerManagement = {
+        powerDownCommands = "${lib.getExe' pkgs.kmod "modprobe"} -r ath12k_wifi7 ath12k";
+        resumeCommands = "${lib.getExe' pkgs.kmod "modprobe"} ath12k_wifi7";
+      };
 
       nixpkgs.hostPlatform = "x86_64-linux";
     };
