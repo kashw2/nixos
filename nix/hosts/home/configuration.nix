@@ -51,6 +51,12 @@
         };
       };
 
+      # Leave a quarter of the 9950X3D free during builds: pin the daemon (and
+      # every build it spawns) to physical cores 0-11 plus their SMT siblings,
+      # and size each build's NIX_BUILD_CORES to match.
+      nix.settings.cores = 24;
+      systemd.services.nix-daemon.serviceConfig.AllowedCPUs = "0-11,16-27";
+
       hardware = {
         graphics = {
           enable = true;
