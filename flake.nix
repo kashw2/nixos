@@ -36,10 +36,13 @@
     nixfmt.url = "github:nixos/nixfmt";
     nixd.url = "github:nix-community/nixd";
     llm-agents.url = "github:numtide/llm-agents.nix";
-    nautilus-my-computer.url = "github:yannmasoch/nautilus-my-computer?dir=packaging/nix";
     witr.url = "github:pranshuparmar/witr";
     netwatch = {
       url = "github:matthart1983/netwatch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    loaf-fm = {
+      url = "github:m-uvex/loaf-fm";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     superpowers = {
