@@ -1474,11 +1474,11 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1792517015,
-        "narHash": "sha256-FRP/UENskHA/xeNbO6nnROLKVfyHfJ8AX4y06Kg/zdI=",
+        "lastModified": 1793215095,
+        "narHash": "sha256-C3Wd+Ppbb38I7av70lNjJvZRY+qZStfxtOtxt7akHuU=",
         "owner": "nixos",
         "repo": "nixfmt",
-        "rev": "1a15545d5ff0bf8940be482ab8db51cd5b1cb6df",
+        "rev": "4b1f4ae293ce8e40951d6cab27d44c534d65fa9f",
         "type": "github"
       },
       "original": {
