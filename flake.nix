@@ -13,7 +13,10 @@
     deploy-rs.url = "github:serokell/deploy-rs";
     wrapper-modules.url = "github:birdeehub/nix-wrapper-modules";
     hyprland.url = "github:hyprwm/Hyprland";
-    hyprpaper.url = "github:hyprwm/hyprpaper";
+    hyprpaper = {
+      url = "github:hyprwm/hyprpaper";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hypridle.url = "github:hyprwm/hypridle";
     nixvim.url = "github:nix-community/nixvim";
     neovim-nightly-overlay = {
