@@ -31,8 +31,7 @@ Variants {
         function run(key) {
             root.shell.closePopup();
             if (key === "lock") {
-                var cmd = Quickshell.env("QS_LOCK_CMD");
-                if (cmd) Quickshell.execDetached([cmd]);
+                Quickshell.execDetached(["loginctl", "lock-session"]);
             } else if (key === "suspend") {
                 Quickshell.execDetached(["systemctl", "suspend"]);
             } else if (key === "logout") {
