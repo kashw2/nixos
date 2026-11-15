@@ -35,7 +35,7 @@
         before = [ "graphical-session.target" ];
       };
 
-      # User service, not a Hyprland exec: sd-switch restarts it on deploy.
+      # User services, not Hyprland execs: sd-switch restarts them on deploy.
       home-manager.sharedModules = [
         {
           services.hyprpaper = {
@@ -43,8 +43,17 @@
             package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper;
             systemdTarget = "hyprland-session.target";
           };
+          services.hypridle = {
+            enable = true;
+            package = self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle;
+            systemdTarget = "hyprland-session.target";
+          };
+          # Keep the lock screen (in hypridle's cgroup) alive across restarts.
+          systemd.user.services.hypridle.Service.KillMode = "process";
         }
       ];
+      # Enabled by programs.hyprlock; replaced by the home-manager unit.
+      services.hypridle.enable = lib.mkForce false;
 
       programs.hyprlock = {
         enable = true;

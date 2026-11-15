@@ -12,8 +12,12 @@
       config = {
         package = inputs.hypridle.packages.${pkgs.stdenv.hostPlatform.system}.hypridle;
         flags."--config" = pkgs.writeText "hypridle.conf" ''
+          general {
+            lock_cmd=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock}
+          }
+
           listener {
-            on-timeout=${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock}
+            on-timeout=${lib.getExe' pkgs.systemd "loginctl"} lock-session
             timeout=600
           }
 
