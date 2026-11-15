@@ -24,6 +24,9 @@ jobs:
     name: Build
     needs: detect-hosts
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -46,8 +49,8 @@ jobs:
       - uses: tailscale/github-action@v4.4.0
         continue-on-error: true
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          oauth-client-id: ${{ secrets.TS_OIDC_CLIENT_ID }}
+          audience: ${{ secrets.TS_OIDC_AUDIENCE }}
           tags: tag:ci
       - uses: ryanccn/attic-action@v0
         continue-on-error: true
