@@ -35,6 +35,36 @@
         before = [ "graphical-session.target" ];
       };
 
+      # User services, not Hyprland execs: sd-switch restarts them on deploy.
+      home-manager.sharedModules = [
+        {
+          services.hyprpaper = {
+            enable = true;
+            package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper;
+            systemdTarget = "hyprland-session.target";
+          };
+          services.hypridle = {
+            enable = true;
+            package = self.packages.${pkgs.stdenv.hostPlatform.system}.hypridle;
+            systemdTarget = "hyprland-session.target";
+          };
+          # Keep the lock screen (in hypridle's cgroup) alive across restarts.
+          systemd.user.services.hypridle.Service.KillMode = "process";
+        }
+        (
+          { lib, ... }:
+          {
+            # Read by hyprlock's reload_cmd; SIGUSR2 makes it reload.
+            xdg.dataFile."wallpaper.jpg".source = ../packages/desktop-environment/Background.jpg;
+            home.activation.reloadHyprlockWallpaper = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+              run ${lib.getExe' pkgs.procps "pkill"} -USR2 -x hyprlock || true
+            '';
+          }
+        )
+      ];
+      # Enabled by programs.hyprlock; replaced by the home-manager unit.
+      services.hypridle.enable = lib.mkForce false;
+
       programs.hyprlock = {
         enable = true;
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;

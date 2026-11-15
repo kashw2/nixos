@@ -1,4 +1,4 @@
-{ self, inputs, ... }:
+{ inputs, ... }:
 {
   flake.wrappers.quickshell =
     {
@@ -40,7 +40,6 @@
         ];
         flags."-p" = ./quickshell;
         env.QS_WALLPAPER = "${./Background.jpg}";
-        env.QS_LOCK_CMD = lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
       };
     };
 }

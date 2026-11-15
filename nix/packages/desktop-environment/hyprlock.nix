@@ -11,6 +11,8 @@
       imports = [ wlib.modules.default ];
       config = {
         package = pkgs.hyprlock;
+        # reload_time=0: re-run reload_cmd on SIGUSR2 (sent on deploy).
+        # readlink -f: store files share one mtime, so the link path won't reload.
         flags."--config" = pkgs.writeText "hyprlock.conf" ''
           background {
             blur_passes=3
@@ -19,6 +21,8 @@
             color=rgba(255, 255, 255, 1.0)
             contrast=1.300000
             path=${./Background.jpg}
+            reload_cmd=${lib.getExe' pkgs.coreutils "readlink"} -f ~/.local/share/wallpaper.jpg
+            reload_time=0
             vibrancy=0.210000
             vibrancy_darkness=0.000000
           }
