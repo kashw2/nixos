@@ -24,6 +24,14 @@
           "--accept-dns=false"
         ];
         authKeyFile = config.sops.secrets."tailscale".path;
+        # The secret is an OAuth client secret, which never expires. Nodes it
+        # registers are tagged, and tagged nodes have key expiry disabled, so
+        # hosts never re-register and their tailscale IPs stay stable.
+        authKeyParameters = {
+          ephemeral = false;
+          preauthorized = true;
+        };
+        extraUpFlags = [ "--advertise-tags=tag:nixos" ];
       };
 
       services.iperf3.enable = true;
