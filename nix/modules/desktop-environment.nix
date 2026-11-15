@@ -35,6 +35,17 @@
         before = [ "graphical-session.target" ];
       };
 
+      # User service, not a Hyprland exec: sd-switch restarts it on deploy.
+      home-manager.sharedModules = [
+        {
+          services.hyprpaper = {
+            enable = true;
+            package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprpaper;
+            systemdTarget = "hyprland-session.target";
+          };
+        }
+      ];
+
       programs.hyprlock = {
         enable = true;
         package = self.packages.${pkgs.stdenv.hostPlatform.system}.hyprlock;
