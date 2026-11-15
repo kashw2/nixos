@@ -4,7 +4,7 @@
     sshUser = "keanu";
     user = "root";
     nodes = builtins.mapAttrs (name: configuration: {
-      hostname = "${name}.local";
+      hostname = "${name}.tailscale";
       profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos configuration;
     }) self.nixosConfigurations;
   };
