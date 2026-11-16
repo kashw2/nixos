@@ -122,6 +122,12 @@
           "oneuptime/tablogs/tablabs_api_key" = lib.mkIf (!config.isServer) {
             owner = "keanu";
           };
+          "bitbucket/email" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+          };
+          "bitbucket/api_token" = lib.mkIf (!config.isServer) {
+            owner = "keanu";
+          };
           "github_kashw2_pat" = { };
           "github_tablogs_classic_pat" = { };
           "github_classic_pat" = { };
