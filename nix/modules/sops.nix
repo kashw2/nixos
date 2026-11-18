@@ -123,7 +123,7 @@
             owner = "keanu";
           };
           "github_kashw2_pat" = { };
-          "github_tablogs_pat" = { };
+          "github_tablogs_classic_pat" = { };
           "github_classic_pat" = { };
           "aws_access_key_id" = { };
           "aws_access_key_secret" = { };
@@ -189,7 +189,7 @@
         };
 
         templates."nix-access-tokens" = {
-          content = "access-tokens = github.com=${config.sops.placeholder.github_kashw2_pat} github.com/tablogs=${config.sops.placeholder.github_tablogs_pat}";
+          content = "access-tokens = github.com=${config.sops.placeholder.github_kashw2_pat} github.com/tablogs=${config.sops.placeholder.github_tablogs_classic_pat}";
           group = "wheel";
           mode = "0440";
         };
