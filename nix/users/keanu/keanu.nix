@@ -39,6 +39,7 @@
           shell = self.packages.${pkgs.stdenv.hostPlatform.system}.nushell;
           packages =
             lib.optionals (!config.isServer) [
+              pkgs.google-chrome # For Claude to interact with the browser
               pkgs.firefox-devedition
               pkgs.awscli2
               pkgs.azure-cli
@@ -212,6 +213,10 @@
               # Opus 5 / Fable 5.1; newer models read the per-model key instead.
               settings.effortLevel = "xhigh";
               settings.modelSettings.claude-opus-5-5.effortLevel = "xhigh";
+              # Start every session with Claude in Chrome on (browser tools + the
+              # bundled /claude-in-chrome skill). claudeInChromeDefaultEnabled only
+              # works in the mutable ~/.claude.json, so use the env var instead.
+              settings.env.CLAUDE_CODE_ENABLE_CFC = "1";
               settings.hooks =
                 let
                   # Gates Shortcut story/epic creation on having read Tablogs KB
