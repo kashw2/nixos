@@ -50,6 +50,7 @@
               pkgs.slack
               self.packages.${pkgs.stdenv.hostPlatform.system}.gridcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.deckcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
@@ -232,6 +233,15 @@
                   "mcp"
                   "--connect"
                   "7676"
+                ];
+              };
+              # Port matches nix/packages/deckcraft.nix; the control server has no auth.
+              deckcraft = {
+                command = lib.getExe' pkgs.deckcraft "deckcraft-cli";
+                args = [
+                  "mcp"
+                  "--connect"
+                  "7575"
                 ];
               };
             };
