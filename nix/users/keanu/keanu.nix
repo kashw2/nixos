@@ -49,6 +49,7 @@
               pkgs.nautilus
               pkgs.slack
               self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
@@ -217,6 +218,11 @@
                   "--control-token-file"
                   "${config.users.users.keanu.home}/.local/state/photocraft/control.token"
                 ];
+              };
+              # Connects to the app on 7979 (nix/packages/vectorcraft.nix), else headless.
+              vectorcraft = {
+                command = lib.getExe' pkgs.vectorcraft "vectorcraft-cli";
+                args = [ "mcp" ];
               };
             };
           };
