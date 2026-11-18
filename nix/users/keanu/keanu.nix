@@ -51,6 +51,13 @@
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
+              # Only the secret paths are baked in; bb reads the credentials from them at runtime.
+              (self.packages.${pkgs.stdenv.hostPlatform.system}.bb.wrap {
+                envDefault = {
+                  BITBUCKET_EMAIL_FILE = config.sops.secrets."bitbucket/email".path;
+                  BITBUCKET_API_TOKEN_FILE = config.sops.secrets."bitbucket/api_token".path;
+                };
+              })
               pkgs.gh
               pkgs.infracost
               pkgs.opentofu
@@ -170,6 +177,17 @@
               };
             };
             settings.servers = {
+              bitbucket = lib.mkIf (!config.isServer) {
+                command = lib.getExe (
+                  self.packages.${pkgs.stdenv.hostPlatform.system}.bb.wrap {
+                    envDefault = {
+                      BITBUCKET_EMAIL_FILE = config.sops.secrets."bitbucket/email".path;
+                      BITBUCKET_API_TOKEN_FILE = config.sops.secrets."bitbucket/api_token".path;
+                    };
+                  }
+                );
+                args = [ "mcp" ];
+              };
               shortcut = {
                 type = "http";
                 url = "https://mcp.shortcut.com/mcp";
