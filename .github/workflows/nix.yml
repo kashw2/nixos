@@ -19,14 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: cachix/install-nix-action@v31.11.3
+      - uses: cachix/install-nix-action@v31.11.5
       - run: nix develop --command bash -c 'nixfmt --check $(git ls-files "*.nix")'
   deadnix:
     name: Deadnix
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: cachix/install-nix-action@v31.11.3
+      - uses: cachix/install-nix-action@v31.11.5
       - run: nix develop --command bash -c 'deadnix --no-lambda-pattern-names --fail $(git ls-files "*.nix")'
   flake-check:
     name: Flake Check
@@ -44,7 +44,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-      - uses: cachix/install-nix-action@v31.11.3
+      - uses: cachix/install-nix-action@v31.11.5
         with:
           extra_nix_config: |
             extra-substituters = https://nix-community.cachix.org
@@ -94,7 +94,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-      - uses: cachix/install-nix-action@v31.11.3
+      - uses: cachix/install-nix-action@v31.11.5
         with:
           extra_nix_config: |
             extra-substituters = https://nix-community.cachix.org
@@ -138,7 +138,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-      - uses: cachix/install-nix-action@v31.11.3
+      - uses: cachix/install-nix-action@v31.11.5
         with:
           extra_nix_config: |
             extra-substituters = https://nix-community.cachix.org
