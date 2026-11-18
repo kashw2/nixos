@@ -20,9 +20,6 @@
         ];
         passthru.shellPath = "/bin/nu";
         flags."--config" = pkgs.writeText "config.nu" ''
-          let carapace_completer = {|spans|
-              ${lib.getExe pkgs.carapace} $spans.0 nushell ...$spans | from json
-          }
           $env.config = {
            show_banner: false,
            edit_mode: vi,
@@ -35,8 +32,8 @@
               # set to false to prevent nushell looking into $env.PATH to find more suggestions
               enable: true 
               # set to lower can improve completion performance at the cost of omitting some options
-              max_results: 20 
-              completer: $carapace_completer # check 'carapace_completer' 
+              max_results: 20
+              # completer is set by the carapace init script sourced below
              }
            }
           }
