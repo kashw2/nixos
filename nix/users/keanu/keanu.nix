@@ -48,6 +48,7 @@
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
+              self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
@@ -204,6 +205,17 @@
                 env.LD_LIBRARY_PATH = lib.makeLibraryPath [
                   inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.icu
                   inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.openssl
+                ];
+              };
+              # Bridge to the live app; port and token file match nix/packages/photocraft.nix.
+              photocraft = {
+                command = lib.getExe' pkgs.photocraft "photocraft-cli";
+                args = [
+                  "mcp"
+                  "--bridge"
+                  "127.0.0.1:7878"
+                  "--control-token-file"
+                  "${config.users.users.keanu.home}/.local/state/photocraft/control.token"
                 ];
               };
             };
