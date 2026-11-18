@@ -48,6 +48,7 @@
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
+              self.packages.${pkgs.stdenv.hostPlatform.system}.gridcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
@@ -223,6 +224,15 @@
               vectorcraft = {
                 command = lib.getExe' pkgs.vectorcraft "vectorcraft-cli";
                 args = [ "mcp" ];
+              };
+              # The CLI reads the app's per-port token file itself (nix/packages/gridcraft.nix).
+              gridcraft = {
+                command = lib.getExe' pkgs.gridcraft "gridcraft-cli";
+                args = [
+                  "mcp"
+                  "--connect"
+                  "7676"
+                ];
               };
             };
           };
