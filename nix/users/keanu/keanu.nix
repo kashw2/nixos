@@ -48,6 +48,10 @@
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
+              self.packages.${pkgs.stdenv.hostPlatform.system}.gridcraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.deckcraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
@@ -204,6 +208,40 @@
                 env.LD_LIBRARY_PATH = lib.makeLibraryPath [
                   inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.icu
                   inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.openssl
+                ];
+              };
+              # Bridge to the live app; port and token file match nix/packages/photocraft.nix.
+              photocraft = {
+                command = lib.getExe' pkgs.photocraft "photocraft-cli";
+                args = [
+                  "mcp"
+                  "--bridge"
+                  "127.0.0.1:7878"
+                  "--control-token-file"
+                  "${config.users.users.keanu.home}/.local/state/photocraft/control.token"
+                ];
+              };
+              # Connects to the app on 7979 (nix/packages/vectorcraft.nix), else headless.
+              vectorcraft = {
+                command = lib.getExe' pkgs.vectorcraft "vectorcraft-cli";
+                args = [ "mcp" ];
+              };
+              # The CLI reads the app's per-port token file itself (nix/packages/gridcraft.nix).
+              gridcraft = {
+                command = lib.getExe' pkgs.gridcraft "gridcraft-cli";
+                args = [
+                  "mcp"
+                  "--connect"
+                  "7676"
+                ];
+              };
+              # Port matches nix/packages/deckcraft.nix; the control server has no auth.
+              deckcraft = {
+                command = lib.getExe' pkgs.deckcraft "deckcraft-cli";
+                args = [
+                  "mcp"
+                  "--connect"
+                  "7575"
                 ];
               };
             };
