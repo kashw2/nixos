@@ -52,6 +52,7 @@
               self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.deckcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
@@ -242,6 +243,15 @@
                   "mcp"
                   "--connect"
                   "7575"
+                ];
+              };
+              # The wrapped CLI loads the app's session token itself (nix/packages/filmcraft.nix).
+              filmcraft = {
+                command = lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft "filmcraft-cli";
+                args = [
+                  "mcp"
+                  "--bridge"
+                  "127.0.0.1:7777"
                 ];
               };
             };
