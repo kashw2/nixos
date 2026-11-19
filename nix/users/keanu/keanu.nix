@@ -54,7 +54,6 @@
               self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
-              self.packages.${pkgs.stdenv.hostPlatform.system}.floci-cli
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
               # Only the secret paths are baked in; bb reads the credentials from them at runtime.
               (self.packages.${pkgs.stdenv.hostPlatform.system}.bb.wrap {

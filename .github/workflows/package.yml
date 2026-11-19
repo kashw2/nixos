@@ -10,7 +10,6 @@ on:
       - nix/packages/tmux.nix
       - nix/packages/fastfetch/**
       - nix/packages/act.nix
-      - nix/packages/floci-cli.nix
       - nix/packages/desktop-environment/hyprland.nix
       - nix/packages/desktop-environment/hypridle.nix
       - nix/packages/desktop-environment/hyprlock.nix
@@ -45,7 +44,6 @@ jobs:
             tmux: 'nix/packages/tmux.nix'
             fastfetch: 'nix/packages/fastfetch/**'
             act: 'nix/packages/act.nix'
-            floci-cli: 'nix/packages/floci-cli.nix'
             hyprland: 'nix/packages/desktop-environment/hyprland.nix'
             hypridle: 'nix/packages/desktop-environment/hypridle.nix'
             hyprlock: 'nix/packages/desktop-environment/hyprlock.nix'
@@ -72,7 +70,7 @@ jobs:
           FLAKE_CHANGED: ${{ steps.changes.outputs.flake }}
           CHANGES: ${{ steps.changes.outputs.changes }}
         run: |
-          ALL='["nushell","act","floci-cli","kitty","tmux","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","atlas-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-probe","oneuptime-runner"]'
+          ALL='["nushell","act","kitty","tmux","hyprland","hypridle","hyprlock","hyprpaper","atone-nvim","codestats","atlas-nvim","tree-sitter-bruno","neovim","quickshell","fastfetch","deploy-host","oneuptime-app","oneuptime-cli","oneuptime-infrastructure-agent","oneuptime-probe","oneuptime-runner"]'
           if [ "$EVENT" = "workflow_dispatch" ] || [ "$FLAKE_CHANGED" = "true" ]; then
             echo "packages=$ALL" >> "$GITHUB_OUTPUT"
           else
