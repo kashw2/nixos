@@ -213,6 +213,9 @@
 
               hl.config({ master = { new_status = "master" } })
 
+              -- DP-3 advertises HDR, so auto-HDR flips it into HDR (black flash) whenever an Electron app goes fullscreen
+              hl.config({ render = { cm_auto_hdr = 0 } })
+
               hl.config({
                 misc = {
                   disable_hyprland_logo   = true,
