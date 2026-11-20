@@ -42,7 +42,13 @@
       # native otelcol.receiver.hostmetrics and drop otelcol-contrib if it lands.
       services.opentelemetry-collector = {
         enable = true;
-        package = pkgs.opentelemetry-collector-contrib;
+        # 0.155.0 vendors cockroachdb/swiss b0f6560f979b, gated `!go1.27`, so it
+        # fails on nixpkgs' default Go 1.27. Drop once nixpkgs ships a newer one.
+        package =
+          (pkgs.opentelemetry-collector-releases.override {
+            buildGoModule = pkgs.buildGo126Module;
+            go = pkgs.go_1_26;
+          }).otelcol-contrib;
         validateConfigOverrides = lib.optionals shipJournal [
           "extensions::file_storage::create_directory=true"
         ];
