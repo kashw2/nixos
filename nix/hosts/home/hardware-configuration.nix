@@ -31,6 +31,22 @@
 
       hardware.cpu.amd.updateMicrocode = config.hardware.enableRedistributableFirmware;
 
+      # Windows install on the NVMe. Kept out of disko so a reinstall never
+      # touches it. Automounted on first access; nofail keeps boot working if
+      # Fast Startup has left the volume dirty.
+      fileSystems."/mnt/windows" = {
+        device = "/dev/disk/by-uuid/42D2D081D2D07A9D";
+        fsType = "ntfs3";
+        options = [
+          "nofail"
+          "x-systemd.automount"
+          "uid=1000"
+          "umask=022"
+          "windows_names"
+          "noatime"
+        ];
+      };
+
       # ath12k can fail to resume from deep sleep ("failed to resume core: -110"),
       # leaving wlp9s0 dead until reboot. Unload it before suspend and load it
       # fresh on resume.
