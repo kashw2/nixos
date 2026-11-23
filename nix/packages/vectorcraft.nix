@@ -1,6 +1,6 @@
 { ... }:
 {
-  # Control server on 7979 for a bare `vectorcraft-cli mcp`.
+  # Control server on 7979 for `vectorcraft-cli mcp --connect`.
   flake.wrappers.vectorcraft =
     {
       pkgs,

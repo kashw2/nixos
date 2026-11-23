@@ -240,10 +240,14 @@
                   "${config.users.users.keanu.home}/.local/state/photocraft/control.token"
                 ];
               };
-              # Connects to the app on 7979 (nix/packages/vectorcraft.nix), else headless.
+              # No headless fallback: it isn't confined to the root.
               vectorcraft = {
                 command = lib.getExe' pkgs.vectorcraft "vectorcraft-cli";
-                args = [ "mcp" ];
+                args = [
+                  "mcp"
+                  "--connect"
+                  "127.0.0.1:7979"
+                ];
               };
               # The CLI reads the app's per-port token file itself (nix/packages/gridcraft.nix).
               gridcraft = {
