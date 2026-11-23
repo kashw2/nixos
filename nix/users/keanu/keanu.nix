@@ -230,55 +230,88 @@
                 ];
               };
             }
-            // lib.optionalAttrs config.isDesktop {
-              # Wrapped CLI creates the token.
-              photocraft = {
-                command = lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft "photocraft-cli";
-                args = [
-                  "mcp"
-                  "--bridge"
-                  "127.0.0.1:7878"
-                  "--control-token-file"
-                  "${config.users.users.keanu.home}/.local/state/photocraft/control.token"
-                ];
-              };
-              # No headless fallback: it isn't confined to the root.
-              vectorcraft = {
-                command = lib.getExe' pkgs.vectorcraft "vectorcraft-cli";
-                args = [
-                  "mcp"
-                  "--connect"
-                  "127.0.0.1:7979"
-                ];
-              };
-              # CLI finds the app's token.
-              gridcraft = {
-                command = lib.getExe' pkgs.gridcraft "gridcraft-cli";
-                args = [
-                  "mcp"
-                  "--connect"
-                  "7676"
-                ];
-              };
-              # Control server has no auth.
-              deckcraft = {
-                command = lib.getExe' pkgs.deckcraft "deckcraft-cli";
-                args = [
-                  "mcp"
-                  "--connect"
-                  "7575"
-                ];
-              };
-              # Wrapped CLI loads the token.
-              filmcraft = {
-                command = lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft "filmcraft-cli";
-                args = [
-                  "mcp"
-                  "--bridge"
-                  "127.0.0.1:7777"
-                ];
-              };
-            };
+            # craft-mcp starts the app on the first call that needs it; `catalog` lists tools until then.
+            // lib.optionalAttrs config.isDesktop (
+              lib.mapAttrs
+                (name: app: {
+                  command = lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.craft-mcp;
+                  args = [
+                    (builtins.toJSON (
+                      app
+                      // {
+                        inherit name;
+                        launch = [ (lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.${name} name) ];
+                      }
+                    ))
+                  ];
+                })
+                {
+                  # Wrapped CLI creates the token.
+                  photocraft = {
+                    port = 7878;
+                    live = [
+                      (lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft "photocraft-cli")
+                      "mcp"
+                      "--bridge"
+                      "127.0.0.1:7878"
+                      "--control-token-file"
+                      "${config.users.users.keanu.home}/.local/state/photocraft/control.token"
+                    ];
+                  };
+                  vectorcraft = {
+                    port = 7979;
+                    live = [
+                      (lib.getExe' pkgs.vectorcraft "vectorcraft-cli")
+                      "mcp"
+                      "--connect"
+                      "127.0.0.1:7979"
+                    ];
+                    catalog = [
+                      (lib.getExe' pkgs.vectorcraft "vectorcraft-cli")
+                      "mcp"
+                      "--headless"
+                    ];
+                  };
+                  # CLI finds the app's token.
+                  gridcraft = {
+                    port = 7676;
+                    live = [
+                      (lib.getExe' pkgs.gridcraft "gridcraft-cli")
+                      "mcp"
+                      "--connect"
+                      "7676"
+                    ];
+                    catalog = [
+                      (lib.getExe' pkgs.gridcraft "gridcraft-cli")
+                      "mcp"
+                    ];
+                  };
+                  # Control server has no auth.
+                  deckcraft = {
+                    port = 7575;
+                    live = [
+                      (lib.getExe' pkgs.deckcraft "deckcraft-cli")
+                      "mcp"
+                      "--connect"
+                      "7575"
+                    ];
+                    catalog = [
+                      (lib.getExe' pkgs.deckcraft "deckcraft-cli")
+                      "mcp"
+                    ];
+                  };
+                  # Wrapped CLI loads the token.
+                  filmcraft = {
+                    port = 7777;
+                    live = [
+                      (lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft "filmcraft-cli")
+                      "mcp"
+                      "--bridge"
+                      "127.0.0.1:7777"
+                    ];
+                  };
+                }
+            );
           };
           programs = {
             home-manager.enable = true;
