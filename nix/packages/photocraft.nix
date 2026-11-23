@@ -13,6 +13,7 @@
         inherit data;
         esc-fn = wlib.escapeShellArgWithEnv;
       };
+      root = "$HOME/Documents/Artcraft/photocraft";
       tokenFile = "$HOME/.local/state/photocraft/control.token";
     in
     {
@@ -22,12 +23,13 @@
         envDefault = {
           PHOTOCRAFT_CONTROL_PORT = "7878";
           PHOTOCRAFT_CONTROL_TOKEN_FILE = runtime tokenFile;
-          PHOTOCRAFT_AUTOMATION_READ_ROOT = runtime "$HOME";
-          PHOTOCRAFT_AUTOMATION_WRITE_ROOT = runtime "$HOME";
+          PHOTOCRAFT_AUTOMATION_READ_ROOT = runtime root;
+          PHOTOCRAFT_AUTOMATION_WRITE_ROOT = runtime root;
         };
-        # The bridge exits without the token; the app reuses it.
+        # App needs the root, bridge the token (which the app reuses).
         runShell = [
           ''
+            ${lib.getExe' pkgs.coreutils "mkdir"} -p "${root}"
             token_file="${tokenFile}"
             if [ ! -s "$token_file" ]; then
               ${lib.getExe' pkgs.coreutils "mkdir"} -p -m 700 "''${token_file%/*}"
