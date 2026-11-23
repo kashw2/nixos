@@ -1,7 +1,6 @@
 { ... }:
 {
-  # Starts the desktop app with its loopback control server on 7575, so
-  # `deckcraft-cli mcp --connect 7575` can drive the live window.
+  # Control server on 7575 for `deckcraft-cli mcp --connect`.
   flake.wrappers.deckcraft =
     {
       pkgs,

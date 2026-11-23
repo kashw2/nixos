@@ -249,7 +249,7 @@
                   "127.0.0.1:7979"
                 ];
               };
-              # The CLI reads the app's per-port token file itself (nix/packages/gridcraft.nix).
+              # CLI finds the app's token.
               gridcraft = {
                 command = lib.getExe' pkgs.gridcraft "gridcraft-cli";
                 args = [
@@ -258,7 +258,7 @@
                   "7676"
                 ];
               };
-              # Port matches nix/packages/deckcraft.nix; the control server has no auth.
+              # Control server has no auth.
               deckcraft = {
                 command = lib.getExe' pkgs.deckcraft "deckcraft-cli";
                 args = [
@@ -267,7 +267,7 @@
                   "7575"
                 ];
               };
-              # The wrapped CLI loads the app's session token itself (nix/packages/filmcraft.nix).
+              # Wrapped CLI loads the token.
               filmcraft = {
                 command = lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft "filmcraft-cli";
                 args = [
