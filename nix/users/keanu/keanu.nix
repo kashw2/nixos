@@ -48,11 +48,6 @@
               pkgs.openvpn
               pkgs.nautilus
               pkgs.slack
-              self.packages.${pkgs.stdenv.hostPlatform.system}.gridcraft
-              self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
-              self.packages.${pkgs.stdenv.hostPlatform.system}.deckcraft
-              self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
-              self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft
               self.packages.${pkgs.stdenv.hostPlatform.system}.act
               self.packages.${pkgs.stdenv.hostPlatform.system}.oneuptime-cli
               # Only the secret paths are baked in; bb reads the credentials from them at runtime.
@@ -82,6 +77,11 @@
             ++ lib.optionals (config.isDesktop) [
               inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
               pkgs.obs-studio
+              self.packages.${pkgs.stdenv.hostPlatform.system}.gridcraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.deckcraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.vectorcraft
+              self.packages.${pkgs.stdenv.hostPlatform.system}.filmcraft
             ]
             ++ [
               inputs.deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
@@ -229,6 +229,8 @@
                   "--headless"
                 ];
               };
+            }
+            // lib.optionalAttrs config.isDesktop {
               # Wrapped CLI creates the token.
               photocraft = {
                 command = lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft "photocraft-cli";
