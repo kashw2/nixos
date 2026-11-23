@@ -229,9 +229,9 @@
                   "--headless"
                 ];
               };
-              # Bridge to the live app; port and token file match nix/packages/photocraft.nix.
+              # Wrapped CLI creates the token.
               photocraft = {
-                command = lib.getExe' pkgs.photocraft "photocraft-cli";
+                command = lib.getExe' self.packages.${pkgs.stdenv.hostPlatform.system}.photocraft "photocraft-cli";
                 args = [
                   "mcp"
                   "--bridge"
