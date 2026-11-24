@@ -1,10 +1,10 @@
 { ... }:
 {
-  # Starts the desktop app with its loopback control server on 7979, the port
-  # a bare `vectorcraft-cli mcp` connects to (falling back to headless).
+  # Control server on 7979 for `vectorcraft-cli mcp --connect`.
   flake.wrappers.vectorcraft =
     {
       pkgs,
+      lib,
       wlib,
       ...
     }:
@@ -13,6 +13,7 @@
         inherit data;
         esc-fn = wlib.escapeShellArgWithEnv;
       };
+      root = "$HOME/Documents/Artcraft/vectorcraft";
     in
     {
       imports = [ wlib.modules.default ];
@@ -20,9 +21,11 @@
         package = pkgs.vectorcraft;
         envDefault = {
           VECTORCRAFT_CONTROL_PORT = "7979";
-          VECTORCRAFT_AUTOMATION_READ_ROOT = runtime "$HOME";
-          VECTORCRAFT_AUTOMATION_WRITE_ROOT = runtime "$HOME";
+          VECTORCRAFT_AUTOMATION_READ_ROOT = runtime root;
+          VECTORCRAFT_AUTOMATION_WRITE_ROOT = runtime root;
         };
+        # App needs the root.
+        runShell = [ ''${lib.getExe' pkgs.coreutils "mkdir"} -p "${root}"'' ];
       };
     };
 }
