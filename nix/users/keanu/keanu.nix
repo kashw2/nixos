@@ -343,10 +343,10 @@
               settings.hooks =
                 let
                   # Gates Shortcut story/epic creation on having read Tablogs KB
-                  # article 163 ("Shortcut Story Standards") in the session.
-                  shortcutKb163 = lib.getExe (
-                    pkgs.writers.writeJSBin "shortcut-kb163-hook" { } (
-                      builtins.readFile ./claude-hooks/shortcut-kb163.js
+                  # article 527 ("Master of Puppets"), the root KB index, in the session.
+                  shortcutKbGate = lib.getExe (
+                    pkgs.writers.writeJSBin "shortcut-kb-gate-hook" { } (
+                      builtins.readFile ./claude-hooks/shortcut-kb-gate.js
                     )
                   );
                 in
@@ -357,9 +357,9 @@
                       hooks = [
                         {
                           type = "command";
-                          command = shortcutKb163;
+                          command = shortcutKbGate;
                           args = [ "gate" ];
-                          statusMessage = "Checking Shortcut story standards (KB 163)";
+                          statusMessage = "Checking Tablogs KB index was read (Master of Puppets, KB 527)";
                         }
                       ];
                     }
@@ -370,7 +370,7 @@
                       hooks = [
                         {
                           type = "command";
-                          command = shortcutKb163;
+                          command = shortcutKbGate;
                           args = [ "mark" ];
                         }
                       ];
