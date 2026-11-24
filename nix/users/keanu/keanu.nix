@@ -353,7 +353,7 @@
                 {
                   PreToolUse = [
                     {
-                      matcher = "^mcp__plugin_hm_shortcut__(stories|epics)-create$";
+                      matcher = "^mcp__plugin_hm_shortcut__create_(story|epic)$";
                       hooks = [
                         {
                           type = "command";
