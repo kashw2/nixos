@@ -210,6 +210,25 @@
                   inputs.mcp-servers-nix.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.openssl
                 ];
               };
+              # Headless Firefox for browser QA; bundling only Firefox skips the other Playwright browsers
+              playwright = lib.mkIf (!config.isServer) {
+                command = lib.getExe (
+                  pkgs.playwright-mcp.override {
+                    playwright-driver = pkgs.playwright-driver // {
+                      browsers = pkgs.playwright-driver.browsers.override {
+                        withChromium = false;
+                        withChromiumHeadlessShell = false;
+                        withWebkit = false;
+                      };
+                    };
+                  }
+                );
+                args = [
+                  "--browser"
+                  "firefox"
+                  "--headless"
+                ];
+              };
               # Bridge to the live app; port and token file match nix/packages/photocraft.nix.
               photocraft = {
                 command = lib.getExe' pkgs.photocraft "photocraft-cli";
