@@ -1,5 +1,7 @@
 # Keanu Ashwell's NixOS Configuration
 
+All my machines in one flake: desktops, laptops and home servers, running Hyprland, Neovim and home-manager.
+
 <div align="center">
 	<img src="screenshots/desktop.png">
 	<img src="screenshots/widget.png">
@@ -7,68 +9,60 @@
 </div>
 <br>
 
-# Sops
+## Hosts
 
-Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using age encryption. Each machine's SSH host key is converted to an age key for decryption, plus an admin age key for manual operations.
+| Host | What it is |
+|---|---|
+| `home` | Desktop |
+| `laptop`, `thinkpad` | Laptops |
+| `media` | Media server: Jellyfin and the *arr stack |
+| `homelab` | Home server |
 
-## Commands
+## Layout
 
-```bash
-# Edit encrypted secrets
-nix-shell -p sops age --run 'sops secrets/secrets.yaml'
+The flake uses [flake-parts](https://flake.parts) and [import-tree](https://github.com/vic/import-tree): every file
+under `nix/` is a module and is picked up automatically.
 
-# Verify decryption works
-nix-shell -p sops age --run 'sops --decrypt secrets/secrets.yaml'
+| Path | What |
+|---|---|
+| `nix/hosts/` | One folder per machine: its configuration, hardware and disk layout |
+| `nix/modules/` | Shared NixOS modules: desktop, networking, security, servers and more |
+| `nix/users/` | Users and their home-manager configuration |
+| `nix/packages/` | Packages and wrapped programs: Neovim, kitty, nushell and more |
+| `secrets/` | Secrets, encrypted with [sops-nix](https://github.com/Mic92/sops-nix) |
+| `terraform/` | Infrastructure that lives outside NixOS (see [its README](./terraform/README.MD)) |
+| `tests/` | NixOS VM tests |
 
-# Get a machine's age public key
-nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'
-
-# Re-encryption
-nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'
-```
-
-## Adding a new machine
-
-1. Get its age public key: `nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'`
-2. Add the key to `.sops.yaml` under `keys` and in `creation_rules`
-3. Re-encrypt: `nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'`
-4. Add the host's SSH keys: `nix-shell -p sops age --run 'sops secrets/secrets.yaml'`
-5. Import `self.nixosModules.sops` in the new host's configuration
-
-# Nixos Anywhere
-
-Because hosts use sops-nix (most with impermanence), `/persist` needs the sops age key and ed25519 host key seeded prior to first activation — otherwise sops can't decrypt and `keanu_password` never materialises. `deploy-host` (defined in `nix/deploy.nix`) stages those files from the key USB and invokes `nixos-anywhere --extra-files` in one step.
+GitHub Actions builds the hosts and packages on every push.
 
 ## Usage
 
-On the target: boot the NixOS minimal installer ISO and set a root password (`sudo passwd root` in the installer console).
+```bash
+# Rebuild the machine you're on
+sudo nixos-rebuild switch --flake .#<host>
 
-On the deploy machine, with the USB containing age/sops keys mounted:
+# Deploy to another machine over Tailscale
+nix run .#deploy-rs -- .#<host>
+
+# Install a new machine from the NixOS installer (with the key USB mounted)
+nix run .#deploy-host -- --host <host> --ip <address>
+```
+
+## Secrets
+
+Secrets are encrypted with sops and age. Each machine decrypts them with its own SSH host key.
 
 ```bash
-nix run .#deploy-host -- --host laptop --ip 192.168.1.6
+# Edit secrets
+nix-shell -p sops age --run 'sops secrets/secrets.yaml'
+
+# Get a machine's age key, to add it to .sops.yaml
+nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'
+
+# Re-encrypt after changing .sops.yaml
+nix-shell -p sops age --run 'sops updatekeys secrets/secrets.yaml'
 ```
 
-replacing the host with the host you'd like to deploy and the ip with the machine ipv4
-
-Type the root password when `ssh-copy-id` prompts you
-
-### Flags
-
-- `--host <name>` — host attr in `flake.nixosConfigurations` (`home`, `laptop`, `thinkpad`, `media`, `homelab`).
-- `--ip <addr>` — target IP or hostname. Connection is always made as `root`.
-- `--path <usb-root>` — USB root path. Defaults to the first directory under `/run/media/$USER`.
-
-Expected USB layout (same as the `install-host` ISO installer):
-
-```
-<usb-root>/sops/admin/keys.txt
-<usb-root>/sops/<host>/ssh_host_ed25519_key
-<usb-root>/sops/<host>/ssh_host_ed25519_key.pub
-```
-
-# Terraform
-
-Some state lives outside the NixOS closure — resources that hosts need credentials for before their services will start. These are managed with [OpenTofu](https://opentofu.org), with state encrypted in-repo using OpenTofu's native state encryption.
-
-See [`terraform/README.MD`](./terraform/README.MD).
+A new machine needs its sops keys in place before its first boot, so install it with `deploy-host`: it copies the
+keys from the USB and runs [nixos-anywhere](https://github.com/nix-community/nixos-anywhere). The details are in
+`nix/deploy.nix`.
