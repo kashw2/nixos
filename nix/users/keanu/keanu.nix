@@ -40,7 +40,7 @@
           packages =
             lib.optionals (!config.isServer) [
               pkgs.google-chrome # For Claude to interact with the browser
-              pkgs.firefox-devedition
+              self.packages.${pkgs.stdenv.hostPlatform.system}.firefox-devedition
               pkgs.awscli2
               pkgs.azure-cli
               pkgs.terraform

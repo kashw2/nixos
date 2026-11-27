@@ -67,7 +67,7 @@
                     }
                   )
                 }")
-                hl.exec_cmd("${lib.getExe pkgs.firefox-devedition}")
+                hl.exec_cmd("${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.firefox-devedition}")
               end)
 
               hl.env("XCURSOR_SIZE",    "24")
