@@ -2213,11 +2213,11 @@
         "nixpkgs": "nixpkgs_15"
       },
       "locked": {
-        "lastModified": 1792724358,
-        "narHash": "sha256-XOnNnwJqlZp8+zRX26dy7rQXVZExC+rHY42nUbWviVM=",
+        "lastModified": 1792809605,
+        "narHash": "sha256-4iE/DRz45xBVC7Y+FNjVrDTwxXHwzi6kJ8grOGlqXKY=",
         "owner": "pranshuparmar",
         "repo": "witr",
-        "rev": "9e54a0507a4b3025fe8c3ecb329c7cb8da627995",
+        "rev": "96fe86fa9be53d5e9722a53ed47018c2a0c81662",
         "type": "github"
       },
       "original": {
