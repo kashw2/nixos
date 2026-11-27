@@ -26,6 +26,9 @@
             enp10s0 = {
               connection = {
                 id = "enp10s0";
+                # Without a lock this profile matches any ethernet device, including
+                # the YoloCam S3's USB network interface, and steals the default route.
+                interface-name = "enp10s0";
                 type = "ethernet";
                 autoconnect = true;
               };
