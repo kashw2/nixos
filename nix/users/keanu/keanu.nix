@@ -353,7 +353,8 @@
                 {
                   PreToolUse = [
                     {
-                      matcher = "^mcp__plugin_hm_shortcut__create_(story|epic)$";
+                      # Shortcut comes from the org-level claude.ai connector; match any server name
+                      matcher = "^mcp__.*[Ss]hortcut.*__create_(story|epic)$";
                       hooks = [
                         {
                           type = "command";
