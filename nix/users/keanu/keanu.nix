@@ -192,10 +192,6 @@
                 );
                 args = [ "mcp" ];
               };
-              shortcut = {
-                type = "http";
-                url = "https://mcp.shortcut.com/mcp";
-              };
               azure = {
                 command =
                   lib.getExe
