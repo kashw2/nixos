@@ -1348,11 +1348,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794394684,
-        "narHash": "sha256-Qo+UGZPKq186xL9o6HIF049k+nD7SlVAFDw4+mZiV14=",
+        "lastModified": 1795085395,
+        "narHash": "sha256-maPnP4u2WYZ9pqwB5uZ89k41477nAT7aiLNZkzhWCFU=",
         "owner": "matthart1983",
         "repo": "netwatch",
-        "rev": "fbcac803b31cd3aec418485970c4df041523d508",
+        "rev": "78f85143a2d43cd86c9ed4e65b48bbace4a21441",
         "type": "github"
       },
       "original": {
