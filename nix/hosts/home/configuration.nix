@@ -54,6 +54,12 @@
         };
       };
 
+      # The YoloCam S3 webcam also exposes a USB network adapter (cdc_ncm) for its
+      # vendor app; webcam video doesn't use it, so keep NetworkManager off it.
+      services.udev.extraRules = ''
+        ACTION!="remove", SUBSYSTEM=="net", ATTRS{idVendor}=="46f8", ATTRS{idProduct}=="0855", ENV{NM_UNMANAGED}="1"
+      '';
+
       # Leave a quarter of the 9950X3D free during builds: pin the daemon (and
       # every build it spawns) to physical cores 0-11 plus their SMT siblings,
       # and size each build's NIX_BUILD_CORES to match.
