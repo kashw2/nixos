@@ -1194,11 +1194,11 @@
     "i-have-adhd": {
       "flake": false,
       "locked": {
-        "lastModified": 1791734634,
-        "narHash": "sha256-GTqrnZxQvzo/ogAuUrffkOaMK1BYm/4rAZsnfmDt7DU=",
+        "lastModified": 1791821500,
+        "narHash": "sha256-wE6QeIAclilf/vUxkbGtNTBmB5+Mg+8dn5uGVherDXU=",
         "owner": "ayghri",
         "repo": "i-have-adhd",
-        "rev": "1ecea1993b7fce257ffbd686c070948b5e07eda6",
+        "rev": "655c687054ceef952b2699fc959a2a0bc4326abc",
         "type": "github"
       },
       "original": {
